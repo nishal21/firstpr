@@ -1,5 +1,9 @@
 import { cached } from "@/lib/cache";
 import {
+  assessDifficulty,
+  difficultyBadgeLabel,
+} from "@/lib/difficulty";
+import {
   getContributing,
   getFile,
   getIssue,
@@ -39,6 +43,9 @@ export type ExplainIssueResult = {
   droppedCitations: number;
   /** Null when fewer than 2 language-relevant results. */
   learn: LearnLink[] | null;
+  difficulty: "easy" | "medium" | "hard";
+  difficultyBadge: string;
+  difficultyReason: string;
 };
 
 const CHECKS_HEADING_RE =
@@ -103,9 +110,14 @@ export async function explainIssue(opts: {
   ]);
   const sha = repoInfo.headSha;
 
-  const [contributing, picked] = await Promise.all([
+  const [contributing, picked, difficulty] = await Promise.all([
     getContributing(owner, repo, sha),
     pickFiles({ owner, repo, sha, issue }),
+    assessDifficulty({
+      title: issue.title,
+      body: issue.body,
+      cacheKey: `diff:${owner}/${repo}#${issueNumber}`,
+    }),
   ]);
 
   const contributingSection = extractContributingChecks(contributing);
@@ -209,6 +221,9 @@ export async function explainIssue(opts: {
     citations,
     droppedCitations,
     learn: learnLinks.length >= 2 ? learnLinks : null,
+    difficulty: difficulty.level,
+    difficultyBadge: difficultyBadgeLabel(difficulty.level),
+    difficultyReason: difficulty.reason,
   };
 }
 

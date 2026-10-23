@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Check, ExternalLink } from "lucide-react";
+import { DifficultyBadge } from "@/components/difficulty-badge";
 import { FlowProgress } from "@/components/flow-steps";
 import { HintLadder } from "@/components/hint-ladder";
 import { Badge } from "@/components/ui/badge";
@@ -46,6 +47,9 @@ type ExplainApiResponse = {
     snippet: string;
     site: string;
   }[] | null;
+  difficulty?: "easy" | "medium" | "hard";
+  difficultyBadge?: string;
+  difficultyReason?: string;
   error?: string;
   code?: string;
 };
@@ -182,6 +186,9 @@ export function IssueExplain({
             #{issue.number}
             <ExternalLink className="size-3.5" aria-hidden />
           </a>
+          {data.difficultyBadge ? (
+            <DifficultyBadge label={data.difficultyBadge} />
+          ) : null}
         </div>
         <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
           {issue.title}

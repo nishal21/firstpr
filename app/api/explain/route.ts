@@ -49,6 +49,9 @@ export async function POST(request: Request) {
       citations: result.citations,
       droppedCitations: result.droppedCitations,
       learn: result.learn,
+      difficulty: result.difficulty,
+      difficultyBadge: result.difficultyBadge,
+      difficultyReason: result.difficultyReason,
     });
   } catch (err) {
     if (err instanceof GitHubError) {

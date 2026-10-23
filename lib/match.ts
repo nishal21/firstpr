@@ -1,8 +1,10 @@
+import { assessDifficulty, difficultyBadgeLabel } from "@/lib/difficulty";
 import { env } from "@/lib/env";
 import {
   getRepo,
   getUserLanguages,
   GitHubError,
+  issueHasOpenLinkedPr,
   listGoodFirstIssues,
   parseRepo,
   REPO_NOT_FOUND_MSG,
@@ -10,11 +12,17 @@ import {
   type GoodFirstIssue,
 } from "@/lib/github";
 
+export type DifficultyLevel = "easy" | "medium" | "hard";
+
 export type ScoredIssue = GoodFirstIssue & {
   owner: string;
   repo: string;
   score: number;
   fitReason: string;
+  difficulty: DifficultyLevel;
+  difficultyReason: string;
+  /** UI label: Beginner-friendly | Stretch */
+  difficultyBadge: string;
 };
 
 export type SkippedIssue = GoodFirstIssue & {
@@ -38,6 +46,8 @@ const LANG_EXTENSIONS: Record<string, string[]> = {
   Markdown: [".md"],
 };
 
+const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
+
 function parseOwnerRepoFromIssueUrl(htmlUrl: string): {
   owner: string;
   repo: string;
@@ -55,6 +65,12 @@ function withRepo(
   repo: string,
 ): GoodFirstIssue & { owner: string; repo: string } {
   return { ...issue, owner, repo };
+}
+
+function isOlderThanOneYear(createdAt: string): boolean {
+  const t = new Date(createdAt).getTime();
+  if (Number.isNaN(t)) return false;
+  return Date.now() - t > ONE_YEAR_MS;
 }
 
 function scoreIssue(
@@ -136,7 +152,6 @@ async function resolveMatchRepo(
     throw new GitHubError(REPO_NOT_FOUND_MSG, "not_found");
   }
 
-  // URL or owner/repo — parse and verify it exists.
   if (/github\.com[/:]/i.test(trimmed) || trimmed.includes("/")) {
     let parsed: { owner: string; repo: string };
     try {
@@ -156,7 +171,6 @@ async function resolveMatchRepo(
     }
   }
 
-  // Bare repo name: try username first, then nishal21.
   const bare = parseRepo(trimmed, { defaultOwner: username });
   try {
     await getRepo(bare.owner, bare.repo);
@@ -177,8 +191,14 @@ async function resolveMatchRepo(
   throw new GitHubError(REPO_NOT_FOUND_MSG, "not_found");
 }
 
+function difficultyRank(level: DifficultyLevel): number {
+  if (level === "easy") return 2;
+  if (level === "medium") return 1;
+  return 0;
+}
+
 /**
- * Match a beginner to open good-first issues. No AI — scoring only.
+ * Match a beginner to open good-first issues, with difficulty filtering.
  */
 export async function matchIssues(opts: {
   username: string;
@@ -192,7 +212,6 @@ export async function matchIssues(opts: {
     languages = [];
   }
 
-  // Omit repo → DEMO_REPO. Explicit empty string → language search.
   const repoInput =
     opts.repo === undefined ? env.DEMO_REPO : opts.repo.trim();
 
@@ -227,22 +246,77 @@ export async function matchIssues(opts: {
         ...issue,
         reason: `Assigned to @${issue.assignees[0]}`,
       });
+      continue;
+    }
+    if (isOlderThanOneYear(issue.createdAt)) {
+      skipped.push({
+        ...issue,
+        reason: "Older than 1 year",
+      });
+      continue;
+    }
+    open.push(issue);
+  }
+
+  // Linked open PR check (timeline) — only for survivors
+  const linkedFlags = await Promise.all(
+    open.map((issue) =>
+      issueHasOpenLinkedPr(issue.owner, issue.repo, issue.number),
+    ),
+  );
+  const afterLinked: typeof open = [];
+  for (let i = 0; i < open.length; i++) {
+    if (linkedFlags[i]) {
+      skipped.push({
+        ...open[i],
+        reason: "Has a linked open pull request",
+      });
     } else {
-      open.push(issue);
+      afterLinked.push(open[i]);
     }
   }
 
-  const scored: ScoredIssue[] = open
-    .map((issue) => {
+  // Difficulty — prefer easy; show medium as Stretch; hide hard
+  const difficultyRows = await Promise.all(
+    afterLinked.map(async (issue) => {
       const { score, fitReason } = scoreIssue(issue, languages);
-      return { ...issue, score, fitReason };
-    })
-    .sort((a, b) => {
-      if (b.score !== a.score) return b.score - a.score;
-      return (
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
+      const difficulty = await assessDifficulty({
+        title: issue.title,
+        body: issue.body,
+        cacheKey: `diff:${issue.owner}/${issue.repo}#${issue.number}`,
+      });
+      return { issue, score, fitReason, difficulty };
+    }),
+  );
+
+  const scored: ScoredIssue[] = [];
+  for (const row of difficultyRows) {
+    if (row.difficulty.level === "hard") {
+      skipped.push({
+        ...row.issue,
+        reason: `Too hard for a first PR: ${row.difficulty.reason}`,
+      });
+      continue;
+    }
+    const boost = row.difficulty.level === "easy" ? 10 : 0;
+    scored.push({
+      ...row.issue,
+      score: row.score + boost,
+      fitReason: row.fitReason,
+      difficulty: row.difficulty.level,
+      difficultyReason: row.difficulty.reason,
+      difficultyBadge: difficultyBadgeLabel(row.difficulty.level),
     });
+  }
+
+  scored.sort((a, b) => {
+    const dr = difficultyRank(b.difficulty) - difficultyRank(a.difficulty);
+    if (dr !== 0) return dr;
+    if (b.score !== a.score) return b.score - a.score;
+    return (
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  });
 
   return {
     languages,

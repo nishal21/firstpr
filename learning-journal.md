@@ -124,6 +124,14 @@
 - `resolveMatchRepo`: bare name tries username then `nishal21`.
 - Verified: `NekoDroid`, `nishal21/NekoDroid`, full URL all pick an issue.
 
+## 2026-10-23 — Match difficulty + filters
+- Labels OR: good first issue, good-first-issue, beginner, easy, first-timers-only, starter (`BEGINNER_LABELS` + listForRepo).
+- Skip: assigned, linked open PR (timeline), older than 1 year.
+- `lib/difficulty.ts`: Gemma → OpenAI low; `{level,reason}`; prefer easy, Stretch=medium, hide hard. Do not cache LLM failures.
+- Badge: Match card + Explain header via `DifficultyBadge` (Beginner-friendly | Stretch).
+- Verified: NekoDroid #4 → Beginner-friendly; Graphify-Labs/graphify#3666 → Stretch.
+- Script: `scripts/verify-difficulty-match.ts` (loads `.env`).
+
 ## Next for another agent
-1. Redeploy Vercel; optional GitHub App comment on PR open (BUILD-PLAN later).
-2. Demo PR A (`fix/log-panel-no-kernel` Fixes #4) if #7 is not the stage demo.
+1. Redeploy Vercel so Match badges hit production.
+2. Optional: open demo PR A for #4 stage path.

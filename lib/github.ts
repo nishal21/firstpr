@@ -306,40 +306,135 @@ export async function getIssue(
   );
 }
 
+/** Beginner-friendly labels we search (OR). */
+export const BEGINNER_LABELS = [
+  "good first issue",
+  "good-first-issue",
+  "beginner",
+  "easy",
+  "first-timers-only",
+  "starter",
+] as const;
+
+function mapListIssue(issue: {
+  number: number;
+  title: string;
+  body?: string | null;
+  labels: (string | { name?: string | null })[];
+  assignees?: ({ login?: string | null } | null)[] | null;
+  html_url: string;
+  created_at: string;
+  comments: number;
+  state?: string;
+}): GoodFirstIssue {
+  return {
+    number: issue.number,
+    title: issue.title,
+    body: issue.body ?? null,
+    labels: issue.labels
+      .map((label) => (typeof label === "string" ? label : (label.name ?? "")))
+      .filter(Boolean),
+    assignees: (issue.assignees ?? [])
+      .map((a) => a?.login)
+      .filter((login): login is string => Boolean(login)),
+    htmlUrl: issue.html_url,
+    createdAt: issue.created_at,
+    comments: issue.comments,
+    state: issue.state === "closed" ? "closed" : "open",
+  };
+}
+
+/**
+ * Open beginner-labeled issues for a repo (OR across BEGINNER_LABELS).
+ * Uses listForRepo (not search) to avoid secondary rate limits.
+ */
 export async function listGoodFirstIssues(
   owner: string,
   repo: string,
 ): Promise<GoodFirstIssue[]> {
-  return cached(`gfi:${owner}/${repo}`, async () =>
+  return cached(`gfi-v2:${owner}/${repo}`, async () =>
     gh(async () => {
       const client = getOctokit();
-      const { data } = await client.issues.listForRepo({
-        owner,
-        repo,
-        state: "open",
-        labels: "good first issue",
-        per_page: 100,
-      });
+      const byNumber = new Map<number, GoodFirstIssue>();
 
-      return data
-        .filter((issue) => !("pull_request" in issue && issue.pull_request))
-        .map((issue) => ({
-          number: issue.number,
-          title: issue.title,
-          body: issue.body ?? null,
-          labels: issue.labels.map((label) =>
-            typeof label === "string" ? label : (label.name ?? ""),
-          ).filter(Boolean),
-          assignees: (issue.assignees ?? [])
-            .map((a) => a.login)
-            .filter(Boolean),
-          htmlUrl: issue.html_url,
-          createdAt: issue.created_at,
-          comments: issue.comments,
-          state: "open" as const,
-        }));
+      await Promise.all(
+        BEGINNER_LABELS.map(async (label) => {
+          try {
+            const { data } = await client.issues.listForRepo({
+              owner,
+              repo,
+              state: "open",
+              labels: label,
+              per_page: 50,
+            });
+            for (const issue of data) {
+              if ("pull_request" in issue && issue.pull_request) continue;
+              if (!byNumber.has(issue.number)) {
+                byNumber.set(issue.number, mapListIssue(issue));
+              }
+            }
+          } catch {
+            // Label may not exist on this repo — ignore.
+          }
+        }),
+      );
+
+      return [...byNumber.values()].sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
     }),
   );
+}
+
+/**
+ * True if an open PR is linked to this issue (timeline cross-reference).
+ * On errors, returns false so Match still works.
+ */
+export async function issueHasOpenLinkedPr(
+  owner: string,
+  repo: string,
+  issueNumber: number,
+): Promise<boolean> {
+  return cached(`linked-pr:${owner}/${repo}:${issueNumber}`, async () => {
+    try {
+      return await gh(async () => {
+        const client = getOctokit();
+        const { data } = await client.issues.listEventsForTimeline({
+          owner,
+          repo,
+          issue_number: issueNumber,
+          per_page: 100,
+        });
+
+        for (const event of data) {
+          const ev = event as {
+            event?: string;
+            source?: {
+              issue?: {
+                state?: string;
+                pull_request?: unknown;
+                html_url?: string;
+              };
+            };
+          };
+          if (ev.event !== "cross-referenced" && ev.event !== "connected") {
+            continue;
+          }
+          const src = ev.source?.issue;
+          if (!src) continue;
+          const isPr =
+            Boolean(src.pull_request) ||
+            (typeof src.html_url === "string" &&
+              /\/pull\/\d+/.test(src.html_url));
+          if (isPr && src.state === "open") return true;
+        }
+        return false;
+      });
+    } catch {
+      return false;
+    }
+  });
 }
 
 export async function searchGoodFirstIssues(
@@ -349,10 +444,15 @@ export async function searchGoodFirstIssues(
   const lang = languages[0];
   if (!lang) return [];
 
-  return cached(`search-gfi:${lang}:${limit}`, async () =>
+  const oneYearAgo = new Date();
+  oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+  const since = oneYearAgo.toISOString().slice(0, 10);
+  const labelQ = BEGINNER_LABELS.map((l) => `label:"${l}"`).join(" OR ");
+
+  return cached(`search-gfi-v2:${lang}:${limit}:${since}`, async () =>
     gh(async () => {
       const client = getOctokit();
-      const q = `is:issue is:open label:"good first issue" no:assignee language:${lang}`;
+      const q = `is:issue is:open no:assignee -linked:pr created:>${since} language:${lang} (${labelQ})`;
       const { data } = await client.search.issuesAndPullRequests({
         q,
         sort: "updated",
@@ -360,21 +460,7 @@ export async function searchGoodFirstIssues(
         per_page: Math.min(limit, 100),
       });
 
-      return data.items.slice(0, limit).map((issue) => ({
-        number: issue.number,
-        title: issue.title,
-        body: issue.body ?? null,
-        labels: issue.labels.map((label) =>
-          typeof label === "string" ? label : (label.name ?? ""),
-        ).filter(Boolean),
-        assignees: (issue.assignees ?? [])
-          .map((a) => a?.login)
-          .filter((login): login is string => Boolean(login)),
-        htmlUrl: issue.html_url,
-        createdAt: issue.created_at,
-        comments: issue.comments,
-        state: issue.state === "closed" ? ("closed" as const) : ("open" as const),
-      }));
+      return data.items.slice(0, limit).map((issue) => mapListIssue(issue));
     }),
   );
 }

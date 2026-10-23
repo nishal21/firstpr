@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
+import { DifficultyBadge } from "@/components/difficulty-badge";
 import { Spinner } from "@/components/spinner";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -19,6 +20,9 @@ type IssueCard = {
   fitReason?: string;
   reason?: string;
   score?: number;
+  difficulty?: "easy" | "medium" | "hard";
+  difficultyBadge?: string;
+  difficultyReason?: string;
 };
 
 type MatchResponse = {
@@ -206,6 +210,9 @@ export function MatchForm() {
           {data.picked ? (
             <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
               <div className="mb-2 flex flex-wrap items-center gap-2">
+                {data.picked.difficultyBadge ? (
+                  <DifficultyBadge label={data.picked.difficultyBadge} />
+                ) : null}
                 <a
                   href={data.picked.htmlUrl}
                   target="_blank"
@@ -225,6 +232,11 @@ export function MatchForm() {
                 ))}
               </div>
               <p className="text-slate-600">{data.picked.fitReason}</p>
+              {data.picked.difficultyReason ? (
+                <p className="mt-1 text-xs text-slate-500">
+                  {data.picked.difficultyReason}
+                </p>
+              ) : null}
               <Link
                 href={`/issue/${data.picked.owner}/${data.picked.repo}/${data.picked.number}`}
                 className={cn(
@@ -263,6 +275,9 @@ export function MatchForm() {
                   className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
                 >
                   <div className="mb-1 flex flex-wrap items-center gap-2">
+                    {issue.difficultyBadge ? (
+                      <DifficultyBadge label={issue.difficultyBadge} />
+                    ) : null}
                     <a
                       href={issue.htmlUrl}
                       target="_blank"

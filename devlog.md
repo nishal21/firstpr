@@ -125,6 +125,12 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - `lib/github.ts` parseRepo + `lib/match.ts` resolveMatchRepo (username → nishal21)
 - Checked: bare / owner/repo / URL → #3 on NekoDroid
 
+## 2026-10-23 — Match difficulty
+- `BEGINNER_LABELS`, `issueHasOpenLinkedPr`, age/assignee filters in `lib/github.ts` + `lib/match.ts`
+- `lib/difficulty.ts` + `difficultySchema`; explain/match return `difficultyBadge`
+- UI: `components/difficulty-badge.tsx` on Match + Explain
+- Checked: #4 Beginner-friendly; graphify#3666 Stretch; tsc clean
+
 ## Next
 - Redeploy Vercel
-- Optional: open demo PR A for stage path
+- Optional: demo PR A for #4

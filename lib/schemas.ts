@@ -133,3 +133,11 @@ export const reviewSchema = z.object({
 });
 
 export type ReviewOutput = z.infer<typeof reviewSchema>;
+
+/** Quick difficulty check for Match (title + body snippet). */
+export const difficultySchema = z.object({
+  level: z.enum(["easy", "medium", "hard"]),
+  reason: z.string().describe("one short sentence"),
+});
+
+export type DifficultyOutput = z.infer<typeof difficultySchema>;

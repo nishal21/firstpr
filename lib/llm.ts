@@ -4,7 +4,7 @@ import { z } from "zod";
 import { env } from "@/lib/env";
 import { withOpenAI } from "@/lib/openai";
 
-export type LlmTask = "first_pass" | "explain" | "hint" | "review";
+export type LlmTask = "first_pass" | "explain" | "hint" | "review" | "difficulty";
 
 export type LlmErrorCode = "timeout" | "bad_output" | "provider_error";
 
