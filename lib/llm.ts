@@ -2,7 +2,7 @@ import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import type { ReasoningEffort } from "openai/resources/shared";
 import { z } from "zod";
-import { env } from "@/lib/env";
+import { env, getEnv } from "@/lib/env";
 
 export type LlmTask = "first_pass" | "explain" | "hint" | "review";
 
@@ -63,11 +63,12 @@ function modelForTask(task: LlmTask): string {
 }
 
 function canUseNeysa(): boolean {
+  const e = getEnv();
   return (
-    env.FIRST_PASS_PROVIDER === "neysa" &&
-    Boolean(env.NEYSA_BASE_URL) &&
-    Boolean(env.NEYSA_API_KEY) &&
-    Boolean(env.NEYSA_MODEL)
+    e.FIRST_PASS_PROVIDER === "neysa" &&
+    Boolean(e.NEYSA_BASE_URL) &&
+    Boolean(e.NEYSA_API_KEY) &&
+    Boolean(e.NEYSA_MODEL)
   );
 }
 
@@ -115,10 +116,11 @@ async function generateViaNeysa<T>({
   schema,
   schemaName,
 }: Omit<GenerateJsonArgs<T>, "effort">): Promise<T> {
-  const model = env.NEYSA_MODEL!;
+  const e = getEnv();
+  const model = e.NEYSA_MODEL!;
   const client = new OpenAI({
-    baseURL: env.NEYSA_BASE_URL,
-    apiKey: env.NEYSA_API_KEY,
+    baseURL: e.NEYSA_BASE_URL,
+    apiKey: e.NEYSA_API_KEY,
   });
 
   const started = Date.now();

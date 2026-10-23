@@ -42,6 +42,10 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - Score without AI; skip assignees; languages badges
 - Checked: NekoDroid → picked from open set; #2 Assigned to @iniyananto-sys
 
+## 2026-10-23 — Fix Neysa env read
+- `getEnv()` + dynamic `process.env[name]` so BASE_URL/MODEL aren’t stuck empty after boot
+- Restart `npm run dev` after .env changes
+
 ## Next
-- Confirm Neysa tag once key + network work
+- Confirm Neysa when host accepts :443
 - Review flow

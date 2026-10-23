@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { getEnv } from "@/lib/env";
 import { getFile } from "@/lib/github";
 import { generateJson } from "@/lib/llm";
 import { pickFilesSchema } from "@/lib/schemas";
@@ -368,9 +369,8 @@ async function pickWithNeysa(
   allowedPaths: string[],
   mustInclude: string[],
 ): Promise<string[]> {
-  const baseURL = process.env.NEYSA_BASE_URL;
-  const apiKey = process.env.NEYSA_API_KEY;
-  const model = process.env.NEYSA_MODEL;
+  const { NEYSA_BASE_URL: baseURL, NEYSA_API_KEY: apiKey, NEYSA_MODEL: model } =
+    getEnv();
 
   if (!apiKey) {
     throw new Error("NEYSA_API_KEY missing");
@@ -491,8 +491,36 @@ export async function pickFiles(
     return { files: [], source: "openai" };
   }
 
-  if (!process.env.NEYSA_API_KEY) {
+  const neysa = getEnv();
+  if (!neysa.NEYSA_API_KEY) {
     console.warn("[neysa] pickFiles: NEYSA_API_KEY missing; falling back to OpenAI");
+    try {
+      return {
+        files: await pickWithOpenAI(
+          issueTitle,
+          issueBody,
+          previews,
+          allowedPaths,
+          mustInclude,
+        ),
+        source: "openai",
+      };
+    } catch (err) {
+      console.warn(
+        "[neysa] pickFiles: OpenAI fallback failed:",
+        err instanceof Error ? err.message : err,
+      );
+      return {
+        files: mergeMustInclude([], mustInclude, allowedPaths),
+        source: "openai",
+      };
+    }
+  }
+
+  if (!neysa.NEYSA_BASE_URL || !neysa.NEYSA_MODEL) {
+    console.warn(
+      "[neysa] pickFiles: NEYSA_BASE_URL or NEYSA_MODEL missing; falling back to OpenAI",
+    );
     try {
       return {
         files: await pickWithOpenAI(

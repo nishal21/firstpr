@@ -17,20 +17,28 @@ const envSchema = z.object({
 
 export type Env = z.infer<typeof envSchema>;
 
+function readEnv(name: string): string | undefined {
+  // Dynamic key access avoids Next/Turbopack inlining an empty value from boot time.
+  const value = process.env[name];
+  if (value == null) return undefined;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
 function loadEnv(): Env {
   const result = envSchema.safeParse({
-    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
-    OPENAI_BASE_URL: process.env.OPENAI_BASE_URL,
-    OPENAI_MODEL: process.env.OPENAI_MODEL,
-    OPENAI_REVIEW_MODEL: process.env.OPENAI_REVIEW_MODEL,
-    GITHUB_TOKEN: process.env.GITHUB_TOKEN,
-    FIRST_PASS_PROVIDER: process.env.FIRST_PASS_PROVIDER,
-    NEYSA_BASE_URL: process.env.NEYSA_BASE_URL,
-    NEYSA_API_KEY: process.env.NEYSA_API_KEY,
-    NEYSA_MODEL: process.env.NEYSA_MODEL,
-    SERPAPI_KEY: process.env.SERPAPI_KEY,
-    DEMO_REPO: process.env.DEMO_REPO,
-    DEMO_MODE: process.env.DEMO_MODE,
+    OPENAI_API_KEY: readEnv("OPENAI_API_KEY"),
+    OPENAI_BASE_URL: readEnv("OPENAI_BASE_URL"),
+    OPENAI_MODEL: readEnv("OPENAI_MODEL"),
+    OPENAI_REVIEW_MODEL: readEnv("OPENAI_REVIEW_MODEL"),
+    GITHUB_TOKEN: readEnv("GITHUB_TOKEN"),
+    FIRST_PASS_PROVIDER: readEnv("FIRST_PASS_PROVIDER"),
+    NEYSA_BASE_URL: readEnv("NEYSA_BASE_URL"),
+    NEYSA_API_KEY: readEnv("NEYSA_API_KEY"),
+    NEYSA_MODEL: readEnv("NEYSA_MODEL"),
+    SERPAPI_KEY: readEnv("SERPAPI_KEY"),
+    DEMO_REPO: readEnv("DEMO_REPO"),
+    DEMO_MODE: readEnv("DEMO_MODE"),
   });
 
   if (!result.success) {
@@ -43,18 +51,25 @@ function loadEnv(): Env {
 /** Soft-validated env. Secrets are optional here so builds succeed without them. */
 export const env: Env = loadEnv();
 
+/** Fresh read of process.env (avoids stale module-init / bundler-inlined empties). */
+export function getEnv(): Env {
+  return loadEnv();
+}
+
 /** Call when an OpenAI request is about to run. */
 export function requireOpenAIApiKey(): string {
-  if (!env.OPENAI_API_KEY) {
+  const key = getEnv().OPENAI_API_KEY;
+  if (!key) {
     throw new Error("OPENAI_API_KEY is required");
   }
-  return env.OPENAI_API_KEY;
+  return key;
 }
 
 /** Call when a GitHub API request is about to run. */
 export function requireGitHubToken(): string {
-  if (!env.GITHUB_TOKEN) {
+  const token = getEnv().GITHUB_TOKEN;
+  if (!token) {
     throw new Error("GITHUB_TOKEN is required");
   }
-  return env.GITHUB_TOKEN;
+  return token;
 }
