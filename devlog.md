@@ -33,6 +33,10 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - `lib/neysa.ts` + explain passes `{owner,repo,sha}` for raw fetches
 - Rank/filter → top 25 previews → Gemma/OpenAI
 
+## 2026-10-23 — Demo shortcuts → #4 / #5
+- Explain shortcuts, default issue, nav Explain link now NekoDroid #4 and #5
+- Match/Review: no hardcoded issue nums yet
+
 ## Next
 - Match API + home form
 - Confirm Neysa tag once key + network work

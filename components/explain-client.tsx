@@ -236,17 +236,17 @@ export function ExplainClient({
           <p className="text-sm text-slate-500">
             Demo shortcuts:{" "}
             <Link
-              href="/explain?owner=nishal21&repo=NekoDroid&issue=2"
+              href="/explain?owner=nishal21&repo=NekoDroid&issue=4"
               className="text-blue-600 hover:underline"
             >
-              #2
+              #4
             </Link>
             {" · "}
             <Link
-              href="/explain?owner=nishal21&repo=NekoDroid&issue=6"
+              href="/explain?owner=nishal21&repo=NekoDroid&issue=5"
               className="text-blue-600 hover:underline"
             >
-              #6
+              #5
             </Link>
           </p>
         </div>

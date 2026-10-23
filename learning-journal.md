@@ -35,6 +35,9 @@
 - Score keyword overlap (words, backticks, fn names) → top 25; fetch 20 lines via raw GitHub.
 - Force-include body path/fn mentions; Gemma gets path+preview; Zod + 10s + OpenAI fallback unchanged.
 
+## 2026-10-23 — Demo issues #4 / #5
+- Explain demo shortcuts + default + nav link: NekoDroid #4 and #5 (was #2 / #6).
+
 ## Next for another agent
 1. Wire `/` match form → `POST /api/match`.
 2. Confirm Neysa tag when endpoint + key work.

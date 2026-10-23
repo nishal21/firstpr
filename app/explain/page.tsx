@@ -8,7 +8,7 @@ function ExplainFromQuery() {
   const params = useSearchParams();
   const owner = params.get("owner")?.trim() || "nishal21";
   const repo = params.get("repo")?.trim() || "NekoDroid";
-  const issueNumber = Number(params.get("issue")) || 2;
+  const issueNumber = Number(params.get("issue")) || 4;
 
   return (
     <ExplainClient
