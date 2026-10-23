@@ -2,12 +2,14 @@ import { NextResponse } from "next/server";
 import { env } from "@/lib/env";
 import {
   GitHubError,
+  getIssue,
   getRateLimit,
   getRepo,
   listGoodFirstIssues,
   parseRepo,
 } from "@/lib/github";
 import { LlmError, ping } from "@/lib/llm";
+import { pickFiles } from "@/lib/pickFiles";
 
 // Node is the default for route handlers; `runtime` is incompatible with cacheComponents.
 export const maxDuration = 60;
@@ -29,12 +31,25 @@ export async function GET() {
       ping(),
     ]);
 
+    const issue4 = await getIssue(owner, repo, 4);
+    const picked = await pickFiles({
+      owner,
+      repo,
+      sha: repoInfo.headSha,
+      issue: issue4,
+    });
+
     return NextResponse.json({
       demoRepo: env.DEMO_REPO,
       repo: repoInfo,
       issues,
       rateLimit,
       llm,
+      pickFiles: {
+        issueNumber: 4,
+        title: issue4.title,
+        files: picked,
+      },
     });
   } catch (err) {
     if (err instanceof GitHubError) {

@@ -14,6 +14,20 @@ export const pickFilesSchema = z.object({
 
 export type PickFilesOutput = z.infer<typeof pickFilesSchema>;
 
+/** Step B first_pass pick: paths + one-line why (lib/pickFiles.ts). */
+export const firstPassPickSchema = z.object({
+  files: z
+    .array(
+      z.object({
+        path: z.string(),
+        why: z.string(),
+      }),
+    )
+    .max(3),
+});
+
+export type FirstPassPickOutput = z.infer<typeof firstPassPickSchema>;
+
 export const explainSchema = z.object({
   summary: z.string(),
   whyTheseFiles: z.string(),

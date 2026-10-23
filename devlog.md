@@ -62,7 +62,12 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - All OpenAI via `generateJson` → backup on auth/quota/5xx/network
 - Checked: fake primary → backup succeeds (ping + review task)
 
+## 2026-10-23 — lines.ts + pickFiles.ts
+- Added `lib/lines.ts`, `lib/pickFiles.ts`, `firstPassPickSchema`
+- Debug GET includes `pickFiles` for issue #4
+- Checked: `/api/debug` → src/main.ts focusLine 776
+
 ## Next
-- Vercel: NEYSA_GEMMA_*/QWEN_* + OPENAI_API_KEY_BACKUP; delete old NEYSA_*
+- Explain: use new pickFiles + line permalinks / verifyCitation
 - Review flow UI/API
-- Re-check Gemma when endpoint accepts :443
+- Vercel env: NEYSA_* + OPENAI_API_KEY_BACKUP

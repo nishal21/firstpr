@@ -53,7 +53,13 @@
 - `lib/llm.ts` `generateJson` uses `withOpenAI` (covers pickFiles OpenAI fallback, Explain, Hint, Review).
 - Env: `OPENAI_API_KEY_BACKUP`. Verified: fake primary → 401 → backup → ping + review task ok.
 
+## 2026-10-23 — lib/lines + lib/pickFiles
+- `lib/lines.ts`: numberLines, windowAround, permalink (#L n or #La-Lb), verifyCitation (ok / moved within 30 / fail).
+- `lib/pickFiles.ts`: Step A regex paths+line refs from issue; Step B `generateJson` first_pass only if A < 2; return ≤3 `{path, focusLine, why}`. Schema `firstPassPickSchema`.
+- `/api/debug` includes pickFiles for NekoDroid #4 → `src/main.ts` focusLine 776.
+- Note: distinct from `lib/neysa.ts` pickFiles (Explain file-pick chain).
+
 ## Next for another agent
-1. Review PR flow UI/API (LLM path already backup-aware).
-2. Redeploy Vercel: NEYSA_GEMMA_*/QWEN_* + OPENAI_API_KEY_BACKUP; remove old NEYSA_*.
-3. When Gemma :443 is up, Explain should show Gemma tag first.
+1. Wire Explain UI to `lib/pickFiles` + `lib/lines` permalinks/citations.
+2. Review PR flow UI/API.
+3. Redeploy Vercel: NEYSA_* + OPENAI_API_KEY_BACKUP.
