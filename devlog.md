@@ -46,6 +46,11 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - `getEnv()` + dynamic `process.env[name]` so BASE_URL/MODEL aren’t stuck empty after boot
 - Restart `npm run dev` after .env changes
 
+## 2026-10-23 — Fix Vercel build (/issue)
+- `export const instant = false` on `/issue/[owner]/[repo]/[number]` (cacheComponents + redirect)
+- `npm run build` passes locally
+
 ## Next
+- Redeploy to Vercel
 - Confirm Neysa when host accepts :443
 - Review flow
