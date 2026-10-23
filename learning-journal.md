@@ -59,7 +59,13 @@
 - `/api/debug` includes pickFiles for NekoDroid #4 → `src/main.ts` focusLine 776.
 - Note: distinct from `lib/neysa.ts` pickFiles (Explain file-pick chain).
 
+## 2026-10-23 — Explain (product prompts)
+- Prompt+schema from BUILD-PLAN §4 word-for-word in `lib/prompts/explain.ts` + `explainSchema`.
+- `lib/explain.ts` `explainIssue`: pickFiles → file windows → CONTRIBUTING checks section → generateJson → verifyCitation → permalinks.
+- `POST /api/explain` `{ owner, repo, number, lang }`; UI at `/issue/[owner]/[repo]/[number]`.
+- Verified #4: citations `src/main.ts` L775–L778 (+ nearby), Open on GitHub permalink with sha.
+
 ## Next for another agent
-1. Wire Explain UI to `lib/pickFiles` + `lib/lines` permalinks/citations.
-2. Review PR flow UI/API.
-3. Redeploy Vercel: NEYSA_* + OPENAI_API_KEY_BACKUP.
+1. Hints ladder + refusal (BUILD-PLAN prompt 8).
+2. Review PR flow.
+3. Redeploy Vercel env.

@@ -35,7 +35,7 @@ export default function RootLayout({
                 Find an issue
               </Link>
               <Link
-                href="/explain?owner=nishal21&repo=NekoDroid&issue=4"
+                href="/issue/nishal21/NekoDroid/4"
                 className="hover:text-blue-600"
               >
                 Explain

@@ -1,6 +1,6 @@
-import { redirect } from "next/navigation";
+import { IssueExplain } from "@/components/issue-explain";
 
-/** Redirect-only route: allow blocking under cacheComponents. */
+/** Interactive explain page: allow blocking under cacheComponents. */
 export const instant = false;
 
 type PageProps = {
@@ -9,11 +9,31 @@ type PageProps = {
     repo: string;
     number: string;
   }>;
+  searchParams: Promise<{ lang?: string }>;
 };
 
-export default async function IssueRedirectPage({ params }: PageProps) {
-  const { owner, repo, number } = await params;
-  redirect(
-    `/explain?owner=${encodeURIComponent(owner)}&repo=${encodeURIComponent(repo)}&issue=${encodeURIComponent(number)}`,
+export default async function IssueExplainPage({
+  params,
+  searchParams,
+}: PageProps) {
+  const { owner, repo, number: numberRaw } = await params;
+  const { lang } = await searchParams;
+  const number = Number(numberRaw);
+
+  if (!Number.isFinite(number) || number < 1) {
+    return (
+      <section className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
+        <p className="text-sm text-slate-700">Invalid issue number.</p>
+      </section>
+    );
+  }
+
+  return (
+    <IssueExplain
+      owner={decodeURIComponent(owner)}
+      repo={decodeURIComponent(repo)}
+      number={number}
+      lang={lang?.trim() || null}
+    />
   );
 }

@@ -28,12 +28,35 @@ export const firstPassPickSchema = z.object({
 
 export type FirstPassPickOutput = z.infer<typeof firstPassPickSchema>;
 
+/** Explain schema — Product system prompts (BUILD-PLAN §4), word for word. */
 export const explainSchema = z.object({
-  summary: z.string(),
-  whyTheseFiles: z.string(),
-  hintWhereToLook: z.string(),
-  /** 1–2 short Google search phrases for beginner tutorials. */
-  concepts: z.array(z.string()).min(1).max(2),
+  summary: z.string().describe("2-3 plain sentences: what the issue asks for"),
+  why_it_matters: z.string().describe("1-2 sentences: who it helps and why"),
+  files: z
+    .array(
+      z.object({
+        path: z.string(),
+        start_line: z.number().int(),
+        end_line: z.number().int(),
+        quote: z
+          .string()
+          .describe("exact text of start_line, without the L<n>| prefix"),
+        why: z.string().describe("one sentence"),
+      }),
+    )
+    .max(5),
+  concepts: z
+    .array(
+      z.object({
+        term: z.string(),
+        explanation: z.string().describe("one beginner-friendly sentence"),
+      }),
+    )
+    .max(5),
+  done_when: z.array(z.string()).max(6),
+  how_to_check: z.array(z.string()).describe("commands from CONTRIBUTING.md"),
+  confidence: z.enum(["high", "medium", "low"]),
+  unsure_about: z.string().nullable(),
 });
 
 export type ExplainOutput = z.infer<typeof explainSchema>;

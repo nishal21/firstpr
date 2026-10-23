@@ -1,21 +1,26 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
-import { ExplainClient } from "@/components/explain-client";
 
-function ExplainFromQuery() {
+function RedirectExplain() {
+  const router = useRouter();
   const params = useSearchParams();
   const owner = params.get("owner")?.trim() || "nishal21";
   const repo = params.get("repo")?.trim() || "NekoDroid";
-  const issueNumber = Number(params.get("issue")) || 4;
+  const issue = params.get("issue")?.trim() || "4";
+
+  useEffect(() => {
+    router.replace(
+      `/issue/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/${encodeURIComponent(issue)}`,
+    );
+  }, [router, owner, repo, issue]);
 
   return (
-    <ExplainClient
-      initialOwner={owner}
-      initialRepo={repo}
-      initialIssueNumber={issueNumber}
-    />
+    <section className="mx-auto max-w-5xl px-4 py-10 text-sm text-slate-500 sm:px-6">
+      Opening explanation…
+    </section>
   );
 }
 
@@ -28,7 +33,7 @@ export default function ExplainPage() {
         </section>
       }
     >
-      <ExplainFromQuery />
+      <RedirectExplain />
     </Suspense>
   );
 }

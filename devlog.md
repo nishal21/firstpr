@@ -67,7 +67,13 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - Debug GET includes `pickFiles` for issue #4
 - Checked: `/api/debug` → src/main.ts focusLine 776
 
+## 2026-10-23 — Explain UI + lib/explain
+- `lib/explain.ts`, new explain prompt/schema, rewrite `/api/explain`
+- `/issue/...` client UI (summary, citations, done_when, how_to_check, Hints placeholder)
+- `/explain` redirects to `/issue/...`
+- Checked: POST #4 → src/main.ts L775–L778 verified permalinks
+
 ## Next
-- Explain: use new pickFiles + line permalinks / verifyCitation
-- Review flow UI/API
-- Vercel env: NEYSA_* + OPENAI_API_KEY_BACKUP
+- Hints + refusal
+- Review flow
+- Vercel env
