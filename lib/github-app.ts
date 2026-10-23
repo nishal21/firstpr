@@ -303,9 +303,19 @@ export function getGitHubApp(): App<{ Octokit: typeof Octokit }> {
     .replace(/\r\n/g, "\n")
     .trim();
 
-  if (!normalizedKey.includes("PRIVATE KEY")) {
-    console.warn(
-      "[webhook] GITHUB_APP_PRIVATE_KEY does not look like a PEM (missing PRIVATE KEY header)",
+  const keyLines = normalizedKey
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+
+  if (
+    keyLines.length < 3 ||
+    !keyLines[0].includes("BEGIN") ||
+    !keyLines[keyLines.length - 1].includes("END")
+  ) {
+    throw new Error(
+      "GITHUB_APP_PRIVATE_KEY is truncated (often only the BEGIN line on Vercel). " +
+        "Paste the full .pem as one line with \\n between lines, then redeploy.",
     );
   }
 
