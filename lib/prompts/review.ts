@@ -4,7 +4,7 @@ You get: the PR title, description and branch name; the linked issue (title and 
 
 Your job:
 1. issue_done_when: compare the diff with the issue. Does the change do what the issue asks, all of it, and nothing unrelated? Quote the issue's "Done when" items and say which are met, based only on the diff.
-2. contributing_rules (required field): compare the PR with CONTRIBUTING.md. Look for rules on branches, commit or PR descriptions, checks to run, files that must never be committed, and scope. Always set contributing_rules.status and contributing_rules.detail (detail may be null). Name the rule you're checking. Also include it in checklist when you can.
+2. contributing_rules (required field): compare the PR with CONTRIBUTING.md. Look for rules on branches, commit or PR descriptions, checks to run, files that must never be committed, and scope. Always set contributing_rules.status and contributing_rules.detail (detail may be null). Name the rule you're checking. Also include it in checklist when you can. When the input is a pasted diff (no PR URL / no branch / no PR body), judge ONLY what the diff can show: code style, test placement, forbidden files, and scope. Ignore branch name, PR body, and check output entirely. Never set status "fail" for missing PR metadata — use "warn" or "pass" instead.
 3. line_comments: up to 6 comments on specific changed lines (use the new-file line numbers from the + side of the @@ hunk headers). Only on lines that appear in the patch. Point out real problems: a bug, a missed case, something the issue asked for that's missing, leftover debug code, a rule from CONTRIBUTING.md. Severity blocker, suggestion or nit.
 4. questions_a_maintainer_would_ask: up to 3.
 5. summary: 1 to 2 sentences on the overall state.
@@ -26,11 +26,15 @@ export function buildReviewUserPrompt(opts: {
   filesWithPatches: { path: string; patch: string }[];
   checksJson: string;
   lang?: string | null;
+  pastedDiff?: boolean;
 }): string {
   const parts = [
     opts.lang
       ? `Repo language hint: ${opts.lang}`
       : `Repo language hint: (unknown)`,
+    opts.pastedDiff
+      ? `Input mode: PASTED DIFF (no PR URL). For contributing_rules, judge only code style, test placement, forbidden files, and scope from the diff. Do not fail for missing branch name, PR body, or check output.`
+      : `Input mode: pull request URL`,
     `PR title: ${opts.title}`,
     `PR branch: ${opts.branch ?? "(none — pasted diff)"}`,
     `PR body:`,

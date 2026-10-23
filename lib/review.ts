@@ -244,6 +244,7 @@ export async function reviewPr(args: ReviewPrArgs): Promise<ReviewResult> {
     filesWithPatches,
     checksJson: JSON.stringify(checks, null, 2),
     lang: args.lang,
+    pastedDiff,
   });
 
   let raw = await callReviewModel(user);
@@ -298,13 +299,25 @@ export async function reviewPr(args: ReviewPrArgs): Promise<ReviewResult> {
   let aiContributingStatus: CheckStatus = "warn";
   if (hasContributingRules(raw)) {
     const related: CheckStatus[] = [];
-    if (branch?.status && branch.status !== "na") related.push(branch.status);
+    // On a pasted diff, never clamp from branch (N/A) — only real forbidden fails.
+    if (!pastedDiff && branch?.status && branch.status !== "na") {
+      related.push(branch.status);
+    }
     if (forbidden?.status && forbidden.status !== "na") {
       related.push(forbidden.status);
     }
-    const status = mergeAiStatus(raw.contributing_rules.status, related);
-    aiContributingStatus = status;
+    let status = mergeAiStatus(raw.contributing_rules.status, related);
     const detail = raw.contributing_rules.detail?.trim() || null;
+    // Pasted diff: never leave CONTRIBUTING red for missing PR metadata
+    // (branch / body / check output). Keep fail only if forbidden files failed.
+    if (
+      pastedDiff &&
+      status === "fail" &&
+      forbidden?.status !== "fail"
+    ) {
+      status = "warn";
+    }
+    aiContributingStatus = status;
     const fromChecklist = raw.checklist.find(
       (c) => c.id === "contributing_rules",
     );
@@ -329,8 +342,12 @@ export async function reviewPr(args: ReviewPrArgs): Promise<ReviewResult> {
       id: "contributing_rules",
       label: "CONTRIBUTING rules",
       status: "warn",
-      evidence: CONTRIBUTING_FALLBACK_DETAIL,
-      fix: "Open CONTRIBUTING.md and check branch, description, and check commands yourself.",
+      evidence: pastedDiff
+        ? "Couldn't check CONTRIBUTING.md from the diff alone; review style, tests, and forbidden paths by hand."
+        : CONTRIBUTING_FALLBACK_DETAIL,
+      fix: pastedDiff
+        ? "Check code style, test placement, forbidden files, and scope against CONTRIBUTING.md."
+        : "Open CONTRIBUTING.md and check branch, description, and check commands yourself.",
       source: "ai",
     });
   }

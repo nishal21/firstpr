@@ -81,9 +81,13 @@ export function summaryForVerdict(
 export const PASTED_DIFF_SUMMARY =
   "Checked the diff only. Open a PR to check the rest.";
 
+/** Any red AI checklist item caps the final score at this. */
+export const AI_FAIL_SCORE_CAP = 60;
+
 /**
- * Turn checklist statuses into a 0–100 score.
+ * Turn checklist statuses into a 0–100 score from rule items + AI items.
  * N/A items (and their weights) are dropped; remaining weights are scaled to 100.
+ * A fail on any AI item caps the score at AI_FAIL_SCORE_CAP.
  */
 export function scoreChecks(
   checks: CheckResult[],
@@ -105,37 +109,24 @@ export function scoreChecks(
   const aiContributing = opts?.aiContributingStatus ?? "warn";
   const issueDoneWhen = opts?.issueDoneWhenStatus ?? "warn";
 
-  // contributing_rules = average of scored parts only (skip N/A branch, etc.)
-  const contributingParts: number[] = [];
+  // Rule parts of contributing_rules (branch + forbidden); AI part is separate.
+  const ruleContributingParts: number[] = [];
   if (isScored(branch?.status)) {
-    contributingParts.push(statusPoints(branch!.status));
+    ruleContributingParts.push(statusPoints(branch!.status));
   }
   if (isScored(forbidden?.status)) {
-    contributingParts.push(statusPoints(forbidden!.status));
-  }
-  if (isScored(aiContributing)) {
-    contributingParts.push(statusPoints(aiContributing));
+    ruleContributingParts.push(statusPoints(forbidden!.status));
   }
 
   type Weighted = { weight: number; points: number };
   const terms: Weighted[] = [];
 
+  // —— Rule items ——
   if (isScored(linked?.status)) {
     terms.push({
       weight: WEIGHTS.linked_issue,
       points: statusPoints(linked!.status),
     });
-  }
-  if (isScored(issueDoneWhen)) {
-    terms.push({
-      weight: WEIGHTS.issue_done_when,
-      points: statusPoints(issueDoneWhen),
-    });
-  }
-  if (contributingParts.length > 0) {
-    const avg =
-      contributingParts.reduce((a, b) => a + b, 0) / contributingParts.length;
-    terms.push({ weight: WEIGHTS.contributing_rules, points: avg });
   }
   if (isScored(description?.status)) {
     terms.push({
@@ -161,6 +152,32 @@ export function scoreChecks(
       points: statusPoints(scope!.status),
     });
   }
+  // Split contributing_rules weight: half rule avg (branch/forbidden), half AI.
+  const contribRuleWeight = WEIGHTS.contributing_rules / 2;
+  const contribAiWeight = WEIGHTS.contributing_rules / 2;
+  if (ruleContributingParts.length > 0) {
+    const avg =
+      ruleContributingParts.reduce((a, b) => a + b, 0) /
+      ruleContributingParts.length;
+    terms.push({ weight: contribRuleWeight, points: avg });
+  }
+  // If no rule contributing parts (e.g. pasted diff, no forbidden hit path),
+  // give the full contributing weight to the AI item below.
+
+  // —— AI items ——
+  if (isScored(issueDoneWhen)) {
+    terms.push({
+      weight: WEIGHTS.issue_done_when,
+      points: statusPoints(issueDoneWhen),
+    });
+  }
+  if (isScored(aiContributing)) {
+    const aiWeight =
+      ruleContributingParts.length > 0
+        ? contribAiWeight
+        : WEIGHTS.contributing_rules;
+    terms.push({ weight: aiWeight, points: statusPoints(aiContributing) });
+  }
 
   const totalWeight = terms.reduce((s, t) => s + t.weight, 0);
   let score = 0;
@@ -169,6 +186,24 @@ export function scoreChecks(
     score = Math.round((100 * earned) / totalWeight);
   }
   score = Math.min(100, Math.max(0, score));
+
+  const aiFail =
+    issueDoneWhen === "fail" || aiContributing === "fail";
+  if (aiFail) {
+    // Red AI item: never above 60. When rule items are clean, keep the
+    // score in the mid band so a single AI fail does not collapse pasted-diff
+    // scores (where N/A rows already removed a lot of weight).
+    const anyRuleFail = checks.some(
+      (c) =>
+        c.status === "fail" &&
+        c.id !== "issue_done_when" &&
+        c.id !== "contributing_rules",
+    );
+    score = Math.min(score, AI_FAIL_SCORE_CAP);
+    if (!anyRuleFail) {
+      score = Math.min(AI_FAIL_SCORE_CAP, Math.max(score, 55));
+    }
+  }
 
   const verdict: Verdict =
     score >= 80 ? "ready" : score >= 55 ? "almost" : "not_yet";

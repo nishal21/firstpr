@@ -79,7 +79,7 @@ export function formatReviewMarkdown(result: ReviewResult): string {
   lines.push("", `_${result.encouragement}_`);
   lines.push(
     "",
-    "_Scored by FirstPR. Score comes from rule checks; AI items are advisory._",
+    "_Scored by FirstPR from rule checks and AI review of the diff._",
   );
   return lines.join("\n");
 }

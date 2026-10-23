@@ -109,6 +109,11 @@
 - `scoreChecks` drops N/A weights and scales remaining to 100.
 - Summary: “Checked the diff only. Open a PR to check the rest.”
 
+## 2026-10-23 — Pasted-diff CONTRIBUTING + AI score cap
+- Prompt + user note: pasted diff → CONTRIBUTING judges only diff-visible rules; never fail for branch/body/checks; code demotes fail→warn unless forbidden failed.
+- Score = rule + AI weights; any AI fail caps at 60 (floor 55 when rules clean).
+- Footer: “Scored by FirstPR from rule checks and AI review of the diff.”
+
 ## Next for another agent
 1. Redeploy Vercel; optional GitHub App comment on PR open (BUILD-PLAN later).
 2. Demo PR A (`fix/log-panel-no-kernel` Fixes #4) if #7 is not the stage demo.

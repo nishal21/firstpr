@@ -113,6 +113,10 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - CheckStatus `na`; ScoreCard grey Minus; score scales applicable weights
 - Checked: four PR-only rows N/A; all-pass applicable → 100
 
+## 2026-10-23 — Pasted CONTRIBUTING + AI cap
+- `buildReviewUserPrompt` pastedDiff mode; CONTRIBUTING fail soft-clamp; `AI_FAIL_SCORE_CAP=60`
+- Footer updated; verified pasted + issue fail → score 55
+
 ## Next
 - Redeploy Vercel
 - Optional: open demo PR A for stage path
