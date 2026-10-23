@@ -144,5 +144,9 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - `LangToggle`: button only (globe + name + ChevronDown 14px); custom w-40 menu; no `<select>`
 - Checked: closes on pick / outside / Esc; setLang updates UI instantly
 
+## 2026-10-24 — Lang menu overflow fix
+- Menu was clipped by nav `overflow-x-auto` (looked like scroll arrows)
+- LangToggle outside scroll nav; menu portaled to `document.body` with `fixed` + z-100
+
 ## Next
 - Redeploy Vercel; visual smoke on phone/laptop navbar

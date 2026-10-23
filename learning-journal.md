@@ -146,6 +146,10 @@
 ## 2026-10-24 — Lang switcher: no native select
 - Globe + language + ChevronDown button; absolute dropdown w-40; Esc/outside/select close.
 
+## 2026-10-24 — Lang menu clipped by nav
+- Cause: `overflow-x-auto` on nav scrolled/clipped the menu (fake “select arrows”).
+- Fix: LangToggle sibling of nav; portal menu to body with fixed coords.
+
 ## Next for another agent
 1. Redeploy Vercel.
 2. Smoke: switch to മലയാളം on /, /issue/…/4, /review — labels flip instantly; refresh keeps lang.
