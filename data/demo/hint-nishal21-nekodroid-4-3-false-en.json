@@ -1,0 +1,44 @@
+{
+  "askedForCode": false,
+  "sha": "a58974b32929fbf9783e9f9add3be4031b5bcba2",
+  "hint": {
+    "refused": false,
+    "refusal_message": null,
+    "level": 3,
+    "hint": "The missing-kernel path already identifies the condition; compare its feedback with the nearby hex-upload error path and keep the message specific to the missing kernel.",
+    "pseudocode": [
+      "Find the branch that handles the absence of a selected kernel.",
+      "Check how the nearby hex-upload failure reports its error in the log panel.",
+      "Use that same reporting approach for the missing-kernel case.",
+      "Confirm the message clearly says a kernel must be selected.",
+      "Build the app and test BOOT LINUX without selecting a kernel."
+    ],
+    "points_to": [
+      {
+        "path": "src/main.ts",
+        "start_line": 757,
+        "end_line": 778
+      },
+      {
+        "path": "src/main.ts",
+        "start_line": 799,
+        "end_line": 801
+      }
+    ],
+    "check_yourself": "Does clicking BOOT LINUX with no kernel put a clear error in the log panel without opening a browser popup?"
+  },
+  "points": [
+    {
+      "path": "src/main.ts",
+      "start_line": 757,
+      "end_line": 778,
+      "url": "https://github.com/nishal21/NekoDroid/blob/a58974b32929fbf9783e9f9add3be4031b5bcba2/src/main.ts#L757-L778"
+    },
+    {
+      "path": "src/main.ts",
+      "start_line": 799,
+      "end_line": 801,
+      "url": "https://github.com/nishal21/NekoDroid/blob/a58974b32929fbf9783e9f9add3be4031b5bcba2/src/main.ts#L799-L801"
+    }
+  ]
+}

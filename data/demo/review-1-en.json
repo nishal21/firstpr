@@ -1,0 +1,150 @@
+{
+  "mode": "pr",
+  "owner": "nishal21",
+  "repo": "NekoDroid",
+  "number": 1,
+  "pr": {
+    "title": "Fix HLE entry, fields, and size caps without claiming store APKs",
+    "htmlUrl": "https://github.com/nishal21/NekoDroid/pull/1",
+    "headRef": "cursor/apk-hle-correctness-8d2e",
+    "baseRef": "main",
+    "linkedIssueNumbers": []
+  },
+  "linkedIssue": null,
+  "summary": "Needs changes — fix Linked issue, Issue completion. The PR describes a coherent set of HLE correctness and safety changes, but no linked issue was supplied, so I can’t verify that it completes the requested work without unrelated changes. Before maintainer review, address the branch/PR guidance and confirm the Dalvik narrow-field behavior noted below.",
+  "checklist": [
+    {
+      "id": "linked_issue",
+      "label": "Linked issue",
+      "status": "fail",
+      "evidence": "No 'Fixes #N' in the description",
+      "fix": "Add a line like “Fixes #N” in the PR description, linking the issue you worked on.",
+      "source": "rule"
+    },
+    {
+      "id": "branch_name",
+      "label": "Branch name",
+      "status": "warn",
+      "evidence": "Branch `cursor/apk-hle-correctness-8d2e` should start with docs/ or fix/ or test/",
+      "fix": "Rename the branch (or open a new one) using a prefix from CONTRIBUTING.md.",
+      "source": "rule"
+    },
+    {
+      "id": "description",
+      "label": "PR description",
+      "status": "pass",
+      "evidence": "Description is 3484 characters",
+      "fix": null,
+      "source": "rule"
+    },
+    {
+      "id": "check_evidence",
+      "label": "Check evidence",
+      "status": "pass",
+      "evidence": "PR body mentions a check command or looks like test/build output",
+      "fix": null,
+      "source": "rule"
+    },
+    {
+      "id": "tests_touched",
+      "label": "Tests touched",
+      "status": "pass",
+      "evidence": "Inline tests added in src/android/runtime.rs",
+      "fix": null,
+      "source": "rule"
+    },
+    {
+      "id": "scope",
+      "label": "Scope",
+      "status": "warn",
+      "evidence": "20 files changed; 1817 lines changed",
+      "fix": "Split unrelated edits into another PR, or explain why the extra files belong here.",
+      "source": "rule"
+    },
+    {
+      "id": "forbidden_files",
+      "label": "Forbidden files",
+      "status": "pass",
+      "evidence": "No forbidden paths in the diff",
+      "fix": null,
+      "source": "rule"
+    },
+    {
+      "id": "issue_done_when",
+      "label": "Issue completion",
+      "status": "fail",
+      "evidence": "No linked issue or “Done when” items were provided. The diff is also truncated, so I can’t fully verify the implementation claims against the complete changes.",
+      "fix": "Link the issue in the PR description and check each of its “Done when” items against the full diff.",
+      "source": "ai"
+    },
+    {
+      "id": "contributing_rules",
+      "label": "CONTRIBUTING rules",
+      "status": "warn",
+      "evidence": "The Branches and Pull requests rules are not fully met: the branch name does not use an allowed prefix, and the description does not link an issue or provide the requested `cargo test --lib` summary. The required npm checks are not reported. The rule-based check found no forbidden files.",
+      "fix": "Use a branch name with an allowed prefix, link the issue, report the `cargo test --lib` summary, and say whether you ran both npm checks. Confirm the change stays within the issue’s scope.",
+      "source": "ai"
+    }
+  ],
+  "line_comments": [
+    {
+      "path": "src/android/interp.rs",
+      "line": 303,
+      "severity": "suggestion",
+      "comment": "The narrow field opcodes need Dalvik’s byte/boolean/char/short conversion behavior, not just storing the register value unchanged. Please ensure `iput-byte`/`iput-boolean` store the appropriate narrow value and the corresponding `iget` opcodes extend or normalize it correctly; otherwise values outside the field width can round-trip incorrectly.",
+      "filesChangedUrl": "https://github.com/nishal21/NekoDroid/pull/1/files"
+    }
+  ],
+  "questions_a_maintainer_would_ask": [
+    "Can you link the issue this PR is intended to close and confirm the diff covers each of its completion criteria?",
+    "Were `npm run build:wasm` and `npm run build` run, and can you include their results?",
+    "Do the tests cover byte, boolean, char, and short field conversion semantics, in addition to reading and writing instance fields?"
+  ],
+  "encouragement": "The PR clearly distinguishes the constrained HLE runner from a real Android runtime, and the fixture-generation change is a thoughtful way to keep ordinary tests from rewriting committed test data.",
+  "score": 45,
+  "verdict": "not_yet",
+  "checks": [
+    {
+      "id": "linked_issue",
+      "label": "Linked issue",
+      "status": "fail",
+      "evidence": "No 'Fixes #N' in the description"
+    },
+    {
+      "id": "branch_name",
+      "label": "Branch name",
+      "status": "warn",
+      "evidence": "Branch `cursor/apk-hle-correctness-8d2e` should start with docs/ or fix/ or test/"
+    },
+    {
+      "id": "description",
+      "label": "PR description",
+      "status": "pass",
+      "evidence": "Description is 3484 characters"
+    },
+    {
+      "id": "check_evidence",
+      "label": "Check evidence",
+      "status": "pass",
+      "evidence": "PR body mentions a check command or looks like test/build output"
+    },
+    {
+      "id": "tests_touched",
+      "label": "Tests touched",
+      "status": "pass",
+      "evidence": "Inline tests added in src/android/runtime.rs"
+    },
+    {
+      "id": "scope",
+      "label": "Scope",
+      "status": "warn",
+      "evidence": "20 files changed; 1817 lines changed"
+    },
+    {
+      "id": "forbidden_files",
+      "label": "Forbidden files",
+      "status": "pass",
+      "evidence": "No forbidden paths in the diff"
+    }
+  ]
+}

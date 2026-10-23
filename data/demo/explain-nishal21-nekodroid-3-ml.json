@@ -1,0 +1,80 @@
+{
+  "owner": "nishal21",
+  "repo": "NekoDroid",
+  "sha": "a58974b32929fbf9783e9f9add3be4031b5bcba2",
+  "language": "Rust",
+  "issue": {
+    "number": 3,
+    "title": "CONTRIBUTING.md staging command fails on deleted files",
+    "body": "The \"Safe staging\" section ends with `git add -u -- src/counter.ts src/typescript.svg`. Those two files aren't in the repo anymore, so the command now fails with `fatal: pathspec 'src/counter.ts' did not match any files`.\n\n**Where:** `CONTRIBUTING.md`, around line 59.\n\n**Done when:**\n- The broken line is removed (or fixed if you find a reason to keep it)\n- Running the whole staging block on a fresh clone gives no errors\n\n**Hint:** use `git log` on those two paths to see when they were removed.",
+    "htmlUrl": "https://github.com/nishal21/NekoDroid/issues/3",
+    "labels": [
+      "documentation",
+      "good first issue"
+    ]
+  },
+  "explanation": {
+    "summary": "`CONTRIBUTING.md`-യിലെ “Safe staging” നിർദ്ദേശത്തിൽ ഇല്ലാതാക്കിയ രണ്ട് ഫയലുകൾക്കായി `git add -u` ഓടിക്കുന്ന വരിയുണ്ട്, അതിനാൽ പുതുതായി clone ചെയ്ത repo-യിൽ staging block പിശകോടെ നിർത്തുന്നു. ആ വരി നീക്കുകയോ, സൂക്ഷിക്കേണ്ട കാരണമുണ്ടെങ്കിൽ ശരിയാക്കുകയോ ചെയ്ത് മുഴുവൻ block പിശകില്ലാതെ പ്രവർത്തിക്കുന്നുവെന്ന് ഉറപ്പാക്കണം.",
+    "why_it_matters": "നിർദ്ദേശങ്ങൾ പിന്തുടരുന്ന പുതിയ സംഭാവകർക്ക് staging പിശകില്ലാതെ പൂർത്തിയാക്കാൻ ഇത് സഹായിക്കുന്നു. അതുവഴി pull request തയ്യാറാക്കുമ്പോൾ അനാവശ്യ ആശയക്കുഴപ്പം ഒഴിവാകും.",
+    "files": [
+      {
+        "path": "CONTRIBUTING.md",
+        "start_line": 59,
+        "end_line": 59,
+        "quote": "git add -u -- src/counter.ts src/typescript.svg",
+        "why": "Issue-ൽ പറഞ്ഞിരിക്കുന്ന ഇല്ലാതാക്കിയ ഫയലുകളെ പരാമർശിക്കുന്ന തകരാറുള്ള staging command ഇതാണ്."
+      }
+    ],
+    "concepts": [
+      {
+        "term": "Git git add -u",
+        "explanation": "`git add -u` നിലവിൽ Git പിന്തുടരുന്ന ഫയലുകളിലെ മാറ്റങ്ങൾ stage ചെയ്യുന്നു; പട്ടികപ്പെടുത്തിയ പാതകളിൽ repo-യിൽ ഇല്ലാത്ത ഫയലുണ്ടെങ്കിൽ Git പിശക് കാണിക്കാം."
+      }
+    ],
+    "done_when": [
+      "തകരാറുള്ള വരി നീക്കിയിരിക്കണം, അല്ലെങ്കിൽ അത് നിലനിർത്താനുള്ള കാരണമുണ്ടെങ്കിൽ ശരിയാക്കിയിരിക്കണം.",
+      "പുതിയ clone-ൽ മുഴുവൻ staging block ഓടിക്കുമ്പോൾ പിശകുകളൊന്നും വരരുത്."
+    ],
+    "how_to_check": [
+      "cargo test --lib",
+      "npm run build:wasm",
+      "npm run build"
+    ],
+    "confidence": "high",
+    "unsure_about": null
+  },
+  "citations": [
+    {
+      "path": "CONTRIBUTING.md",
+      "start": 59,
+      "end": 59,
+      "url": "https://github.com/nishal21/NekoDroid/blob/a58974b32929fbf9783e9f9add3be4031b5bcba2/CONTRIBUTING.md#L59",
+      "why": "Issue-ൽ പറഞ്ഞിരിക്കുന്ന ഇല്ലാതാക്കിയ ഫയലുകളെ പരാമർശിക്കുന്ന തകരാറുള്ള staging command ഇതാണ്.",
+      "verified": true
+    }
+  ],
+  "droppedCitations": 0,
+  "learn": [
+    {
+      "title": "cargo_test_support::git - Rust",
+      "link": "https://doc.rust-lang.org/stable/nightly-rustc/cargo_test_support/git/index.html",
+      "snippet": "§Git Testing Support. §Creating a git dependency. new() is an easy way to create a new git repository containing a project that you can then use as a ...",
+      "site": "doc.rust-lang.org"
+    },
+    {
+      "title": "Appendix: Git Authentication - The Cargo Book",
+      "link": "https://doc.rust-lang.org/cargo/appendix/git-authentication.html",
+      "snippet": "This appendix contains some information for setting up git authentication in a way that works with Cargo.",
+      "site": "doc.rust-lang.org"
+    },
+    {
+      "title": "Specifying Dependencies - The Cargo Book",
+      "link": "https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html",
+      "snippet": "Specifying Dependencies. Your crates can depend on other libraries from crates.io or other registries, git repositories, or subdirectories on your local ...",
+      "site": "doc.rust-lang.org"
+    }
+  ],
+  "difficulty": "easy",
+  "difficultyBadge": "Beginner-friendly",
+  "difficultyReason": "This is a simple documentation fix involving removing or updating a single line of text."
+}

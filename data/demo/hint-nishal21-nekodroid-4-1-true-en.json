@@ -1,0 +1,38 @@
+{
+  "askedForCode": true,
+  "sha": "a58974b32929fbf9783e9f9add3be4031b5bcba2",
+  "hint": {
+    "refused": true,
+    "refusal_message": "I won’t write the fix for you, because making the change yourself will help you explain it in your PR. Here’s a nudge.",
+    "level": 1,
+    "hint": "Read the boot button handler and the nearby hex-upload failure path; compare how each reports a missing input.",
+    "pseudocode": null,
+    "points_to": [
+      {
+        "path": "src/main.ts",
+        "start_line": 757,
+        "end_line": 778
+      },
+      {
+        "path": "src/main.ts",
+        "start_line": 799,
+        "end_line": 801
+      }
+    ],
+    "check_yourself": "What does the hex-upload handler do to report its missing-input error?"
+  },
+  "points": [
+    {
+      "path": "src/main.ts",
+      "start_line": 757,
+      "end_line": 778,
+      "url": "https://github.com/nishal21/NekoDroid/blob/a58974b32929fbf9783e9f9add3be4031b5bcba2/src/main.ts#L757-L778"
+    },
+    {
+      "path": "src/main.ts",
+      "start_line": 799,
+      "end_line": 801,
+      "url": "https://github.com/nishal21/NekoDroid/blob/a58974b32929fbf9783e9f9add3be4031b5bcba2/src/main.ts#L799-L801"
+    }
+  ]
+}

@@ -16,6 +16,7 @@ const envSchema = z.object({
   NEYSA_QWEN_MODEL: z.string().optional(),
   SERPAPI_KEY: z.string().optional(),
   DEMO_REPO: z.string().default("nishal21/NekoDroid"),
+  DEMO_USERNAME: z.string().default("nishal21"),
   DEMO_MODE: z.string().default("auto"),
 });
 
@@ -46,6 +47,7 @@ function loadEnv(): Env {
     NEYSA_QWEN_MODEL: readEnv("NEYSA_QWEN_MODEL"),
     SERPAPI_KEY: readEnv("SERPAPI_KEY"),
     DEMO_REPO: readEnv("DEMO_REPO"),
+    DEMO_USERNAME: readEnv("DEMO_USERNAME"),
     DEMO_MODE: readEnv("DEMO_MODE"),
   });
 

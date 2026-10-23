@@ -7,9 +7,11 @@ import { DifficultyBadge } from "@/components/difficulty-badge";
 import { FlowProgress } from "@/components/flow-steps";
 import { HintLadder } from "@/components/hint-ladder";
 import { useT } from "@/components/language-provider";
+import { SavedResultDot } from "@/components/saved-result-dot";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { friendlyErrorMessage } from "@/lib/api-errors";
 
 type ExplainApiResponse = {
   owner: string;
@@ -72,6 +74,7 @@ export function IssueExplain({
   const t = useT();
   const [data, setData] = useState<ExplainApiResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [fromCache, setFromCache] = useState(false);
   const [loading, setLoading] = useState(true);
   const [stepIndex, setStepIndex] = useState(0);
 
@@ -89,6 +92,7 @@ export function IssueExplain({
       setLoading(true);
       setError(null);
       setData(null);
+      setFromCache(false);
       setStepIndex(0);
       stepTimer = setInterval(() => {
         setStepIndex((i) => Math.min(i + 1, loadingSteps.length - 1));
@@ -103,15 +107,20 @@ export function IssueExplain({
         const json = (await res.json()) as ExplainApiResponse;
         if (cancelled) return;
         if (!res.ok) {
-          setError(json.error || t("explain.failed"));
+          setError(
+            friendlyErrorMessage(json.code, json.error || t("explain.failed")),
+          );
           setData(null);
+          setFromCache(false);
           return;
         }
+        setFromCache(res.headers.get("x-firstpr-source") === "cache");
         setData(json);
-      } catch (err) {
+      } catch {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : t("explain.failed"));
+          setError(t("explain.failed"));
           setData(null);
+          setFromCache(false);
         }
       } finally {
         if (stepTimer) clearInterval(stepTimer);
@@ -172,7 +181,8 @@ export function IssueExplain({
   const limitsNotice = explanation.unsure_about?.trim() || null;
 
   return (
-    <section className="mx-auto max-w-5xl space-y-8 px-4 py-12 sm:px-6">
+    <section className="relative mx-auto max-w-5xl space-y-8 px-4 py-12 sm:px-6">
+      <SavedResultDot show={fromCache} className="pointer-events-none absolute right-4 top-4 size-1.5 rounded-full bg-slate-300 sm:right-6" />
       <FlowProgress current="explain" />
       <header className="space-y-3">
         <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">

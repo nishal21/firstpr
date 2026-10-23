@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { FlowProgress } from "@/components/flow-steps";
 import { useT } from "@/components/language-provider";
+import { SavedResultDot } from "@/components/saved-result-dot";
 import { ScoreCard } from "@/components/score-card";
 import { Spinner } from "@/components/spinner";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { friendlyErrorMessage } from "@/lib/api-errors";
 import type { ReviewResult } from "@/lib/review-format";
 
 type ReviewApiResponse = ReviewResult & {
@@ -34,6 +36,7 @@ export default function ReviewPage() {
   const [loading, setLoading] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [fromCache, setFromCache] = useState(false);
   const [result, setResult] = useState<ReviewApiResponse | null>(null);
 
   const loadingSteps = [
@@ -58,6 +61,7 @@ export default function ReviewPage() {
 
     setLoading(true);
     setError(null);
+    setFromCache(false);
     setResult(null);
 
     try {
@@ -79,12 +83,15 @@ export default function ReviewPage() {
       });
       const json = (await res.json()) as ReviewApiResponse;
       if (!res.ok) {
-        setError(json.error || t("review.failed"));
+        setError(
+          friendlyErrorMessage(json.code, json.error || t("review.failed")),
+        );
         return;
       }
+      setFromCache(res.headers.get("x-firstpr-source") === "cache");
       setResult(json);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t("review.failed"));
+    } catch {
+      setError(t("review.failed"));
     } finally {
       setLoading(false);
     }
@@ -235,7 +242,8 @@ export default function ReviewPage() {
       ) : null}
 
       {result && !loading ? (
-        <div className="mt-10">
+        <div className="relative mt-10">
+          <SavedResultDot show={fromCache} />
           {result.pr?.htmlUrl ? (
             <p className="mb-4 text-sm text-slate-500">
               {t("review.reviewing")}{" "}

@@ -4,11 +4,13 @@ import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { DifficultyBadge } from "@/components/difficulty-badge";
 import { useT } from "@/components/language-provider";
+import { SavedResultDot } from "@/components/saved-result-dot";
 import { Spinner } from "@/components/spinner";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { friendlyErrorMessage } from "@/lib/api-errors";
 import { cn } from "@/lib/utils";
 
 type IssueCard = {
@@ -32,6 +34,7 @@ type MatchResponse = {
   others: IssueCard[];
   skipped: IssueCard[];
   error?: string;
+  code?: string;
 };
 
 export function MatchForm() {
@@ -40,6 +43,7 @@ export function MatchForm() {
   const [repo, setRepo] = useState("nishal21/NekoDroid");
   const [data, setData] = useState<MatchResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [fromCache, setFromCache] = useState(false);
   const [pending, startTransition] = useTransition();
   const [stepIndex, setStepIndex] = useState(0);
 
@@ -65,6 +69,7 @@ export function MatchForm() {
 
   function runMatch() {
     setError(null);
+    setFromCache(false);
     startTransition(async () => {
       try {
         const res = await fetch("/api/match", {
@@ -78,13 +83,18 @@ export function MatchForm() {
         const json = (await res.json()) as MatchResponse;
         if (!res.ok) {
           setData(null);
-          setError(json.error || t("match.failed"));
+          setFromCache(false);
+          setError(
+            friendlyErrorMessage(json.code, json.error || t("match.failed")),
+          );
           return;
         }
+        setFromCache(res.headers.get("x-firstpr-source") === "cache");
         setData(json);
-      } catch (err) {
+      } catch {
         setData(null);
-        setError(err instanceof Error ? err.message : t("match.failed"));
+        setFromCache(false);
+        setError(t("match.failed"));
       }
     });
   }
@@ -204,7 +214,8 @@ export function MatchForm() {
           </div>
 
           {data.picked ? (
-            <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <article className="relative rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+              <SavedResultDot show={fromCache} />
               <div className="mb-2 flex flex-wrap items-center gap-2">
                 {data.picked.difficultyBadge ? (
                   <DifficultyBadge label={data.picked.difficultyBadge} />

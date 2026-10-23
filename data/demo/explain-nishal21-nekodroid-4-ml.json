@@ -1,0 +1,100 @@
+{
+  "owner": "nishal21",
+  "repo": "NekoDroid",
+  "sha": "a58974b32929fbf9783e9f9add3be4031b5bcba2",
+  "language": "Rust",
+  "issue": {
+    "number": 4,
+    "title": "Use the log panel instead of alert() when no kernel is selected",
+    "body": "If you click \"BOOT LINUX\" without picking a kernel, the app shows a browser `alert()` popup. Every other error in the UI goes to the log panel with `addLog(...)`, so this one sticks out and blocks the page.\n\n**Where:** `src/main.ts`, around line 776, inside the `btn-boot-linux` click handler.\n\n**Done when:**\n- No `alert()` calls are left in `src/main.ts`\n- Clicking BOOT LINUX with no kernel shows a clear message in the log panel, styled like the other errors\n- `npm run build` passes\n\n**Hint:** look at how the hex upload handler a bit lower down reports \"No hex input provided\".",
+    "htmlUrl": "https://github.com/nishal21/NekoDroid/issues/4",
+    "labels": [
+      "enhancement",
+      "good first issue"
+    ]
+  },
+  "explanation": {
+    "summary": "`BOOT LINUX` അമർത്തുമ്പോൾ kernel തിരഞ്ഞെടുക്കാത്തതിനാൽ ഇപ്പോൾ ബ്രൗസറിന്റെ `alert()` പോപ്പ്-അപ്പ് കാണിക്കുന്നു. പകരം, മറ്റു UI പിശകുകൾ പോലെ വ്യക്തമായ സന്ദേശം log panel-ൽ കാണിക്കണം; `src/main.ts`-ൽ `alert()` ഒന്നും ശേഷിക്കരുത്.",
+    "why_it_matters": "log panel ഉപയോഗിക്കുന്നത് ഉപയോക്താവിന് മറ്റു സന്ദേശങ്ങളോടൊപ്പം പിശക് കാണാനും, പോപ്പ്-അപ്പ് പേജ് തടയുന്നത് ഒഴിവാക്കാനും സഹായിക്കുന്നു.",
+    "files": [
+      {
+        "path": "src/main.ts",
+        "start_line": 757,
+        "end_line": 778,
+        "quote": "    document.getElementById('btn-boot-linux')!.addEventListener('click', async () => {",
+        "why": "`BOOT LINUX` ക്ലിക്കിന്റെ handler-ലാണ് kernel ഇല്ലാത്തപ്പോൾ `alert()` വിളിക്കുന്ന ഭാഗം; പ്രശ്നം സംഭവിക്കുന്ന ഇടം ഇതാണ്."
+      },
+      {
+        "path": "src/main.ts",
+        "start_line": 793,
+        "end_line": 800,
+        "quote": "        addLog(`🐧 Linux boot prepared (kernel: ${pendingKernel.length} bytes, initramfs: ${pendingInitrd.length} bytes)`, 'success');",
+        "why": "ഇവിടെ `addLog(...)` മുഖേന സന്ദേശങ്ങൾ log panel-ലേക്ക് ചേർക്കുന്നതിന്റെ നിലവിലുള്ള മാതൃക കാണാം."
+      }
+    ],
+    "concepts": [
+      {
+        "term": "TypeScript alert() browser popup",
+        "explanation": "`alert()` എന്നത് ബ്രൗസർ കാണിക്കുന്ന പോപ്പ്-അപ്പാണ്; ഉപയോക്താവ് അത് അടയ്ക്കുന്നതുവരെ പേജിലെ മറ്റു പ്രവർത്തനങ്ങൾ തടയും."
+      },
+      {
+        "term": "TypeScript addLog() log panel",
+        "explanation": "`addLog(...)` UI-യുടെ log panel-ൽ സന്ദേശം ചേർക്കുന്ന ഫംഗ്ഷനാണ്."
+      }
+    ],
+    "done_when": [
+      "`src/main.ts`-ൽ `alert()` വിളികൾ ഒന്നും ശേഷിക്കരുത്.",
+      "kernel തിരഞ്ഞെടുക്കാതെ `BOOT LINUX` അമർത്തുമ്പോൾ, മറ്റു പിശകുകൾ പോലെ ശൈലിയുള്ള വ്യക്തമായ സന്ദേശം log panel-ൽ കാണണം.",
+      "`npm run build` വിജയിക്കണം."
+    ],
+    "how_to_check": [
+      "cargo test --lib",
+      "npm run build:wasm",
+      "npm run build"
+    ],
+    "confidence": "medium",
+    "unsure_about": "Heads up: hex upload handler-ലുള്ള “No hex input provided” മാതൃകയും `addLog`-ийн error ശൈലിയും ഇവിടെ കാണാനായില്ല. `src/main.ts`-ൽ hex upload handler-ഉം `addLog` ഉപയോഗങ്ങളിലെ error സന്ദേശങ്ങളും തിരഞ്ഞുനോക്കുക."
+  },
+  "citations": [
+    {
+      "path": "src/main.ts",
+      "start": 757,
+      "end": 778,
+      "url": "https://github.com/nishal21/NekoDroid/blob/a58974b32929fbf9783e9f9add3be4031b5bcba2/src/main.ts#L757-L778",
+      "why": "`BOOT LINUX` ക്ലിക്കിന്റെ handler-ലാണ് kernel ഇല്ലാത്തപ്പോൾ `alert()` വിളിക്കുന്ന ഭാഗം; പ്രശ്നം സംഭവിക്കുന്ന ഇടം ഇതാണ്.",
+      "verified": true
+    },
+    {
+      "path": "src/main.ts",
+      "start": 793,
+      "end": 800,
+      "url": "https://github.com/nishal21/NekoDroid/blob/a58974b32929fbf9783e9f9add3be4031b5bcba2/src/main.ts#L793-L800",
+      "why": "ഇവിടെ `addLog(...)` മുഖേന സന്ദേശങ്ങൾ log panel-ലേക്ക് ചേർക്കുന്നതിന്റെ നിലവിലുള്ള മാതൃക കാണാം.",
+      "verified": true
+    }
+  ],
+  "droppedCitations": 0,
+  "learn": [
+    {
+      "title": "Window: alert() method - Web APIs | MDN",
+      "link": "https://developer.mozilla.org/en-US/docs/Web/API/Window/alert",
+      "snippet": "window.alert() instructs the browser to display a dialog with an optional message, and to wait until the user dismisses the dialog.",
+      "site": "developer.mozilla.org"
+    },
+    {
+      "title": "Window: confirm() method - Web APIs - MDN Web Docs",
+      "link": "https://developer.mozilla.org/en-US/docs/Web/API/Window/confirm",
+      "snippet": "confirm() instructs the browser to display a dialog with an optional message, and to wait until the user either confirms or cancels the dialog.",
+      "site": "developer.mozilla.org"
+    },
+    {
+      "title": "Notification - Web APIs - MDN Web Docs - Mozilla",
+      "link": "https://developer.mozilla.org/en-US/docs/Web/API/Notification",
+      "snippet": "The Notification interface of the Notifications API is used to configure and display desktop notifications to the user.",
+      "site": "developer.mozilla.org"
+    }
+  ],
+  "difficulty": "easy",
+  "difficultyBadge": "Beginner-friendly",
+  "difficultyReason": "The issue provides the exact file, line number, and a clear pattern to follow for the fix."
+}

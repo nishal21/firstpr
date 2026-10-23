@@ -1,0 +1,100 @@
+{
+  "owner": "nishal21",
+  "repo": "NekoDroid",
+  "sha": "a58974b32929fbf9783e9f9add3be4031b5bcba2",
+  "language": "Rust",
+  "issue": {
+    "number": 4,
+    "title": "Use the log panel instead of alert() when no kernel is selected",
+    "body": "If you click \"BOOT LINUX\" without picking a kernel, the app shows a browser `alert()` popup. Every other error in the UI goes to the log panel with `addLog(...)`, so this one sticks out and blocks the page.\n\n**Where:** `src/main.ts`, around line 776, inside the `btn-boot-linux` click handler.\n\n**Done when:**\n- No `alert()` calls are left in `src/main.ts`\n- Clicking BOOT LINUX with no kernel shows a clear message in the log panel, styled like the other errors\n- `npm run build` passes\n\n**Hint:** look at how the hex upload handler a bit lower down reports \"No hex input provided\".",
+    "htmlUrl": "https://github.com/nishal21/NekoDroid/issues/4",
+    "labels": [
+      "enhancement",
+      "good first issue"
+    ]
+  },
+  "explanation": {
+    "summary": "When someone clicks “BOOT LINUX” without selecting a kernel, the app currently shows a browser popup. The issue asks for that message to appear in the log panel instead, consistent with other UI errors.",
+    "why_it_matters": "The log panel keeps feedback in the app and avoids a popup that blocks the page. This makes the missing-kernel message less disruptive and consistent with other errors.",
+    "files": [
+      {
+        "path": "src/main.ts",
+        "start_line": 757,
+        "end_line": 778,
+        "quote": "    document.getElementById('btn-boot-linux')!.addEventListener('click', async () => {",
+        "why": "This click handler checks whether a kernel is available and contains the popup the issue asks to replace."
+      },
+      {
+        "path": "src/main.ts",
+        "start_line": 799,
+        "end_line": 801,
+        "quote": "      } else {",
+        "why": "This nearby failure path sends an error to the log using addLog, showing the existing pattern for UI errors."
+      }
+    ],
+    "concepts": [
+      {
+        "term": "TypeScript browser alert()",
+        "explanation": "The browser's alert() function opens a popup that interrupts interaction with the page until it is dismissed."
+      },
+      {
+        "term": "TypeScript addLog() log panel",
+        "explanation": "addLog() is used here to display messages in the app's log panel, with a category such as 'system' to style the message."
+      }
+    ],
+    "done_when": [
+      "No alert() calls are left in src/main.ts",
+      "Clicking BOOT LINUX with no kernel shows a clear message in the log panel, styled like the other errors",
+      "npm run build passes"
+    ],
+    "how_to_check": [
+      "cargo test --lib",
+      "npm run build:wasm",
+      "npm run build"
+    ],
+    "confidence": "high",
+    "unsure_about": null
+  },
+  "citations": [
+    {
+      "path": "src/main.ts",
+      "start": 757,
+      "end": 778,
+      "url": "https://github.com/nishal21/NekoDroid/blob/a58974b32929fbf9783e9f9add3be4031b5bcba2/src/main.ts#L757-L778",
+      "why": "This click handler checks whether a kernel is available and contains the popup the issue asks to replace.",
+      "verified": true
+    },
+    {
+      "path": "src/main.ts",
+      "start": 799,
+      "end": 801,
+      "url": "https://github.com/nishal21/NekoDroid/blob/a58974b32929fbf9783e9f9add3be4031b5bcba2/src/main.ts#L799-L801",
+      "why": "This nearby failure path sends an error to the log using addLog, showing the existing pattern for UI errors.",
+      "verified": true
+    }
+  ],
+  "droppedCitations": 0,
+  "learn": [
+    {
+      "title": "Playground - MDN Web Docs - Mozilla",
+      "link": "https://developer.mozilla.org/ja/play?uuid=c7bbb20a4a6e9be1f3ef51700a20990a7d0fb8bb&state=pZTNbhoxEMdfZeRGKkgUkkNVia9Dm1RtlaqH5uhDzHoAJ97x4g9Ci3if0kNfghervF7CkmyQqh6AZez%2FzPx%2FM9o1m%2Ftcsz4bSiW0mYGSI87Sc0DOxpwAhpPgvSHwPwoccZb%2BcVbdxVyQxDdTtDn6YKPoMsUsaAGP8WEvCcechr1UYcyJ0z57mc2EpVWWs%2FG38iEmmJjdH48gEfZt1TMVFpPyzgRLQnM2HvYKi2NOrMMy51ifvarOYB3dzFHN5r4PF%2B%2FOi9UgRswS7VSbhz64zBqty2AhpFQ068N5963FvIxNjJVo%2B3BRrMAZrSRMtMjuB5w2Zbm7WC0z5DygxhzJf6kqj0CaLMRId4b%2BKh2%2B%2F%2FFZtmqdtwecpoEyrwxBFVUObcvjyncg0ygsjGAqtMN2MqOm0Crj1X94UririNDe4MrDCDjjrPSxiV8nLt6erV863ZytYzcbzul20JAmEbwxBYyajz6V%2BBOyhGo%2F1pOQDisZKSXhxARvqNqUU%2BL9Vj2VVnv6cb%2Bipzt4vugxH6deD66xyghVN7EiQiBsWF%2BYaLMIgjxyqlvoCimvlkj%2BWjmPhLbFWaZVds9ZB1ptGI3TjOubwVlVN1mETKtF2G2jwtuA7cFzgZubh69GCt1qgwyHrkRRoI7SJNrHu7X7cWqPnit40dkBCTWD%2FS9rsultcnDa5NHiIqDzH7RxeNpmNLLbZhopmyPo17vtcveLyrlDJihDfQTjOPExj32a3Ra0sW4REJ70gc4%2F1o%2BSq7zY%2FS7r1p1JbH7tAVJSC%2FKAkWa3sOXvJU5F0L7V5vTYaRPx5CciL2UvcX%2FO4IigPBitUfweisKqHH%2BCRgeZyaNcKIsOZPkJK9BqRujABbWM6%2B%2BgMMECVhSeDLhWsipx3GXjTRBEQe%2B2WOusGdVhdieRxcn9I7EoOQ2sLMw6zM8xR9ZnOr4S2eYv&srcPrefix=%2Ffr%2Fdocs%2FWeb%2FAPI%2FHTMLDialogElement%2Fcancel_event%2F",
+      "snippet": "The MDN Web Docs site provides information about Open Web technologies including HTML, CSS, and APIs for both Web sites and progressive web apps.",
+      "site": "developer.mozilla.org"
+    },
+    {
+      "title": "Handling common JavaScript problems - DevDoc",
+      "link": "https://www.devdoc.net/web/developer.mozilla.org/en-US/docs/Learn/Tools_and_testing/Cross_browser_testing/JavaScript.html",
+      "snippet": "Now we'll look at common cross-browser JavaScript problems and how to fix them. This includes information on using browser dev tools to track ...",
+      "site": "devdoc.net"
+    },
+    {
+      "title": "javascript-alert",
+      "link": "https://github.com/topics/javascript-alert",
+      "snippet": "Alert is a way to customize alerts in your websites. It's alternative for standard JavaScript button.",
+      "site": "github.com"
+    }
+  ],
+  "difficulty": "easy",
+  "difficultyBadge": "Beginner-friendly",
+  "difficultyReason": "The issue provides the exact file, line number, and a clear pattern to follow for the fix."
+}

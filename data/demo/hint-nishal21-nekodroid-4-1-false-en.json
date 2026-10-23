@@ -1,0 +1,38 @@
+{
+  "askedForCode": false,
+  "sha": "a58974b32929fbf9783e9f9add3be4031b5bcba2",
+  "hint": {
+    "refused": false,
+    "refusal_message": null,
+    "level": 1,
+    "hint": "Read the BOOT LINUX click handler first, then compare its missing-kernel branch with the nearby hex-upload failure path to see how UI errors are reported.",
+    "pseudocode": null,
+    "points_to": [
+      {
+        "path": "src/main.ts",
+        "start_line": 757,
+        "end_line": 778
+      },
+      {
+        "path": "src/main.ts",
+        "start_line": 799,
+        "end_line": 801
+      }
+    ],
+    "check_yourself": "Can you identify the existing log-panel pattern used for the hex-upload error?"
+  },
+  "points": [
+    {
+      "path": "src/main.ts",
+      "start_line": 757,
+      "end_line": 778,
+      "url": "https://github.com/nishal21/NekoDroid/blob/a58974b32929fbf9783e9f9add3be4031b5bcba2/src/main.ts#L757-L778"
+    },
+    {
+      "path": "src/main.ts",
+      "start_line": 799,
+      "end_line": 801,
+      "url": "https://github.com/nishal21/NekoDroid/blob/a58974b32929fbf9783e9f9add3be4031b5bcba2/src/main.ts#L799-L801"
+    }
+  ]
+}

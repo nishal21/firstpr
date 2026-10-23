@@ -1,0 +1,114 @@
+{
+  "languages": [
+    "JavaScript",
+    "TypeScript",
+    "Python",
+    "HTML",
+    "Rust"
+  ],
+  "picked": {
+    "number": 3,
+    "title": "CONTRIBUTING.md staging command fails on deleted files",
+    "body": "The \"Safe staging\" section ends with `git add -u -- src/counter.ts src/typescript.svg`. Those two files aren't in the repo anymore, so the command now fails with `fatal: pathspec 'src/counter.ts' did not match any files`.\n\n**Where:** `CONTRIBUTING.md`, around line 59.\n\n**Done when:**\n- The broken line is removed (or fixed if you find a reason to keep it)\n- Running the whole staging block on a fresh clone gives no errors\n\n**Hint:** use `git log` on those two paths to see when they were removed.",
+    "labels": [
+      "documentation",
+      "good first issue"
+    ],
+    "assignees": [],
+    "htmlUrl": "https://github.com/nishal21/NekoDroid/issues/3",
+    "createdAt": "2026-10-22T15:11:55Z",
+    "comments": 0,
+    "state": "open",
+    "owner": "nishal21",
+    "repo": "NekoDroid",
+    "score": 17,
+    "fitReason": "Mentions .ts files and you write TypeScript.",
+    "difficulty": "easy",
+    "difficultyReason": "It is a simple documentation fix involving the removal of non-existent file paths.",
+    "difficultyBadge": "Beginner-friendly"
+  },
+  "others": [
+    {
+      "number": 5,
+      "title": "Add labels for screen readers to the upload inputs and buttons",
+      "body": "The UI has no `aria-*` attributes or `<label>` elements at all. The kernel and initramfs file pickers only have a styled `<div>` above them, so a screen reader announces them as just \"file\". The hex text box only has a placeholder. And the emoji icons inside buttons get read out loud (\"television Noise\").\n\n**Where:** `src/main.ts`, the HTML template from about line 48 to line 186. The main spots are the hex textarea (~147), `kernel-input` (~159), `initrd-input` (~162), and the `btn-icon` spans in every button.\n\n**Done when:**\n- The textarea and the two visible file inputs each have a real label (`<label for>` or `aria-label`)\n- The emoji spans are hidden from screen readers\n- The page looks the same as before\n- `npm run build` passes\n\n**Hint:** turning the existing caption `<div>`s into `<label>`s gives you the labels without changing the layout. Check your work with your browser's accessibility inspector.",
+      "labels": [
+        "enhancement",
+        "good first issue"
+      ],
+      "assignees": [],
+      "htmlUrl": "https://github.com/nishal21/NekoDroid/issues/5",
+      "createdAt": "2026-10-22T15:12:02Z",
+      "comments": 0,
+      "state": "open",
+      "owner": "nishal21",
+      "repo": "NekoDroid",
+      "score": 14,
+      "fitReason": "Mentions .ts files and you write TypeScript.",
+      "difficulty": "easy",
+      "difficultyReason": "The issue provides specific line numbers, clear instructions, and a direct hint on how to implement the fix.",
+      "difficultyBadge": "Beginner-friendly"
+    },
+    {
+      "number": 4,
+      "title": "Use the log panel instead of alert() when no kernel is selected",
+      "body": "If you click \"BOOT LINUX\" without picking a kernel, the app shows a browser `alert()` popup. Every other error in the UI goes to the log panel with `addLog(...)`, so this one sticks out and blocks the page.\n\n**Where:** `src/main.ts`, around line 776, inside the `btn-boot-linux` click handler.\n\n**Done when:**\n- No `alert()` calls are left in `src/main.ts`\n- Clicking BOOT LINUX with no kernel shows a clear message in the log panel, styled like the other errors\n- `npm run build` passes\n\n**Hint:** look at how the hex upload handler a bit lower down reports \"No hex input provided\".",
+      "labels": [
+        "enhancement",
+        "good first issue"
+      ],
+      "assignees": [],
+      "htmlUrl": "https://github.com/nishal21/NekoDroid/issues/4",
+      "createdAt": "2026-10-22T15:11:58Z",
+      "comments": 0,
+      "state": "open",
+      "owner": "nishal21",
+      "repo": "NekoDroid",
+      "score": 14,
+      "fitReason": "Mentions .ts files and you write TypeScript.",
+      "difficulty": "easy",
+      "difficultyReason": "The issue provides the exact file, line number, and a clear pattern to follow for the fix.",
+      "difficultyBadge": "Beginner-friendly"
+    }
+  ],
+  "skipped": [
+    {
+      "number": 6,
+      "title": "Add unit tests for the APK package-name helpers",
+      "body": "Two small functions that work out an app's package name have no direct tests:\n- `descriptor_to_package` in `src/android/apk.rs` (around lines 93–101) turns `Lcom/foo/Bar;` into `com.foo`\n- `parse_text_manifest` in `src/android/axml.rs` (around lines 36–53) reads our small text manifest (`package=...`, `activity=...`)\n\n**Done when:**\n- There are at least 3 tests for `descriptor_to_package`: a normal class, a class with no package (like `LFoo;`), and a string missing the `L` or `;`\n- There are at least 3 tests for `parse_text_manifest`: package and activity both present, package only, and no `package=` line (which should return an error)\n- `cargo test --lib` passes, and the count goes up by the number of tests you added\n\n**Hint:** both functions are private, so put the tests in a `#[cfg(test)] mod tests` block at the bottom of the same file. `src/android/runtime.rs` has an example of that layout.",
+      "labels": [
+        "good first issue",
+        "tests"
+      ],
+      "assignees": [
+        "Aaqibhafeezkhan"
+      ],
+      "htmlUrl": "https://github.com/nishal21/NekoDroid/issues/6",
+      "createdAt": "2026-10-22T15:12:06Z",
+      "comments": 2,
+      "state": "open",
+      "owner": "nishal21",
+      "repo": "NekoDroid",
+      "reason": "Assigned to @Aaqibhafeezkhan"
+    },
+    {
+      "number": 2,
+      "title": "README says 116 tests, but there are 140 now",
+      "body": "The README still says we have 116 unit tests. Running `cargo test --lib` today gives 140 passing.\n\n**Where:** `README.md`, line 5 (the \"tests\" badge, both the image URL and its alt text) and line 16 (the \"What works today\" list).\n\n**Done when:**\n- Both places show the number you get from `cargo test --lib`\n- Your PR description pastes the last line of the test output\n\n**Hint:** the number in the badge lives inside the shields.io URL, so change it there too.",
+      "labels": [
+        "documentation",
+        "good first issue"
+      ],
+      "assignees": [
+        "iniyananto-sys"
+      ],
+      "htmlUrl": "https://github.com/nishal21/NekoDroid/issues/2",
+      "createdAt": "2026-10-22T15:11:48Z",
+      "comments": 2,
+      "state": "open",
+      "owner": "nishal21",
+      "repo": "NekoDroid",
+      "reason": "Assigned to @iniyananto-sys"
+    }
+  ]
+}

@@ -160,5 +160,17 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - Storage key `firstpr-ui-lang` (+ legacy sync); useLayoutEffect hydrate
 - Pushed to main for Vercel
 
+## 2026-10-24 — Strip Cursor co-author from commit
+- Rewrote HEAD with commit-tree (no Co-authored-by); force-pushed `b12bbb8`
+- Set `~/.cursor/cli-config.json` attribution.* = false
+- Also turn off Cursor Settings → Git & PRs → Attribution
+
+## 2026-10-24 — Demo fixtures (unkillable demo)
+- `lib/cache.ts` getFixture/saveFixture → `data/demo/<key>.json` (15 fixtures recorded)
+- `lib/demo.ts` DEMO_MODE on|auto|off + `x-firstpr-source`; RECORD_DEMO=1 writes only non-prod
+- Routes match/explain/hint/review wrapped; UI saved-result dot; friendly errors; error.tsx/not-found.tsx
+- `npx tsx scripts/record-demo.ts`; verified DEMO_MODE=on → all cache 200
+
 ## Next
-- Hard-refresh production; open globe — first rows should be English/Español/中文/…
+- Commit `data/demo/*.json` with the demo feature
+- Prod: set DEMO_MODE=auto (or on for always-fixture demo)

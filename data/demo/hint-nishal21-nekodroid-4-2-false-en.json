@@ -1,0 +1,38 @@
+{
+  "askedForCode": false,
+  "sha": "a58974b32929fbf9783e9f9add3be4031b5bcba2",
+  "hint": {
+    "refused": false,
+    "refusal_message": null,
+    "level": 2,
+    "hint": "In the missing-kernel branch of the BOOT LINUX handler, replace the blocking popup behavior with the same log-panel error-reporting approach used by the hex-upload handler. Keep the message clear that no kernel was selected.",
+    "pseudocode": null,
+    "points_to": [
+      {
+        "path": "src/main.ts",
+        "start_line": 757,
+        "end_line": 778
+      },
+      {
+        "path": "src/main.ts",
+        "start_line": 799,
+        "end_line": 801
+      }
+    ],
+    "check_yourself": "When no kernel is selected, does the message appear in the log panel with error styling, without a browser popup?"
+  },
+  "points": [
+    {
+      "path": "src/main.ts",
+      "start_line": 757,
+      "end_line": 778,
+      "url": "https://github.com/nishal21/NekoDroid/blob/a58974b32929fbf9783e9f9add3be4031b5bcba2/src/main.ts#L757-L778"
+    },
+    {
+      "path": "src/main.ts",
+      "start_line": 799,
+      "end_line": 801,
+      "url": "https://github.com/nishal21/NekoDroid/blob/a58974b32929fbf9783e9f9add3be4031b5bcba2/src/main.ts#L799-L801"
+    }
+  ]
+}

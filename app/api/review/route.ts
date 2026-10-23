@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
+import { reviewFixtureKey } from "@/lib/cache";
 import { splitDiffIntoFiles } from "@/lib/checks";
 import { parseContentLang } from "@/lib/content-lang";
+import { errorJson, jsonWithSource, withDemoFixture } from "@/lib/demo";
 import {
   GitHubError,
   getBranchSha,
@@ -35,18 +37,24 @@ export async function POST(request: Request) {
     const lang = parseContentLang(body.lang);
 
     if (prUrl) {
-      return NextResponse.json(await reviewFromPrUrl(prUrl, lang));
+      const { number } = parsePrUrl(prUrl);
+      const key = reviewFixtureKey(number, lang);
+      const { data, source } = await withDemoFixture({
+        key,
+        run: () => reviewFromPrUrl(prUrl, lang),
+      });
+      return jsonWithSource(data, source);
     }
 
     if (diff) {
-      return NextResponse.json(
-        await reviewFromDiff({
-          diff,
-          repo: body.repo?.trim(),
-          issueNumber: body.issueNumber,
-          lang,
-        }),
-      );
+      // Pasted diffs aren't part of the committed demo path; still live-only.
+      const data = await reviewFromDiff({
+        diff,
+        repo: body.repo?.trim(),
+        issueNumber: body.issueNumber,
+        lang,
+      });
+      return jsonWithSource(data, "live");
     }
 
     return NextResponse.json(
@@ -54,31 +62,13 @@ export async function POST(request: Request) {
         error: "Provide prUrl, or diff (with optional repo and issueNumber)",
         code: "bad_request",
       },
-      { status: 400 },
+      { status: 400, headers: { "x-firstpr-source": "live" } },
     );
   } catch (err) {
-    if (err instanceof GitHubError) {
-      const status =
-        err.code === "rate_limited" ? 429 : err.code === "not_found" ? 404 : 502;
-      return NextResponse.json(
-        { error: err.message, code: err.code },
-        { status },
-      );
+    if (err instanceof GitHubError || err instanceof LlmError) {
+      return errorJson(err);
     }
-    if (err instanceof LlmError) {
-      const status = err.code === "timeout" ? 504 : 502;
-      return NextResponse.json(
-        { error: err.message, code: err.code },
-        { status },
-      );
-    }
-    return NextResponse.json(
-      {
-        error: err instanceof Error ? err.message : "Unexpected error",
-        code: "github_error",
-      },
-      { status: 500 },
-    );
+    return errorJson(err);
   }
 }
 

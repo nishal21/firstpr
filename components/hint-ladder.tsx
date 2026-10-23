@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { Lock, Send } from "lucide-react";
 import { useT } from "@/components/language-provider";
+import { SavedResultDot } from "@/components/saved-result-dot";
 import { Spinner } from "@/components/spinner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { friendlyErrorMessage } from "@/lib/api-errors";
 import type { I18nKey } from "@/lib/i18n";
 
 type HintLevel = 1 | 2 | 3;
@@ -142,6 +144,7 @@ export function HintLadder({
   const [hintPending, setHintPending] = useState(false);
   const [chatPending, setChatPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fromCache, setFromCache] = useState(false);
 
   const previousHints = STEP_KEYS.filter((s) => hints[s.level])
     .map((s) => hints[s.level]!.payload.hint)
@@ -172,10 +175,16 @@ export function HintLadder({
       points?: HintPoint[];
       askedForCode?: boolean;
       error?: string;
+      code?: string;
     };
     if (!res.ok || !json.hint) {
-      setError(json.error || t("hint.requestFailed"));
+      setError(
+        friendlyErrorMessage(json.code, json.error || t("hint.requestFailed")),
+      );
       return null;
+    }
+    if (res.headers.get("x-firstpr-source") === "cache") {
+      setFromCache(true);
     }
     return {
       hint: json.hint,
@@ -255,7 +264,8 @@ export function HintLadder({
   ).map((s) => hints[s.level]!);
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5">
+    <div className="relative rounded-xl border border-slate-200 bg-white p-5">
+      <SavedResultDot show={fromCache} />
       <h2 className="text-sm font-semibold text-slate-900">{t("hint.title")}</h2>
       <p className="mt-1 text-sm text-slate-500">{t("hint.subtitle")}</p>
 
@@ -374,9 +384,18 @@ export function HintLadder({
       </div>
 
       {error ? (
-        <p className="mt-4 text-sm text-red-600" role="alert">
-          {error}
-        </p>
+        <div className="mt-4 space-y-2" role="alert">
+          <p className="text-sm text-red-600">{error}</p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="rounded-xl border-slate-200"
+            onClick={() => void unlockNextHint()}
+          >
+            {t("explain.retry")}
+          </Button>
+        </div>
       ) : null}
 
       {messages.length > 0 ? (

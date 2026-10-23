@@ -166,6 +166,16 @@
 - Cause: 15 langs were live but en/ml/hi sat on top; closed button only shows current lang.
 - Fix: major langs first; taller scroll menu; separate `firstpr-ui-lang` key; pushed.
 
+## 2026-10-24 — No Cursor co-author on commits
+- Cursor was injecting `Co-authored-by: Cursor <cursoragent@cursor.com>`.
+- Fixed latest commit (force-push clean message). CLI attribution off in cli-config.json.
+- User should disable Cursor Settings → Git & PRs → Attribution so it stays off.
+
+## 2026-10-24 — Unkillable demo
+- Fixtures in `data/demo/` (15 JSON); DEMO_MODE on|auto; RECORD_DEMO=1 writes locally only
+- Routes set `x-firstpr-source`; UI tiny “saved result” dot; friendly rate_limited/timeout/not_found
+- Verified: DEMO_MODE=on → match / explain#4 / hints+refuse / review#1+#7 all cache 200
+
 ## Next for another agent
-1. After Vercel deploy: hard refresh → open globe → see Español/中文 without scrolling past ml.
-2. Pick Spanish, refresh, confirm it sticks.
+1. Commit fixtures + demo code; attribution stays off
+2. Offline walkthrough with DEMO_MODE=on

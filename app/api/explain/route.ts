@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { explainFixtureKey } from "@/lib/cache";
 import { parseContentLang } from "@/lib/content-lang";
+import { errorJson, jsonWithSource, withDemoFixture } from "@/lib/demo";
 import { explainIssueCached } from "@/lib/explain";
 import { GitHubError } from "@/lib/github";
 import { LlmError } from "@/lib/llm";
@@ -28,54 +30,48 @@ export async function POST(request: Request) {
           error: "Provide owner, repo, and a positive number",
           code: "bad_request",
         },
-        { status: 400 },
+        { status: 400, headers: { "x-firstpr-source": "live" } },
       );
     }
 
-    const result = await explainIssueCached({ owner, repo, number, lang });
-
-    return NextResponse.json({
-      owner: result.owner,
-      repo: result.repo,
-      sha: result.sha,
-      language: result.language,
-      issue: {
-        number: result.issue.number,
-        title: result.issue.title,
-        body: result.issue.body,
-        htmlUrl: result.issue.htmlUrl,
-        labels: result.issue.labels,
+    const key = explainFixtureKey(owner, repo, number, lang);
+    const { data, source } = await withDemoFixture({
+      key,
+      run: async () => {
+        const result = await explainIssueCached({
+          owner,
+          repo,
+          number,
+          lang,
+        });
+        return {
+          owner: result.owner,
+          repo: result.repo,
+          sha: result.sha,
+          language: result.language,
+          issue: {
+            number: result.issue.number,
+            title: result.issue.title,
+            body: result.issue.body,
+            htmlUrl: result.issue.htmlUrl,
+            labels: result.issue.labels,
+          },
+          explanation: result.explanation,
+          citations: result.citations,
+          droppedCitations: result.droppedCitations,
+          learn: result.learn,
+          difficulty: result.difficulty,
+          difficultyBadge: result.difficultyBadge,
+          difficultyReason: result.difficultyReason,
+        };
       },
-      explanation: result.explanation,
-      citations: result.citations,
-      droppedCitations: result.droppedCitations,
-      learn: result.learn,
-      difficulty: result.difficulty,
-      difficultyBadge: result.difficultyBadge,
-      difficultyReason: result.difficultyReason,
     });
+
+    return jsonWithSource(data, source);
   } catch (err) {
-    if (err instanceof GitHubError) {
-      const status =
-        err.code === "rate_limited" ? 429 : err.code === "not_found" ? 404 : 502;
-      return NextResponse.json(
-        { error: err.message, code: err.code },
-        { status },
-      );
+    if (err instanceof GitHubError || err instanceof LlmError) {
+      return errorJson(err);
     }
-    if (err instanceof LlmError) {
-      const status = err.code === "timeout" ? 504 : 502;
-      return NextResponse.json(
-        { error: err.message, code: err.code },
-        { status },
-      );
-    }
-    return NextResponse.json(
-      {
-        error: err instanceof Error ? err.message : "Unexpected error",
-        code: "github_error",
-      },
-      { status: 500 },
-    );
+    return errorJson(err);
   }
 }

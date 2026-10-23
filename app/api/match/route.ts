@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { matchFixtureKey } from "@/lib/cache";
+import { errorJson, jsonWithSource, withDemoFixture } from "@/lib/demo";
 import { GitHubError } from "@/lib/github";
 import { matchIssues } from "@/lib/match";
 
@@ -29,38 +31,28 @@ export async function POST(request: Request) {
           error: parsed.error.issues[0]?.message ?? "Invalid input",
           code: "bad_request",
         },
-        { status: 400 },
+        { status: 400, headers: { "x-firstpr-source": "live" } },
       );
     }
 
     const { username, repo } = parsed.data;
-    const result = await matchIssues({
-      username,
-      repo: repo === undefined ? undefined : repo,
+    const repoKey = repo?.trim() || "default";
+    const key = matchFixtureKey(repoKey, username);
+
+    const { data, source } = await withDemoFixture({
+      key,
+      run: () =>
+        matchIssues({
+          username,
+          repo: repo === undefined ? undefined : repo,
+        }),
     });
 
-    return NextResponse.json(result);
+    return jsonWithSource(data, source);
   } catch (err) {
     if (err instanceof GitHubError) {
-      const status =
-        err.code === "rate_limited" ? 429 : err.code === "not_found" ? 404 : 502;
-      const message =
-        err.message.includes("Invalid repo") ||
-        err.message.startsWith("Invalid repo identifier")
-          ? "Couldn't find that repo. Try owner/repo."
-          : err.message;
-      return NextResponse.json(
-        { error: message, code: err.code },
-        { status },
-      );
+      return errorJson(err);
     }
-
-    return NextResponse.json(
-      {
-        error: err instanceof Error ? err.message : "Unexpected error",
-        code: "github_error",
-      },
-      { status: 500 },
-    );
+    return errorJson(err);
   }
 }

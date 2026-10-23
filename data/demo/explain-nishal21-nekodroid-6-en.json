@@ -1,0 +1,119 @@
+{
+  "owner": "nishal21",
+  "repo": "NekoDroid",
+  "sha": "a58974b32929fbf9783e9f9add3be4031b5bcba2",
+  "language": "Rust",
+  "issue": {
+    "number": 6,
+    "title": "Add unit tests for the APK package-name helpers",
+    "body": "Two small functions that work out an app's package name have no direct tests:\n- `descriptor_to_package` in `src/android/apk.rs` (around lines 93–101) turns `Lcom/foo/Bar;` into `com.foo`\n- `parse_text_manifest` in `src/android/axml.rs` (around lines 36–53) reads our small text manifest (`package=...`, `activity=...`)\n\n**Done when:**\n- There are at least 3 tests for `descriptor_to_package`: a normal class, a class with no package (like `LFoo;`), and a string missing the `L` or `;`\n- There are at least 3 tests for `parse_text_manifest`: package and activity both present, package only, and no `package=` line (which should return an error)\n- `cargo test --lib` passes, and the count goes up by the number of tests you added\n\n**Hint:** both functions are private, so put the tests in a `#[cfg(test)] mod tests` block at the bottom of the same file. `src/android/runtime.rs` has an example of that layout.",
+    "htmlUrl": "https://github.com/nishal21/NekoDroid/issues/6",
+    "labels": [
+      "good first issue",
+      "tests"
+    ]
+  },
+  "explanation": {
+    "summary": "Add direct unit tests for `descriptor_to_package` and `parse_text_manifest`, which currently have no tests of their own. The tests should cover the normal and edge cases listed in the issue, including an error when the text manifest has no package line.",
+    "why_it_matters": "These tests help catch regressions in how NekoDroid identifies an app's package and activity. They also make the helpers' expected behavior clearer to future contributors.",
+    "files": [
+      {
+        "path": "src/android/apk.rs",
+        "start_line": 91,
+        "end_line": 99,
+        "quote": "fn descriptor_to_package(desc: &str) -> Option<String> {",
+        "why": "This is the private helper that needs at least three tests for normal, no-package, and malformed descriptors."
+      },
+      {
+        "path": "src/android/axml.rs",
+        "start_line": 35,
+        "end_line": 50,
+        "quote": "fn parse_text_manifest(data: &[u8]) -> Result<(String, Option<String>)> {",
+        "why": "This private helper needs tests for both fields, package only, and a missing package line that returns an error."
+      },
+      {
+        "path": "src/android/runtime.rs",
+        "start_line": 95,
+        "end_line": 100,
+        "quote": "#[cfg(test)]",
+        "why": "This shows the repository's existing pattern for placing unit tests in a module in the same file."
+      }
+    ],
+    "concepts": [
+      {
+        "term": "Rust unit tests #[cfg(test)] module",
+        "explanation": "A test module marked with `#[cfg(test)]` is compiled for tests and can access private helpers in the same file."
+      },
+      {
+        "term": "Rust Option return type",
+        "explanation": "`Option` represents a value that may be present (`Some`) or absent (`None`)."
+      },
+      {
+        "term": "Rust Result error handling",
+        "explanation": "`Result` represents either a successful value or an error, which lets the manifest helper report a missing package."
+      }
+    ],
+    "done_when": [
+      "There are at least 3 tests for `descriptor_to_package`: a normal class, a class with no package (like `LFoo;`), and a string missing the `L` or `;`.",
+      "There are at least 3 tests for `parse_text_manifest`: package and activity both present, package only, and no `package=` line (which should return an error).",
+      "`cargo test --lib` passes, and the count goes up by the number of tests you added."
+    ],
+    "how_to_check": [
+      "cargo test --lib",
+      "npm run build:wasm",
+      "npm run build"
+    ],
+    "confidence": "high",
+    "unsure_about": null
+  },
+  "citations": [
+    {
+      "path": "src/android/apk.rs",
+      "start": 91,
+      "end": 99,
+      "url": "https://github.com/nishal21/NekoDroid/blob/a58974b32929fbf9783e9f9add3be4031b5bcba2/src/android/apk.rs#L91-L99",
+      "why": "This is the private helper that needs at least three tests for normal, no-package, and malformed descriptors.",
+      "verified": true
+    },
+    {
+      "path": "src/android/axml.rs",
+      "start": 35,
+      "end": 50,
+      "url": "https://github.com/nishal21/NekoDroid/blob/a58974b32929fbf9783e9f9add3be4031b5bcba2/src/android/axml.rs#L35-L50",
+      "why": "This private helper needs tests for both fields, package only, and a missing package line that returns an error.",
+      "verified": true
+    },
+    {
+      "path": "src/android/runtime.rs",
+      "start": 95,
+      "end": 100,
+      "url": "https://github.com/nishal21/NekoDroid/blob/a58974b32929fbf9783e9f9add3be4031b5bcba2/src/android/runtime.rs#L95-L100",
+      "why": "This shows the repository's existing pattern for placing unit tests in a module in the same file.",
+      "verified": true
+    }
+  ],
+  "droppedCitations": 0,
+  "learn": [
+    {
+      "title": "Test Organization - The Rust Programming Language",
+      "link": "https://doc.rust-lang.org/book/ch11-03-test-organization.html",
+      "snippet": "The #[cfg(test)] annotation on the tests module tells Rust to compile and run the test code only when you run cargo test , not when you run cargo build .",
+      "site": "doc.rust-lang.org"
+    },
+    {
+      "title": "Test Organization - The Rust Programming Language",
+      "link": "https://web.mit.edu/rust-lang_v1.25/arch/amd64_ubuntu1404/share/doc/rust/html/book/second-edition/ch11-03-test-organization.html",
+      "snippet": "The #[cfg(test)] annotation on the tests module tells Rust to compile and run the test code only when we run cargo test , but not when we run cargo build .",
+      "site": "web.mit.edu"
+    },
+    {
+      "title": "What does #[cfg(test)] do when placed at the top of lib.rs?",
+      "link": "https://stackoverflow.com/questions/58652318/what-does-cfgtest-do-when-placed-at-the-top-of-lib-rs",
+      "snippet": "I'm writing a Rust library (generated from cargo) with unit tests. I'd like to use the extern crate maplit in my unit tests to be able to use JavaScript-like ...",
+      "site": "stackoverflow.com"
+    }
+  ],
+  "difficulty": "easy",
+  "difficultyBadge": "Beginner-friendly",
+  "difficultyReason": "The task is well-defined with specific test cases and clear instructions on where to add the code."
+}

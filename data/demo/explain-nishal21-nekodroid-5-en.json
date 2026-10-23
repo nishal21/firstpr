@@ -1,0 +1,103 @@
+{
+  "owner": "nishal21",
+  "repo": "NekoDroid",
+  "sha": "a58974b32929fbf9783e9f9add3be4031b5bcba2",
+  "language": "Rust",
+  "issue": {
+    "number": 5,
+    "title": "Add labels for screen readers to the upload inputs and buttons",
+    "body": "The UI has no `aria-*` attributes or `<label>` elements at all. The kernel and initramfs file pickers only have a styled `<div>` above them, so a screen reader announces them as just \"file\". The hex text box only has a placeholder. And the emoji icons inside buttons get read out loud (\"television Noise\").\n\n**Where:** `src/main.ts`, the HTML template from about line 48 to line 186. The main spots are the hex textarea (~147), `kernel-input` (~159), `initrd-input` (~162), and the `btn-icon` spans in every button.\n\n**Done when:**\n- The textarea and the two visible file inputs each have a real label (`<label for>` or `aria-label`)\n- The emoji spans are hidden from screen readers\n- The page looks the same as before\n- `npm run build` passes\n\n**Hint:** turning the existing caption `<div>`s into `<label>`s gives you the labels without changing the layout. Check your work with your browser's accessibility inspector.",
+    "htmlUrl": "https://github.com/nishal21/NekoDroid/issues/5",
+    "labels": [
+      "enhancement",
+      "good first issue"
+    ]
+  },
+  "explanation": {
+    "summary": "Add accessible names to the hex text area and the kernel and initramfs file inputs so screen readers can identify them. Hide decorative emoji inside buttons from screen readers while keeping the page looking the same.",
+    "why_it_matters": "This helps people who use screen readers understand and use the upload controls and buttons.",
+    "files": [
+      {
+        "path": "src/main.ts",
+        "start_line": 65,
+        "end_line": 77,
+        "quote": "    <div class=\"controls\">",
+        "why": "These buttons contain emoji in `btn-icon` spans, which the issue says should not be read aloud."
+      },
+      {
+        "path": "src/main.ts",
+        "start_line": 78,
+        "end_line": 85,
+        "quote": "      <button id=\"btn-vram\">",
+        "why": "These buttons also contain emoji in `btn-icon` spans that should be hidden from screen readers."
+      }
+    ],
+    "concepts": [
+      {
+        "term": "HTML label for attribute",
+        "explanation": "A `<label>` with a `for` value matching a control's ID gives that control a name that assistive technology can announce."
+      },
+      {
+        "term": "HTML aria-label attribute",
+        "explanation": "The `aria-label` attribute provides an accessible name for a control without displaying extra text."
+      },
+      {
+        "term": "HTML aria-hidden attribute",
+        "explanation": "The `aria-hidden` attribute can keep decorative content, such as an emoji, out of what screen readers announce."
+      }
+    ],
+    "done_when": [
+      "The textarea and the two visible file inputs each have a real label (`<label for>` or `aria-label`).",
+      "The emoji spans are hidden from screen readers.",
+      "The page looks the same as before.",
+      "`npm run build` passes."
+    ],
+    "how_to_check": [
+      "npm run build"
+    ],
+    "confidence": "low",
+    "unsure_about": "Heads up: I couldn't see the textarea, file inputs, or all the `btn-icon` spans. Open `src/main.ts` around lines 147–186 and search for `kernel-input`, `initrd-input`, and `btn-icon` before you start."
+  },
+  "citations": [
+    {
+      "path": "src/main.ts",
+      "start": 65,
+      "end": 77,
+      "url": "https://github.com/nishal21/NekoDroid/blob/a58974b32929fbf9783e9f9add3be4031b5bcba2/src/main.ts#L65-L77",
+      "why": "These buttons contain emoji in `btn-icon` spans, which the issue says should not be read aloud.",
+      "verified": true
+    },
+    {
+      "path": "src/main.ts",
+      "start": 78,
+      "end": 85,
+      "url": "https://github.com/nishal21/NekoDroid/blob/a58974b32929fbf9783e9f9add3be4031b5bcba2/src/main.ts#L78-L85",
+      "why": "These buttons also contain emoji in `btn-icon` spans that should be hidden from screen readers.",
+      "verified": true
+    }
+  ],
+  "droppedCitations": 0,
+  "learn": [
+    {
+      "title": "Diagnostic attributes - The Rust Reference",
+      "link": "https://doc.rust-lang.org/reference/attributes/diagnostics.html",
+      "snippet": "The diagnostic::on_unimplemented attribute · message — The text for the top level error message. · label — The text for the label shown inline in the broken code ...",
+      "site": "doc.rust-lang.org"
+    },
+    {
+      "title": "rewrite_empty_block in rustfmt_nightly::expr",
+      "link": "https://doc.rust-lang.org/stable/nightly-rustc/rustfmt_nightly/expr/fn.rewrite_empty_block.html",
+      "snippet": "... ( context: &RewriteContext<'_>, block: &Block, attrs: Option<&[Attribute]>, label: Option<Label>, prefix: &str, shape: Shape, ) -> Option<String>",
+      "site": "doc.rust-lang.org"
+    },
+    {
+      "title": "Macros by example - The Rust Reference",
+      "link": "https://doc.rust-lang.org/reference/macros-by-example.html",
+      "snippet": "macro_rules allows users to define syntax extension in a declarative way. We call such extensions “macros by example” or simply “macros”.",
+      "site": "doc.rust-lang.org"
+    }
+  ],
+  "difficulty": "easy",
+  "difficultyBadge": "Beginner-friendly",
+  "difficultyReason": "The issue provides specific file locations, line numbers, and a clear hint on how to implement the fix."
+}

@@ -1,0 +1,92 @@
+{
+  "owner": "nishal21",
+  "repo": "NekoDroid",
+  "sha": "a58974b32929fbf9783e9f9add3be4031b5bcba2",
+  "language": "Rust",
+  "issue": {
+    "number": 5,
+    "title": "Add labels for screen readers to the upload inputs and buttons",
+    "body": "The UI has no `aria-*` attributes or `<label>` elements at all. The kernel and initramfs file pickers only have a styled `<div>` above them, so a screen reader announces them as just \"file\". The hex text box only has a placeholder. And the emoji icons inside buttons get read out loud (\"television Noise\").\n\n**Where:** `src/main.ts`, the HTML template from about line 48 to line 186. The main spots are the hex textarea (~147), `kernel-input` (~159), `initrd-input` (~162), and the `btn-icon` spans in every button.\n\n**Done when:**\n- The textarea and the two visible file inputs each have a real label (`<label for>` or `aria-label`)\n- The emoji spans are hidden from screen readers\n- The page looks the same as before\n- `npm run build` passes\n\n**Hint:** turning the existing caption `<div>`s into `<label>`s gives you the labels without changing the layout. Check your work with your browser's accessibility inspector.",
+    "htmlUrl": "https://github.com/nishal21/NekoDroid/issues/5",
+    "labels": [
+      "enhancement",
+      "good first issue"
+    ]
+  },
+  "explanation": {
+    "summary": "അപ്‌ലോഡ് ചെയ്യാനുള്ള ടെക്സ്റ്റ് ബോക്സിനും ഫയൽ തിരഞ്ഞെടുക്കാനുള്ള ഇൻപുട്ടുകൾക്കും സ്ക്രീൻ റീഡറുകൾക്ക് തിരിച്ചറിയാനാകുന്ന ലേബലുകൾ ചേർക്കണമെന്നാണ് issue ആവശ്യപ്പെടുന്നത്. ബട്ടണുകളിലെ അലങ്കാര ഇമോജികൾ സ്ക്രീൻ റീഡർ വായിക്കാതിരിക്കണം; അതേസമയം പേജിന്റെ കാഴ്ച പഴയതുപോലെ തന്നെ നിലനിൽക്കണം.",
+    "why_it_matters": "സ്ക്രീൻ റീഡർ ഉപയോഗിക്കുന്നവർക്ക് ഓരോ ഇൻപുട്ടിന്റെയും ബട്ടണിന്റെയും ഉദ്ദേശ്യം മനസ്സിലാക്കി ഉപയോഗിക്കാൻ ഇത് സഹായിക്കും. അലങ്കാര ഇമോജികൾ വായിക്കപ്പെടാതിരുന്നാൽ ബട്ടണുകളുടെ പേര് കൂടുതൽ വ്യക്തമായിരിക്കും.",
+    "files": [
+      {
+        "path": "src/main.ts",
+        "start_line": 65,
+        "end_line": 85,
+        "quote": "    <div class=\"controls\">",
+        "why": "ഈ ഭാഗത്ത് ബട്ടണുകളുടെ ഇമോജി സ്പാനുകളും വായിക്കാവുന്ന ബട്ടൺ പേരുകളും കാണാം; ഇമോജികൾ സ്ക്രീൻ റീഡറുകളിൽ നിന്ന് മറയ്ക്കേണ്ട സ്ഥലമാണിത്."
+      }
+    ],
+    "concepts": [
+      {
+        "term": "HTML label for ഇൻപുട്ട് ലേബൽ",
+        "explanation": "`<label for>` ഒരു ദൃശ്യമായ പേരിനെ അതിന് അനുയോജ്യമായ ഫോം ഇൻപുട്ടുമായി ബന്ധിപ്പിക്കുന്നു."
+      },
+      {
+        "term": "HTML aria-label ആക്സസിബിലിറ്റി പേര്",
+        "explanation": "`aria-label` ദൃശ്യമായ ലേബൽ ഇല്ലാത്തപ്പോൾ സ്ക്രീൻ റീഡറിന് ഒരു ഘടകത്തിന്റെ പേര് നൽകുന്നു."
+      },
+      {
+        "term": "HTML aria-hidden സ്ക്രീൻ റീഡർ",
+        "explanation": "`aria-hidden` ഉപയോഗിച്ച് അലങ്കാര ഘടകങ്ങൾ സ്ക്രീൻ റീഡർ വായിക്കുന്നതിൽ നിന്ന് ഒഴിവാക്കാം."
+      },
+      {
+        "term": "npm run build",
+        "explanation": "ഈ കമാൻഡ് പ്രോജക്റ്റിന്റെ വെബ് UI നിർമ്മിച്ച് മാറ്റങ്ങൾ ബിൽഡ് ചെയ്യുന്നതിൽ പ്രശ്നമില്ലെന്ന് പരിശോധിക്കുന്നു."
+      }
+    ],
+    "done_when": [
+      "ടെക്സ്റ്റ് ഏരിയയ്ക്കും കാണാവുന്ന രണ്ട് ഫയൽ ഇൻപുട്ടുകൾക്കും യഥാർത്ഥ ലേബൽ ഉണ്ടായിരിക്കണം (`<label for>` അല്ലെങ്കിൽ `aria-label`).",
+      "ഇമോജി സ്പാനുകൾ സ്ക്രീൻ റീഡറുകളിൽ നിന്ന് മറച്ചിരിക്കണം.",
+      "പേജ് മുമ്പത്തെപ്പോലെ തന്നെ കാണപ്പെടണം.",
+      "`npm run build` വിജയിക്കണം."
+    ],
+    "how_to_check": [
+      "npm run build"
+    ],
+    "confidence": "low",
+    "unsure_about": "Heads up: ടെക്സ്റ്റ് ഏരിയയും ഫയൽ ഇൻപുട്ടുകളും ഉള്ള `src/main.ts` ഭാഗം ഇവിടെ കാണാനായില്ല. ആ ഫയൽ തുറന്ന് `textarea`, `kernel-input`, `initrd-input` എന്നിവ തിരയുക."
+  },
+  "citations": [
+    {
+      "path": "src/main.ts",
+      "start": 65,
+      "end": 85,
+      "url": "https://github.com/nishal21/NekoDroid/blob/a58974b32929fbf9783e9f9add3be4031b5bcba2/src/main.ts#L65-L85",
+      "why": "ഈ ഭാഗത്ത് ബട്ടണുകളുടെ ഇമോജി സ്പാനുകളും വായിക്കാവുന്ന ബട്ടൺ പേരുകളും കാണാം; ഇമോജികൾ സ്ക്രീൻ റീഡറുകളിൽ നിന്ന് മറയ്ക്കേണ്ട സ്ഥലമാണിത്.",
+      "verified": true
+    }
+  ],
+  "droppedCitations": 0,
+  "learn": [
+    {
+      "title": "html_tags - Rust",
+      "link": "https://docs.rs/html-tags",
+      "snippet": "A summary or label must be provided using the <summary> element. DetailsOwned: The <details> HTML element creates a disclosure widget in which information is ...",
+      "site": "docs.rs"
+    },
+    {
+      "title": "HTML",
+      "link": "https://yew.rs/docs/concepts/html",
+      "snippet": "The html! macro allows you to write HTML and SVG code declaratively. Tag Structure Tags are based on HTML tags. It is also possible to use Rust style comments ...",
+      "site": "yew.rs"
+    },
+    {
+      "title": "Strict HTML validation in Rust: How to detect unclosed tags ...",
+      "link": "https://users.rust-lang.org/t/strict-html-validation-in-rust-how-to-detect-unclosed-tags-and-unresolved-placeholders/130511",
+      "snippet": "Strict HTML validation in Rust: How to detect unclosed tags and unresolved placeholders? Detect and flag unclosed or extra HTML tags. HTML ...",
+      "site": "users.rust-lang.org"
+    }
+  ],
+  "difficulty": "easy",
+  "difficultyBadge": "Beginner-friendly",
+  "difficultyReason": "The issue provides specific file locations, line numbers, and a clear hint on how to implement the fix."
+}

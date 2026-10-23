@@ -1,0 +1,150 @@
+{
+  "mode": "pr",
+  "owner": "nishal21",
+  "repo": "NekoDroid",
+  "number": 7,
+  "pr": {
+    "title": "test: cover APK package-name helpers",
+    "htmlUrl": "https://github.com/nishal21/NekoDroid/pull/7",
+    "headRef": "test/6-apk-package-helpers",
+    "baseRef": "main",
+    "linkedIssueNumbers": [
+      6
+    ]
+  },
+  "linkedIssue": {
+    "number": 6,
+    "title": "Add unit tests for the APK package-name helpers",
+    "state": "open",
+    "labels": [
+      "good first issue",
+      "tests"
+    ]
+  },
+  "summary": "Almost ready — Check evidence, Issue completion, CONTRIBUTING rules still need attention. The diff adds all six requested unit tests in the suggested locations, with no unrelated changes or forbidden files. The code coverage requirements appear met, but the provided PR information does not show that the required checks passed.",
+  "checklist": [
+    {
+      "id": "linked_issue",
+      "label": "Linked issue",
+      "status": "pass",
+      "evidence": "Linked #6 “Add unit tests for the APK package-name helpers” (open)",
+      "fix": null,
+      "source": "rule"
+    },
+    {
+      "id": "branch_name",
+      "label": "Branch name",
+      "status": "pass",
+      "evidence": "Branch `test/6-apk-package-helpers` matches docs/, fix/, test/",
+      "fix": null,
+      "source": "rule"
+    },
+    {
+      "id": "description",
+      "label": "PR description",
+      "status": "pass",
+      "evidence": "Description is 352 characters",
+      "fix": null,
+      "source": "rule"
+    },
+    {
+      "id": "check_evidence",
+      "label": "Check evidence",
+      "status": "warn",
+      "evidence": "Expected evidence of: npm run build, npm run build:wasm, cargo test",
+      "fix": "Paste the output of the check commands from CONTRIBUTING.md into the PR body.",
+      "source": "rule"
+    },
+    {
+      "id": "tests_touched",
+      "label": "Tests touched",
+      "status": "pass",
+      "evidence": "Inline tests added in src/android/apk.rs",
+      "fix": null,
+      "source": "rule"
+    },
+    {
+      "id": "scope",
+      "label": "Scope",
+      "status": "pass",
+      "evidence": "2 file(s), 56 lines",
+      "fix": null,
+      "source": "rule"
+    },
+    {
+      "id": "forbidden_files",
+      "label": "Forbidden files",
+      "status": "pass",
+      "evidence": "No forbidden paths in the diff",
+      "fix": null,
+      "source": "rule"
+    },
+    {
+      "id": "issue_done_when",
+      "label": "Issue completion",
+      "status": "warn",
+      "evidence": "The issue requires at least three tests for each helper, covering the listed cases; the diff adds three tests for `descriptor_to_package` and three for `parse_text_manifest`, including each requested case. The issue also says, “`cargo test --lib` passes, and the count goes up by the number of tests you added”; six tests are shown in the diff, but no test output or count is provided.",
+      "fix": "Run `cargo test --lib` and include its summary in the PR description so maintainers can verify it passes and the test count increased by six.",
+      "source": "ai"
+    },
+    {
+      "id": "contributing_rules",
+      "label": "CONTRIBUTING rules",
+      "status": "warn",
+      "evidence": "The branch naming, issue link, scope, and forbidden-file rules appear satisfied. The PR does not include evidence for the required checks (`cargo test --lib`, `npm run build:wasm`, and `npm run build`) or say how the change was checked; run them and add their results to the description.",
+      "fix": "Run the checks listed in CONTRIBUTING.md and add their results to the PR description, including the `cargo test --lib` summary.",
+      "source": "ai"
+    }
+  ],
+  "line_comments": [],
+  "questions_a_maintainer_would_ask": [
+    "Could you add the `cargo test --lib` summary and the other required check results to the PR description?"
+  ],
+  "encouragement": "You covered all three requested cases for both helpers and kept the tests beside the private functions, as the issue suggested.",
+  "score": 75,
+  "verdict": "almost",
+  "checks": [
+    {
+      "id": "linked_issue",
+      "label": "Linked issue",
+      "status": "pass",
+      "evidence": "Linked #6 “Add unit tests for the APK package-name helpers” (open)"
+    },
+    {
+      "id": "branch_name",
+      "label": "Branch name",
+      "status": "pass",
+      "evidence": "Branch `test/6-apk-package-helpers` matches docs/, fix/, test/"
+    },
+    {
+      "id": "description",
+      "label": "PR description",
+      "status": "pass",
+      "evidence": "Description is 352 characters"
+    },
+    {
+      "id": "check_evidence",
+      "label": "Check evidence",
+      "status": "warn",
+      "evidence": "Expected evidence of: npm run build, npm run build:wasm, cargo test"
+    },
+    {
+      "id": "tests_touched",
+      "label": "Tests touched",
+      "status": "pass",
+      "evidence": "Inline tests added in src/android/apk.rs"
+    },
+    {
+      "id": "scope",
+      "label": "Scope",
+      "status": "pass",
+      "evidence": "2 file(s), 56 lines"
+    },
+    {
+      "id": "forbidden_files",
+      "label": "Forbidden files",
+      "status": "pass",
+      "evidence": "No forbidden paths in the diff"
+    }
+  ]
+}
