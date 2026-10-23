@@ -31,6 +31,7 @@ export type GoodFirstIssue = {
   htmlUrl: string;
   createdAt: string;
   comments: number;
+  state: "open" | "closed";
 };
 
 export type PullRequestInfo = {
@@ -269,6 +270,7 @@ export async function getIssue(
         htmlUrl: data.html_url,
         createdAt: data.created_at,
         comments: data.comments,
+        state: data.state === "closed" ? "closed" : "open",
       };
     }),
   );
@@ -304,6 +306,7 @@ export async function listGoodFirstIssues(
           htmlUrl: issue.html_url,
           createdAt: issue.created_at,
           comments: issue.comments,
+          state: "open" as const,
         }));
     }),
   );
@@ -340,7 +343,27 @@ export async function searchGoodFirstIssues(
         htmlUrl: issue.html_url,
         createdAt: issue.created_at,
         comments: issue.comments,
+        state: issue.state === "closed" ? ("closed" as const) : ("open" as const),
       }));
+    }),
+  );
+}
+
+/** Resolve a branch name to its tip commit SHA. */
+export async function getBranchSha(
+  owner: string,
+  repo: string,
+  branch: string,
+): Promise<string> {
+  return cached(`branch-sha:${owner}/${repo}:${branch}`, async () =>
+    gh(async () => {
+      const client = getOctokit();
+      const { data } = await client.git.getRef({
+        owner,
+        repo,
+        ref: `heads/${branch}`,
+      });
+      return data.object.sha;
     }),
   );
 }

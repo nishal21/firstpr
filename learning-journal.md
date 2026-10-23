@@ -76,6 +76,17 @@
 - `POST /api/hint`; `HintLadder` on issue page (stepper, Ask FirstPR, refuse chip, blue refusal card).
 - Verified #4: refuse → src/main.ts points; levels 2–3; L3 plain English, no TS.
 
+## 2026-10-23 — Hint vs chat state split
+- `HintLadder`: `hints[1..3]` only from Show next hint; `messages[]` only from Ask FirstPR.
+- All unlocked hint cards stay visible; chat bubbles below labeled FirstPR (no Level label).
+- Ask never overwrites hints (fixes L3 pseudocode replaced by chat answer).
+
+## 2026-10-23 — Review deterministic checks
+- `lib/checks.ts` runChecks: linked_issue, branch_name, description, check_evidence, tests_touched, scope, forbidden_files.
+- `lib/score.ts` weights → score/verdict (ready/almost/not_yet); AI slots default warn.
+- `POST /api/review` { prUrl } or { diff, repo, issueNumber }.
+- Verified: NekoDroid PR #1 → linked_issue fail (no Fixes #N), score 58 almost; PR #7 has Fixes.
+
 ## Next for another agent
-1. Review PR flow (BUILD-PLAN prompt 9).
-2. Redeploy Vercel (hints + learn relevance).
+1. Review AI + score card UI (BUILD-PLAN prompt 10).
+2. Redeploy Vercel.

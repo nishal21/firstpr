@@ -5,16 +5,16 @@
       "app_api_match_route_githubusername",
       "app_api_match_route_matchbodyschema",
       "app_api_match_route_post",
-      "lib_cache",
-      "lib_cache_cached",
-      "lib_cache_cacheentry",
-      "lib_cache_cacheget",
-      "lib_cache_cacheset",
-      "lib_cache_store",
-      "lib_env_env",
+      "app_api_review_route",
+      "app_api_review_route_loadfirstlinkedissue",
+      "app_api_review_route_post",
+      "app_api_review_route_reviewbody",
+      "app_api_review_route_reviewfromdiff",
+      "app_api_review_route_reviewfromprurl",
+      "lib_checks_splitdiffintofiles",
       "lib_github",
+      "lib_github_getbranchsha",
       "lib_github_getcontributing",
-      "lib_github_getfile",
       "lib_github_getissue",
       "lib_github_getoctokit",
       "lib_github_getpullfiles",
@@ -33,7 +33,6 @@
       "lib_github_parselinkedissuenumbers",
       "lib_github_parseprurl",
       "lib_github_parserepo",
-      "lib_github_pullfile",
       "lib_github_pullrequestinfo",
       "lib_github_ratelimitinfo",
       "lib_github_repoinfo",
@@ -85,7 +84,6 @@
       "lib_schemas_explainoutput",
       "lib_schemas_explainschema",
       "lib_schemas_firstpasspickoutput",
-      "lib_schemas_firstpasspickschema",
       "lib_schemas_hintoutput",
       "lib_schemas_hintschema",
       "lib_schemas_pickfilesoutput",
@@ -97,43 +95,8 @@
       "scripts_verify_learn_main"
     ],
     "2": [
-      "lib_neysa",
-      "lib_neysa_applyfunctionmentions",
-      "lib_neysa_basename",
-      "lib_neysa_builduserprompt",
-      "lib_neysa_connectioncooldownuntil",
-      "lib_neysa_extractbackticks",
-      "lib_neysa_extractfunctionnames",
-      "lib_neysa_extractmentionedpaths",
-      "lib_neysa_fetchpreviews",
-      "lib_neysa_filepicksource",
-      "lib_neysa_filepreview",
-      "lib_neysa_filtercandidatepaths",
-      "lib_neysa_filtertoknownpaths",
-      "lib_neysa_isconnectionerror",
-      "lib_neysa_isinconnectioncooldown",
-      "lib_neysa_listneysaproviders",
-      "lib_neysa_markconnectionfailure",
-      "lib_neysa_mergemustinclude",
-      "lib_neysa_neysaprovider",
-      "lib_neysa_neysaproviderid",
-      "lib_neysa_pickfiles",
-      "lib_neysa_pickfilesrepo",
-      "lib_neysa_pickfilesresult",
-      "lib_neysa_pickwithopenai",
-      "lib_neysa_pickwithprovider",
-      "lib_neysa_preparecandidates",
-      "lib_neysa_previewcontainsfunction",
-      "lib_neysa_rankcandidates",
-      "lib_neysa_scorepath",
-      "lib_neysa_shoulddroppath",
-      "lib_neysa_skip_dirs",
-      "lib_neysa_stop_words",
-      "lib_neysa_stripthinkandextractjson",
-      "lib_neysa_tokenizeissue"
-    ],
-    "3": [
       "lib_env",
+      "lib_env_env",
       "lib_env_envschema",
       "lib_env_getenv",
       "lib_env_loadenv",
@@ -153,6 +116,7 @@
       "lib_llm_ping",
       "lib_llm_pingschema",
       "lib_llm_withtimeout",
+      "lib_neysa_listneysaproviders",
       "lib_openai",
       "lib_openai_getbackupopenai",
       "lib_openai_getprimaryopenai",
@@ -166,7 +130,75 @@
       "scripts_verify_openai_backup",
       "scripts_verify_openai_backup_main"
     ],
+    "3": [
+      "lib_github_getfile",
+      "lib_neysa",
+      "lib_neysa_applyfunctionmentions",
+      "lib_neysa_basename",
+      "lib_neysa_builduserprompt",
+      "lib_neysa_connectioncooldownuntil",
+      "lib_neysa_extractbackticks",
+      "lib_neysa_extractfunctionnames",
+      "lib_neysa_extractmentionedpaths",
+      "lib_neysa_fetchpreviews",
+      "lib_neysa_filepicksource",
+      "lib_neysa_filepreview",
+      "lib_neysa_filtercandidatepaths",
+      "lib_neysa_filtertoknownpaths",
+      "lib_neysa_isconnectionerror",
+      "lib_neysa_isinconnectioncooldown",
+      "lib_neysa_markconnectionfailure",
+      "lib_neysa_mergemustinclude",
+      "lib_neysa_neysaprovider",
+      "lib_neysa_neysaproviderid",
+      "lib_neysa_pickfiles",
+      "lib_neysa_pickfilesrepo",
+      "lib_neysa_pickfilesresult",
+      "lib_neysa_pickwithopenai",
+      "lib_neysa_pickwithprovider",
+      "lib_neysa_preparecandidates",
+      "lib_neysa_previewcontainsfunction",
+      "lib_neysa_rankcandidates",
+      "lib_neysa_scorepath",
+      "lib_neysa_shoulddroppath",
+      "lib_neysa_skip_dirs",
+      "lib_neysa_stop_words",
+      "lib_neysa_stripthinkandextractjson",
+      "lib_neysa_tokenizeissue"
+    ],
     "4": [
+      "lib_checks",
+      "lib_checks_check",
+      "lib_checks_checkbranchname",
+      "lib_checks_checkdescription",
+      "lib_checks_checkevidence",
+      "lib_checks_checkforbiddenfiles",
+      "lib_checks_checklinkedissue",
+      "lib_checks_checkresult",
+      "lib_checks_checkscope",
+      "lib_checks_checkstatus",
+      "lib_checks_checkteststouched",
+      "lib_checks_extractbranchprefixes",
+      "lib_checks_extractcodeblockcommands",
+      "lib_checks_extractforbiddenpatterns",
+      "lib_checks_fileoutsideissuepaths",
+      "lib_checks_isdocsfile",
+      "lib_checks_istestfile",
+      "lib_checks_known_check_commands",
+      "lib_checks_matchesforbidden",
+      "lib_checks_pathsmentionedinissue",
+      "lib_checks_runchecks",
+      "lib_checks_runchecksargs",
+      "lib_github_pullfile",
+      "lib_score",
+      "lib_score_byid",
+      "lib_score_scorechecks",
+      "lib_score_scoreresult",
+      "lib_score_statuspoints",
+      "lib_score_verdict",
+      "lib_score_weights"
+    ],
+    "5": [
       "ref_dom",
       "ref_dom_iterable",
       "ref_esnext",
@@ -198,7 +230,7 @@
       "tsconfig_exclude",
       "tsconfig_include"
     ],
-    "5": [
+    "6": [
       "base_ui_react",
       "class_variance_authority",
       "cn",
@@ -229,7 +261,7 @@
       "tw_animate_css",
       "zod"
     ],
-    "6": [
+    "7": [
       "eslint",
       "eslint_config_next",
       "package",
@@ -257,7 +289,7 @@
       "types_react_dom",
       "typescript"
     ],
-    "7": [
+    "8": [
       "lib_serp",
       "lib_serp_blocked_host_snippets",
       "lib_serp_cache",
@@ -282,7 +314,7 @@
       "lib_serp_serpsearch",
       "lib_serp_tolearnlink"
     ],
-    "8": [
+    "9": [
       "components",
       "components_aliases",
       "components_aliases_components",
@@ -306,7 +338,7 @@
       "components_tailwind_prefix",
       "components_tsx"
     ],
-    "9": [
+    "10": [
       "app_page",
       "app_page_home",
       "components_explain_client",
@@ -328,16 +360,19 @@
       "components_ui_input_input",
       "lib_utils"
     ],
-    "10": [
+    "11": [
       "app_issue_owner_repo_number_page",
       "app_issue_owner_repo_number_page_issueexplainpage",
       "app_issue_owner_repo_number_page_pageprops",
       "components_hint_ladder",
+      "components_hint_ladder_chatmessage",
+      "components_hint_ladder_hintcard",
       "components_hint_ladder_hintladder",
       "components_hint_ladder_hintlevel",
       "components_hint_ladder_hintpayload",
       "components_hint_ladder_hintpoint",
       "components_hint_ladder_linechip",
+      "components_hint_ladder_pointschips",
       "components_hint_ladder_steps",
       "components_hint_ladder_storedhint",
       "components_issue_explain",
@@ -346,7 +381,7 @@
       "components_issue_explain_linerangelabel",
       "components_issue_explain_loading_steps"
     ],
-    "11": [
+    "12": [
       "app_api_debug_route",
       "app_api_debug_route_get",
       "lib_pickfiles",
@@ -359,9 +394,10 @@
       "lib_pickfiles_pickfilesfromissuetext",
       "lib_pickfiles_pickfilesissue",
       "lib_pickfiles_pickfileswithai",
-      "lib_pickfiles_resolvetotreepath"
+      "lib_pickfiles_resolvetotreepath",
+      "lib_schemas_firstpasspickschema"
     ],
-    "12": [
+    "13": [
       "lib_lines",
       "lib_lines_citationinput",
       "lib_lines_citationresult",
@@ -374,7 +410,7 @@
       "lib_lines_verifycitation",
       "lib_lines_windowaround"
     ],
-    "13": [
+    "14": [
       "components_ui_card",
       "components_ui_card_card",
       "components_ui_card_cardaction",
@@ -384,7 +420,7 @@
       "components_ui_card_cardheader",
       "components_ui_card_cardtitle"
     ],
-    "14": [
+    "15": [
       "components_ui_progress",
       "components_ui_progress_progress",
       "components_ui_progress_progressindicator",
@@ -392,7 +428,7 @@
       "components_ui_progress_progresstrack",
       "components_ui_progress_progressvalue"
     ],
-    "15": [
+    "16": [
       "components_ui_tabs",
       "components_ui_tabs_tabs",
       "components_ui_tabs_tabscontent",
@@ -400,85 +436,95 @@
       "components_ui_tabs_tabslistvariants",
       "components_ui_tabs_tabstrigger"
     ],
-    "16": [
+    "17": [
+      "lib_cache",
+      "lib_cache_cached",
+      "lib_cache_cacheentry",
+      "lib_cache_cacheget",
+      "lib_cache_cacheset",
+      "lib_cache_store"
+    ],
+    "18": [
       "components_ui_tooltip",
       "components_ui_tooltip_tooltip",
       "components_ui_tooltip_tooltipcontent",
       "components_ui_tooltip_tooltipprovider",
       "components_ui_tooltip_tooltiptrigger"
     ],
-    "17": [
+    "19": [
       "app_layout",
       "app_layout_inter",
       "app_layout_metadata",
       "app_layout_rootlayout"
     ],
-    "18": [
+    "20": [
       "app_explain_page",
       "app_explain_page_explainpage",
       "app_explain_page_redirectexplain"
     ],
-    "19": [
+    "21": [
       "app_review_page",
       "app_review_page_reviewpage"
     ],
-    "20": [
+    "22": [
       "components_ui_separator",
       "components_ui_separator_separator"
     ],
-    "21": [
+    "23": [
       "components_ui_skeleton",
       "components_ui_skeleton_skeleton"
     ],
-    "22": [
+    "24": [
       "components_ui_sonner",
       "components_ui_sonner_toaster"
     ],
-    "23": [
+    "25": [
       "components_ui_textarea",
       "components_ui_textarea_textarea"
     ],
-    "24": [
+    "26": [
       "eslint_config",
       "eslint_config_eslintconfig"
     ],
-    "25": [
+    "27": [
       "lib_prompts_explain",
       "lib_prompts_explain_buildexplainuserprompt"
     ],
-    "26": [
+    "28": [
       "next_config",
       "next_config_nextconfig"
     ]
   },
   "cohesion": {
-    "0": 0.08521870286576169,
-    "1": 0.09102564102564102,
-    "2": 0.11764705882352941,
-    "3": 0.12096774193548387,
-    "4": 0.06666666666666667,
-    "5": 0.06896551724137931,
-    "6": 0.07692307692307693,
-    "7": 0.1857707509881423,
-    "8": 0.09090909090909091,
-    "9": 0.16842105263157894,
-    "10": 0.16666666666666666,
-    "11": 0.2564102564102564,
-    "12": 0.32727272727272727,
-    "13": 0.25,
-    "14": 0.3333333333333333,
-    "15": 0.4,
+    "0": 0.09647058823529411,
+    "1": 0.09446693657219973,
+    "2": 0.11229946524064172,
+    "3": 0.11764705882352941,
+    "4": 0.12873563218390804,
+    "5": 0.06666666666666667,
+    "6": 0.06896551724137931,
+    "7": 0.07692307692307693,
+    "8": 0.1857707509881423,
+    "9": 0.09090909090909091,
+    "10": 0.16842105263157894,
+    "11": 0.13450292397660818,
+    "12": 0.23076923076923078,
+    "13": 0.32727272727272727,
+    "14": 0.25,
+    "15": 0.3333333333333333,
     "16": 0.4,
-    "17": 0.5,
-    "18": 0.6666666666666666,
-    "19": 1.0,
-    "20": 1.0,
+    "17": 0.4666666666666667,
+    "18": 0.4,
+    "19": 0.5,
+    "20": 0.6666666666666666,
     "21": 1.0,
     "22": 1.0,
     "23": 1.0,
     "24": 1.0,
     "25": 1.0,
-    "26": 1.0
+    "26": 1.0,
+    "27": 1.0,
+    "28": 1.0
   },
   "gods": [
     {
@@ -487,14 +533,9 @@
       "degree": 16
     },
     {
-      "id": "lib_cache_cached",
-      "label": "cached()",
-      "degree": 15
-    },
-    {
       "id": "lib_github_gh",
       "label": "gh()",
-      "degree": 11
+      "degree": 12
     },
     {
       "id": "lib_neysa_pickfiles",
@@ -507,9 +548,14 @@
       "degree": 11
     },
     {
+      "id": "lib_checks_runchecks",
+      "label": "runChecks()",
+      "degree": 11
+    },
+    {
       "id": "lib_github_getoctokit",
       "label": "getOctokit()",
-      "degree": 10
+      "degree": 11
     },
     {
       "id": "lib_match_matchissues",
@@ -522,14 +568,14 @@
       "degree": 10
     },
     {
+      "id": "app_api_review_route_reviewfromprurl",
+      "label": "reviewFromPrUrl()",
+      "degree": 10
+    },
+    {
       "id": "lib_serp_learnlinks",
       "label": "learnLinks()",
       "degree": 9
-    },
-    {
-      "id": "lib_github_gettree",
-      "label": "getTree()",
-      "degree": 7
     }
   ],
   "surprises": [

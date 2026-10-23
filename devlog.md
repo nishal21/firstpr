@@ -83,6 +83,15 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - Explain uses `explainIssueCached` so hints reuse the same payload
 - Checked: #4 refuse chip + L1→L3; L3 no TypeScript
 
+## 2026-10-23 — Fix Ask FirstPR overwriting L3
+- Split hints vs chat state in `HintLadder`; render all unlocked cards + chat thread
+- Checked: ask no longer replaces Level 3 pseudocode
+
+## 2026-10-23 — Review checks + score + API
+- Added `lib/checks.ts`, `lib/score.ts`, `app/api/review/route.ts`
+- `GoodFirstIssue.state` + `getBranchSha`
+- Checked: PR #1 linked_issue fail; returns checks + score
+
 ## Next
-- Review flow
+- Review AI + ScoreCard UI
 - Redeploy Vercel

@@ -125,9 +125,9 @@
     "semantic_hash": "34c5eb4229e66bb144381d20dd6a1047"
   },
   "lib/github.ts": {
-    "mtime": 1792761230.8063543,
-    "ast_hash": "4d0954d2d00930ea3befd1715c7d344a",
-    "semantic_hash": "4d0954d2d00930ea3befd1715c7d344a"
+    "mtime": 1792773988.40706,
+    "ast_hash": "93fc3ec779d095fc4704cbd50354853a",
+    "semantic_hash": "93fc3ec779d095fc4704cbd50354853a"
   },
   "lib/llm.ts": {
     "mtime": 1792767347.4992383,
@@ -225,9 +225,9 @@
     "semantic_hash": "bf10f503246432fe6c80ac5271e9bb1a"
   },
   "components/hint-ladder.tsx": {
-    "mtime": 1792773041.0250082,
-    "ast_hash": "459200bf4087febac6d69791f00c0bfa",
-    "semantic_hash": "459200bf4087febac6d69791f00c0bfa"
+    "mtime": 1792773821.6761744,
+    "ast_hash": "9653e8c096793421fabb560a96d6eca7",
+    "semantic_hash": "9653e8c096793421fabb560a96d6eca7"
   },
   "lib/hints.ts": {
     "mtime": 1792773062.0331378,
@@ -243,5 +243,20 @@
     "mtime": 1792773070.6653416,
     "ast_hash": "60092d9dbe1cd9e30ec8e0bd53dadc26",
     "semantic_hash": "60092d9dbe1cd9e30ec8e0bd53dadc26"
+  },
+  "app/api/review/route.ts": {
+    "mtime": 1792774065.23645,
+    "ast_hash": "4a1f48d118272837d47abf2ef4f73b5e",
+    "semantic_hash": "4a1f48d118272837d47abf2ef4f73b5e"
+  },
+  "lib/checks.ts": {
+    "mtime": 1792774039.2020822,
+    "ast_hash": "46b64fd171187280754774d46d8d55a8",
+    "semantic_hash": "46b64fd171187280754774d46d8d55a8"
+  },
+  "lib/score.ts": {
+    "mtime": 1792774046.3338387,
+    "ast_hash": "f9ce14160934ad9d2f7ff4239343fd74",
+    "semantic_hash": "f9ce14160934ad9d2f7ff4239343fd74"
   }
 }
