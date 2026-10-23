@@ -146,7 +146,7 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 
 ## 2026-10-24 — Lang menu overflow fix
 - Menu was clipped by nav `overflow-x-auto` (looked like scroll arrows)
-- LangToggle outside scroll nav; menu portaled to `document.body` with `fixed` + z-100
+- Menu portaled to `document.body` with `fixed` + z-200; default English; 3 langs only
 
 ## Next
-- Redeploy Vercel; visual smoke on phone/laptop navbar
+- Redeploy Vercel; confirm English default on fresh visit

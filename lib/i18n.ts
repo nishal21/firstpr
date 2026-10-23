@@ -1,6 +1,9 @@
 export const UI_LANGS = ["en", "ml", "hi"] as const;
 export type UiLang = (typeof UI_LANGS)[number];
 
+/** Default UI language for first visit / unknown storage. */
+export const DEFAULT_UI_LANG: UiLang = "en";
+
 export const UI_LANG_STORAGE_KEY = "firstpr-lang";
 
 /** Native name shown in the navbar button and dropdown. */
@@ -460,7 +463,7 @@ export const dictionaries: Record<UiLang, Record<I18nKey, string>> = {
 export function parseUiLang(value: string | null | undefined): UiLang {
   const v = value?.trim().toLowerCase();
   if (v === "ml" || v === "hi" || v === "en") return v;
-  return "en";
+  return DEFAULT_UI_LANG;
 }
 
 export type TParams = Record<string, string | number>;

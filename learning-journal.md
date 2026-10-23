@@ -150,6 +150,10 @@
 - Cause: `overflow-x-auto` on nav scrolled/clipped the menu (fake “select arrows”).
 - Fix: LangToggle sibling of nav; portal menu to body with fixed coords.
 
+## 2026-10-24 — Lang: 3 options, default English, nav unchanged
+- Only en / ml / hi; `DEFAULT_UI_LANG = "en"`; storage ignores junk → English.
+- Navbar layout restored (links + toggle); menu still portaled (z-200).
+
 ## Next for another agent
-1. Redeploy Vercel.
-2. Smoke: switch to മലയാളം on /, /issue/…/4, /review — labels flip instantly; refresh keeps lang.
+1. Redeploy Vercel so production matches.
+2. Smoke: English default; switch ml/hi; menu floats over hero.

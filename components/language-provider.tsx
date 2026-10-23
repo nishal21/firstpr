@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import {
-  parseUiLang,
+  DEFAULT_UI_LANG,
   translate,
   UI_LANG_STORAGE_KEY,
   type I18nKey,
@@ -29,22 +29,25 @@ type LanguageContextValue = {
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
 function readStoredLang(): UiLang {
-  if (typeof window === "undefined") return "en";
+  if (typeof window === "undefined") return DEFAULT_UI_LANG;
   try {
-    return parseUiLang(localStorage.getItem(UI_LANG_STORAGE_KEY));
+    const raw = localStorage.getItem(UI_LANG_STORAGE_KEY);
+    // Only keep a previously chosen ml/hi; anything else → English.
+    if (raw === "ml" || raw === "hi") return raw;
+    return DEFAULT_UI_LANG;
   } catch {
-    return "en";
+    return DEFAULT_UI_LANG;
   }
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<UiLang>("en");
+  const [lang, setLangState] = useState<UiLang>(DEFAULT_UI_LANG);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const next = readStoredLang();
     setLangState(next);
-    document.documentElement.lang = next;
+    document.documentElement.lang = next === "en" ? "en" : next;
     try {
       localStorage.setItem(UI_LANG_STORAGE_KEY, next);
     } catch {

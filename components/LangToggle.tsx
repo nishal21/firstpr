@@ -74,7 +74,7 @@ export function LangToggle({ className }: { className?: string }) {
             role="listbox"
             aria-label={t("nav.language")}
             style={{ top: pos.top, right: pos.right }}
-            className="fixed z-[100] w-40 overflow-hidden rounded-md border border-slate-200 bg-white py-1 text-sm shadow-sm"
+            className="fixed z-[200] w-40 overflow-hidden rounded-md border border-slate-200 bg-white py-1 text-sm shadow-md"
           >
             {UI_LANGS.map((code) => {
               const selected = code === lang;
