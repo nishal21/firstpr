@@ -12,6 +12,12 @@
 - `GET /api/debug` (non-prod): DEMO_REPO repo + good-first-issues + rate limit. Do not export `runtime` when `cacheComponents: true` (Next 16 conflict); `maxDuration = 60` ok.
 - Verified: NekoDroid `main`, issues #2–#6, core ~5000.
 
+## 2026-10-23 — LLM layer
+- `lib/llm.ts`: `generateJson` (Neysa first_pass optional → OpenAI `responses.parse` + `zodTextFormat`), `ping`, `LlmError`.
+- `lib/schemas.ts`: placeholder; use `.nullable()` not `.optional()` for structured outputs.
+- Shell `OPENAI_BASE_URL=http://localhost:4000` breaks SDK — ignore localhost base URL, use `https://api.openai.com/v1`.
+- `/api/debug` includes `llm: { ok: true }` + `[llm] task=… model=… tokens…` logs.
+
 ## Next for another agent
-1. Wire `/` match form → `POST /api/match` using `getUserLanguages` + `searchGoodFirstIssues` / `listGoodFirstIssues`.
-2. Add `lib/llm.ts` + `lib/schemas.ts`; product rule: never write the user’s fix.
+1. Wire `/` match form → `POST /api/match`.
+2. Add real schemas in `lib/schemas.ts`; product rule: never write the user’s fix.

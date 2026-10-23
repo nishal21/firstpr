@@ -2,6 +2,7 @@ import { z } from "zod";
 
 const envSchema = z.object({
   OPENAI_API_KEY: z.string().optional(),
+  OPENAI_BASE_URL: z.string().optional(),
   OPENAI_MODEL: z.string().default("gpt-6-luna"),
   OPENAI_REVIEW_MODEL: z.string().default("gpt-6-luna"),
   GITHUB_TOKEN: z.string().optional(),
@@ -18,6 +19,7 @@ export type Env = z.infer<typeof envSchema>;
 function loadEnv(): Env {
   const result = envSchema.safeParse({
     OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    OPENAI_BASE_URL: process.env.OPENAI_BASE_URL,
     OPENAI_MODEL: process.env.OPENAI_MODEL,
     OPENAI_REVIEW_MODEL: process.env.OPENAI_REVIEW_MODEL,
     GITHUB_TOKEN: process.env.GITHUB_TOKEN,

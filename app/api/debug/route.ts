@@ -7,6 +7,7 @@ import {
   listGoodFirstIssues,
   parseRepo,
 } from "@/lib/github";
+import { LlmError, ping } from "@/lib/llm";
 
 // Node is the default for route handlers; `runtime` is incompatible with cacheComponents.
 export const maxDuration = 60;
@@ -21,10 +22,11 @@ export async function GET() {
 
   try {
     const { owner, repo } = parseRepo(env.DEMO_REPO);
-    const [repoInfo, issues, rateLimit] = await Promise.all([
+    const [repoInfo, issues, rateLimit, llm] = await Promise.all([
       getRepo(owner, repo),
       listGoodFirstIssues(owner, repo),
       getRateLimit(),
+      ping(),
     ]);
 
     return NextResponse.json({
@@ -32,11 +34,20 @@ export async function GET() {
       repo: repoInfo,
       issues,
       rateLimit,
+      llm,
     });
   } catch (err) {
     if (err instanceof GitHubError) {
       const status =
         err.code === "rate_limited" ? 429 : err.code === "not_found" ? 404 : 502;
+      return NextResponse.json(
+        { error: err.message, code: err.code },
+        { status },
+      );
+    }
+
+    if (err instanceof LlmError) {
+      const status = err.code === "timeout" ? 504 : 502;
       return NextResponse.json(
         { error: err.message, code: err.code },
         { status },

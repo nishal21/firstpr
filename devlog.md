@@ -14,6 +14,11 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - Note: omit `export const runtime` under cacheComponents
 - Checked: `/api/debug` → main, sha, issues #2–#6, core 4947
 
+## 2026-10-23 — lib/llm + schemas
+- Added `lib/llm.ts`, `lib/schemas.ts`; debug returns `llm: { ok: true }`
+- Optional `OPENAI_BASE_URL` in env; localhost proxy values ignored
+- Checked: `/api/debug` → llm ok; terminal `[llm] … model=gpt-6-luna … tokens`
+
 ## Next
 - Match / explain / review APIs + forms
 - Prefer GITHUB_TOKEN on Vercel (prod debug is 404 by design)
