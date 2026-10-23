@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Check, ExternalLink } from "lucide-react";
+import { HintLadder } from "@/components/hint-ladder";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -345,13 +346,12 @@ export function IssueExplain({
         </div>
       </div>
 
-      <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/60 p-5">
-        <h2 className="text-sm font-semibold text-slate-900">Hints</h2>
-        <p className="mt-2 text-sm text-slate-500">
-          Hint ladder coming next — where to look, what to change, then
-          plain-English pseudocode. FirstPR never writes the fix for you.
-        </p>
-      </div>
+      <HintLadder
+        owner={owner}
+        repo={repo}
+        number={number}
+        lang={data.language ?? lang}
+      />
 
       <p className="text-xs text-slate-400">
         <Link href="/" className="text-blue-600 hover:underline">

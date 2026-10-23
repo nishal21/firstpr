@@ -11,6 +11,7 @@
       "lib_cache_cacheget",
       "lib_cache_cacheset",
       "lib_cache_store",
+      "lib_env_env",
       "lib_github",
       "lib_github_getcontributing",
       "lib_github_getfile",
@@ -54,6 +55,48 @@
       "scripts_verify_pick_chain_runonce"
     ],
     "1": [
+      "app_api_explain_route",
+      "app_api_explain_route_explainbody",
+      "app_api_explain_route_post",
+      "app_api_hint_route",
+      "app_api_hint_route_hintbody",
+      "app_api_hint_route_post",
+      "lib_explain",
+      "lib_explain_buildfileblock",
+      "lib_explain_explaincitation",
+      "lib_explain_explainissue",
+      "lib_explain_explainissuecached",
+      "lib_explain_explainissueresult",
+      "lib_explain_extractcontributingchecks",
+      "lib_hints",
+      "lib_hints_callhintmodel",
+      "lib_hints_clamppointstocitations",
+      "lib_hints_detectaskedforcode",
+      "lib_hints_gethint",
+      "lib_hints_gethintresult",
+      "lib_hints_hintcontainscode",
+      "lib_hints_hintlevel",
+      "lib_hints_hintpoint",
+      "lib_hints_linelookslikecode",
+      "lib_hints_stripcodefromhint",
+      "lib_prompts_hints",
+      "lib_prompts_hints_buildhintuserprompt",
+      "lib_schemas",
+      "lib_schemas_explainoutput",
+      "lib_schemas_explainschema",
+      "lib_schemas_firstpasspickoutput",
+      "lib_schemas_firstpasspickschema",
+      "lib_schemas_hintoutput",
+      "lib_schemas_hintschema",
+      "lib_schemas_pickfilesoutput",
+      "lib_schemas_pickfilesschema",
+      "scripts_verify_hints",
+      "scripts_verify_hints_main",
+      "scripts_verify_learn",
+      "scripts_verify_learn_check",
+      "scripts_verify_learn_main"
+    ],
+    "2": [
       "lib_neysa",
       "lib_neysa_applyfunctionmentions",
       "lib_neysa_basename",
@@ -89,9 +132,8 @@
       "lib_neysa_stripthinkandextractjson",
       "lib_neysa_tokenizeissue"
     ],
-    "2": [
+    "3": [
       "lib_env",
-      "lib_env_env",
       "lib_env_envschema",
       "lib_env_getenv",
       "lib_env_loadenv",
@@ -124,7 +166,7 @@
       "scripts_verify_openai_backup",
       "scripts_verify_openai_backup_main"
     ],
-    "3": [
+    "4": [
       "ref_dom",
       "ref_dom_iterable",
       "ref_esnext",
@@ -156,7 +198,7 @@
       "tsconfig_exclude",
       "tsconfig_include"
     ],
-    "4": [
+    "5": [
       "base_ui_react",
       "class_variance_authority",
       "cn",
@@ -187,7 +229,7 @@
       "tw_animate_css",
       "zod"
     ],
-    "5": [
+    "6": [
       "eslint",
       "eslint_config_next",
       "package",
@@ -215,7 +257,32 @@
       "types_react_dom",
       "typescript"
     ],
-    "6": [
+    "7": [
+      "lib_serp",
+      "lib_serp_blocked_host_snippets",
+      "lib_serp_cache",
+      "lib_serp_detectlanguageinphrase",
+      "lib_serp_filterbylanguage",
+      "lib_serp_gatherlearnlinks",
+      "lib_serp_hostnameof",
+      "lib_serp_isblocked",
+      "lib_serp_isofficialdocshost",
+      "lib_serp_known_languages",
+      "lib_serp_lang_boost_hosts",
+      "lib_serp_languagealiases",
+      "lib_serp_learnlink",
+      "lib_serp_learnlinks",
+      "lib_serp_mentionslanguage",
+      "lib_serp_normalizelangkey",
+      "lib_serp_organicresult",
+      "lib_serp_preferencescore",
+      "lib_serp_preferred_hosts",
+      "lib_serp_querymentionslanguage",
+      "lib_serp_rankandtake",
+      "lib_serp_serpsearch",
+      "lib_serp_tolearnlink"
+    ],
+    "8": [
       "components",
       "components_aliases",
       "components_aliases_components",
@@ -238,53 +305,6 @@
       "components_tailwind_cssvariables",
       "components_tailwind_prefix",
       "components_tsx"
-    ],
-    "7": [
-      "lib_serp",
-      "lib_serp_blocked_host_snippets",
-      "lib_serp_cache",
-      "lib_serp_detectlanguageinphrase",
-      "lib_serp_filterbylanguage",
-      "lib_serp_gatherlearnlinks",
-      "lib_serp_hostnameof",
-      "lib_serp_isblocked",
-      "lib_serp_isofficialdocshost",
-      "lib_serp_known_languages",
-      "lib_serp_lang_boost_hosts",
-      "lib_serp_languagealiases",
-      "lib_serp_learnlinks",
-      "lib_serp_mentionslanguage",
-      "lib_serp_normalizelangkey",
-      "lib_serp_organicresult",
-      "lib_serp_preferencescore",
-      "lib_serp_preferred_hosts",
-      "lib_serp_querymentionslanguage",
-      "lib_serp_rankandtake",
-      "lib_serp_serpsearch",
-      "lib_serp_tolearnlink"
-    ],
-    "8": [
-      "app_api_explain_route",
-      "app_api_explain_route_explainbody",
-      "app_api_explain_route_post",
-      "lib_explain",
-      "lib_explain_buildfileblock",
-      "lib_explain_explaincitation",
-      "lib_explain_explainissue",
-      "lib_explain_explainissueresult",
-      "lib_explain_extractcontributingchecks",
-      "lib_prompts_explain",
-      "lib_prompts_explain_buildexplainuserprompt",
-      "lib_schemas",
-      "lib_schemas_explainoutput",
-      "lib_schemas_explainschema",
-      "lib_schemas_firstpasspickoutput",
-      "lib_schemas_pickfilesoutput",
-      "lib_schemas_pickfilesschema",
-      "lib_serp_learnlink",
-      "scripts_verify_learn",
-      "scripts_verify_learn_check",
-      "scripts_verify_learn_main"
     ],
     "9": [
       "app_page",
@@ -309,6 +329,24 @@
       "lib_utils"
     ],
     "10": [
+      "app_issue_owner_repo_number_page",
+      "app_issue_owner_repo_number_page_issueexplainpage",
+      "app_issue_owner_repo_number_page_pageprops",
+      "components_hint_ladder",
+      "components_hint_ladder_hintladder",
+      "components_hint_ladder_hintlevel",
+      "components_hint_ladder_hintpayload",
+      "components_hint_ladder_hintpoint",
+      "components_hint_ladder_linechip",
+      "components_hint_ladder_steps",
+      "components_hint_ladder_storedhint",
+      "components_issue_explain",
+      "components_issue_explain_explainapiresponse",
+      "components_issue_explain_issueexplain",
+      "components_issue_explain_linerangelabel",
+      "components_issue_explain_loading_steps"
+    ],
+    "11": [
       "app_api_debug_route",
       "app_api_debug_route_get",
       "lib_pickfiles",
@@ -321,10 +359,9 @@
       "lib_pickfiles_pickfilesfromissuetext",
       "lib_pickfiles_pickfilesissue",
       "lib_pickfiles_pickfileswithai",
-      "lib_pickfiles_resolvetotreepath",
-      "lib_schemas_firstpasspickschema"
+      "lib_pickfiles_resolvetotreepath"
     ],
-    "11": [
+    "12": [
       "lib_lines",
       "lib_lines_citationinput",
       "lib_lines_citationresult",
@@ -336,16 +373,6 @@
       "lib_lines_splitlines",
       "lib_lines_verifycitation",
       "lib_lines_windowaround"
-    ],
-    "12": [
-      "app_issue_owner_repo_number_page",
-      "app_issue_owner_repo_number_page_issueexplainpage",
-      "app_issue_owner_repo_number_page_pageprops",
-      "components_issue_explain",
-      "components_issue_explain_explainapiresponse",
-      "components_issue_explain_issueexplain",
-      "components_issue_explain_linerangelabel",
-      "components_issue_explain_loading_steps"
     ],
     "13": [
       "components_ui_card",
@@ -416,24 +443,28 @@
       "eslint_config_eslintconfig"
     ],
     "25": [
+      "lib_prompts_explain",
+      "lib_prompts_explain_buildexplainuserprompt"
+    ],
+    "26": [
       "next_config",
       "next_config_nextconfig"
     ]
   },
   "cohesion": {
-    "0": 0.08705882352941176,
-    "1": 0.11764705882352941,
-    "2": 0.11742424242424243,
-    "3": 0.06666666666666667,
-    "4": 0.06896551724137931,
-    "5": 0.07692307692307693,
-    "6": 0.09090909090909091,
-    "7": 0.19913419913419914,
-    "8": 0.14761904761904762,
+    "0": 0.08521870286576169,
+    "1": 0.09102564102564102,
+    "2": 0.11764705882352941,
+    "3": 0.12096774193548387,
+    "4": 0.06666666666666667,
+    "5": 0.06896551724137931,
+    "6": 0.07692307692307693,
+    "7": 0.1857707509881423,
+    "8": 0.09090909090909091,
     "9": 0.16842105263157894,
-    "10": 0.23076923076923078,
-    "11": 0.32727272727272727,
-    "12": 0.32142857142857145,
+    "10": 0.16666666666666666,
+    "11": 0.2564102564102564,
+    "12": 0.32727272727272727,
     "13": 0.25,
     "14": 0.3333333333333333,
     "15": 0.4,
@@ -446,7 +477,8 @@
     "22": 1.0,
     "23": 1.0,
     "24": 1.0,
-    "25": 1.0
+    "25": 1.0,
+    "26": 1.0
   },
   "gods": [
     {
@@ -470,6 +502,11 @@
       "degree": 11
     },
     {
+      "id": "lib_hints_gethint",
+      "label": "getHint()",
+      "degree": 11
+    },
+    {
       "id": "lib_github_getoctokit",
       "label": "getOctokit()",
       "degree": 10
@@ -483,11 +520,6 @@
       "id": "lib_env_getenv",
       "label": "getEnv()",
       "degree": 10
-    },
-    {
-      "id": "lib_explain_explainissue",
-      "label": "explainIssue()",
-      "degree": 9
     },
     {
       "id": "lib_serp_learnlinks",
@@ -536,25 +568,25 @@
     },
     {
       "source": "POST()",
-      "target": "explainIssue()",
+      "target": "explainIssueCached()",
       "source_files": [
         "app/api/explain/route.ts",
         "lib/explain.ts"
       ],
       "confidence": "EXTRACTED",
       "relation": "calls",
-      "why": "connects across different repos/directories; peripheral node `POST()` unexpectedly reaches hub `explainIssue()`"
+      "why": "connects across different repos/directories; peripheral node `POST()` unexpectedly reaches hub `explainIssueCached()`"
     },
     {
-      "source": "runOnce()",
-      "target": "getRepo()",
+      "source": "POST()",
+      "target": "getHint()",
       "source_files": [
-        "scripts/verify-pick-chain.ts",
-        "lib/github.ts"
+        "app/api/hint/route.ts",
+        "lib/hints.ts"
       ],
       "confidence": "EXTRACTED",
       "relation": "calls",
-      "why": "connects across different repos/directories"
+      "why": "connects across different repos/directories; peripheral node `POST()` unexpectedly reaches hub `getHint()`"
     }
   ],
   "tokens": {

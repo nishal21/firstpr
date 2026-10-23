@@ -64,3 +64,27 @@ export const explainSchema = z.object({
 });
 
 export type ExplainOutput = z.infer<typeof explainSchema>;
+
+/** Hint schema — Product system prompts (BUILD-PLAN §4), word for word. */
+export const hintSchema = z.object({
+  refused: z.boolean(),
+  refusal_message: z.string().nullable(),
+  level: z.union([z.literal(1), z.literal(2), z.literal(3)]),
+  hint: z.string().describe("1-3 sentences, no code"),
+  pseudocode: z
+    .array(z.string())
+    .nullable()
+    .describe("level 3 only: up to 6 plain-English steps"),
+  points_to: z
+    .array(
+      z.object({
+        path: z.string(),
+        start_line: z.number().int(),
+        end_line: z.number().int(),
+      }),
+    )
+    .max(3),
+  check_yourself: z.string(),
+});
+
+export type HintOutput = z.infer<typeof hintSchema>;

@@ -5,9 +5,9 @@
     "semantic_hash": "dfc9382c56630a8f39d1d8352daf1712"
   },
   "app/api/explain/route.ts": {
-    "mtime": 1792772182.5332036,
-    "ast_hash": "c3e711e6394b3fb20eade629e44deee4",
-    "semantic_hash": "c3e711e6394b3fb20eade629e44deee4"
+    "mtime": 1792772983.7391055,
+    "ast_hash": "011d2f3f1f8a5e83f3be068a02751b0e",
+    "semantic_hash": "011d2f3f1f8a5e83f3be068a02751b0e"
   },
   "app/api/match/route.ts": {
     "mtime": 1792765072.8077564,
@@ -150,9 +150,9 @@
     "semantic_hash": "916e80b1c6daa0a8a89c2be7468755bc"
   },
   "lib/schemas.ts": {
-    "mtime": 1792772172.6267803,
-    "ast_hash": "171429312cfd9d08e89a2361d66437ae",
-    "semantic_hash": "171429312cfd9d08e89a2361d66437ae"
+    "mtime": 1792772941.5995243,
+    "ast_hash": "4f2441558980d5d3e3897660050447d4",
+    "semantic_hash": "4f2441558980d5d3e3897660050447d4"
   },
   "lib/serp.ts": {
     "mtime": 1792772317.4167478,
@@ -205,18 +205,43 @@
     "semantic_hash": "f82f999f18d736c21f71500c72b0fde0"
   },
   "components/issue-explain.tsx": {
-    "mtime": 1792772200.3824396,
-    "ast_hash": "9f41d85d050d6665ca364b01f307ba25",
-    "semantic_hash": "9f41d85d050d6665ca364b01f307ba25"
+    "mtime": 1792773043.735865,
+    "ast_hash": "0805e59428b2566cd99514e4a82b52ac",
+    "semantic_hash": "0805e59428b2566cd99514e4a82b52ac"
   },
   "lib/explain.ts": {
-    "mtime": 1792772180.17259,
-    "ast_hash": "b971779c865f6da807aed46f5c6c6d72",
-    "semantic_hash": "b971779c865f6da807aed46f5c6c6d72"
+    "mtime": 1792772949.7039132,
+    "ast_hash": "c19230160812050707787c72d326dbaf",
+    "semantic_hash": "c19230160812050707787c72d326dbaf"
   },
   "scripts/verify-learn.ts": {
     "mtime": 1792772205.1635697,
     "ast_hash": "b40654b57d88d24424115705c3de7fc8",
     "semantic_hash": "b40654b57d88d24424115705c3de7fc8"
+  },
+  "app/api/hint/route.ts": {
+    "mtime": 1792772987.8416822,
+    "ast_hash": "bf10f503246432fe6c80ac5271e9bb1a",
+    "semantic_hash": "bf10f503246432fe6c80ac5271e9bb1a"
+  },
+  "components/hint-ladder.tsx": {
+    "mtime": 1792773041.0250082,
+    "ast_hash": "459200bf4087febac6d69791f00c0bfa",
+    "semantic_hash": "459200bf4087febac6d69791f00c0bfa"
+  },
+  "lib/hints.ts": {
+    "mtime": 1792773062.0331378,
+    "ast_hash": "126824a5d0cd8e1ba8c1fd0793c8b133",
+    "semantic_hash": "126824a5d0cd8e1ba8c1fd0793c8b133"
+  },
+  "lib/prompts/hints.ts": {
+    "mtime": 1792772937.5910406,
+    "ast_hash": "52b1c04485e8b643b895f7f0d9bed393",
+    "semantic_hash": "52b1c04485e8b643b895f7f0d9bed393"
+  },
+  "scripts/verify-hints.ts": {
+    "mtime": 1792773070.6653416,
+    "ast_hash": "60092d9dbe1cd9e30ec8e0bd53dadc26",
+    "semantic_hash": "60092d9dbe1cd9e30ec8e0bd53dadc26"
   }
 }

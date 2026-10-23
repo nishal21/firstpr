@@ -78,7 +78,11 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - Prompt: concept terms start with language/tool
 - Checked: #6 Rust Book/By Example; #4 MDN Window.alert
 
+## 2026-10-23 — Hint ladder + refusal
+- `lib/hints.ts`, `lib/prompts/hints.ts`, `hintSchema`, `/api/hint`, `HintLadder`
+- Explain uses `explainIssueCached` so hints reuse the same payload
+- Checked: #4 refuse chip + L1→L3; L3 no TypeScript
+
 ## Next
-- Hints + refusal
 - Review flow
-- Vercel env
+- Redeploy Vercel

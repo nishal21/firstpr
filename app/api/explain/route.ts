@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { explainIssue } from "@/lib/explain";
+import { explainIssueCached } from "@/lib/explain";
 import { GitHubError } from "@/lib/github";
 import { LlmError } from "@/lib/llm";
 
@@ -31,7 +31,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const result = await explainIssue({ owner, repo, number, lang });
+    const result = await explainIssueCached({ owner, repo, number, lang });
 
     return NextResponse.json({
       owner: result.owner,

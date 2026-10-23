@@ -1,3 +1,4 @@
+import { cached } from "@/lib/cache";
 import {
   getContributing,
   getFile,
@@ -209,4 +210,20 @@ export async function explainIssue(opts: {
     droppedCitations,
     learn: learnLinks.length >= 2 ? learnLinks : null,
   };
+}
+
+/**
+ * Same as explainIssue, cached by owner/repo/number/sha so Hints can reuse
+ * the Explain payload without a second full fetch+LLM pass.
+ */
+export async function explainIssueCached(opts: {
+  owner: string;
+  repo: string;
+  number: number;
+  lang?: string | null;
+}): Promise<ExplainIssueResult> {
+  const repoInfo = await getRepo(opts.owner, opts.repo);
+  const langKey = opts.lang?.trim() || "";
+  const key = `explain:${opts.owner}/${opts.repo}:${opts.number}:${repoInfo.headSha}:${langKey}`;
+  return cached(key, () => explainIssue(opts));
 }

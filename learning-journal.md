@@ -70,7 +70,12 @@
 - `learnLinks(q, lang)`: prepend lang, filter by mention (official docs hosts always pass), boost Rust/JS/TS docs; site: fallback if needed. Hide section if &lt;2 links.
 - Verified: #6 → doc.rust-lang.org testing; #4 → developer.mozilla.org alert().
 
+## 2026-10-23 — Hint ladder + refusal
+- `lib/prompts/hints.ts` + `hintSchema` from BUILD-PLAN §4 word-for-word.
+- `lib/hints.ts` `getHint`: explainIssueCached, askedForCode regex, generateJson hint, code post-check+retry+strip.
+- `POST /api/hint`; `HintLadder` on issue page (stepper, Ask FirstPR, refuse chip, blue refusal card).
+- Verified #4: refuse → src/main.ts points; levels 2–3; L3 plain English, no TS.
+
 ## Next for another agent
-1. Hints ladder + refusal (BUILD-PLAN prompt 8).
-2. Review PR flow.
-3. Redeploy Vercel env.
+1. Review PR flow (BUILD-PLAN prompt 9).
+2. Redeploy Vercel (hints + learn relevance).
