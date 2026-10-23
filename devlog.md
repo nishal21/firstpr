@@ -19,6 +19,16 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - Optional `OPENAI_BASE_URL` in env; localhost proxy values ignored
 - Checked: `/api/debug` → llm ok; terminal `[llm] … model=gpt-6-luna … tokens`
 
+## 2026-10-23 — Neysa pickFiles + Explain
+- Added `lib/neysa.ts`, `lib/prompts/explain.ts`, `app/api/explain`, `/explain` UI + source tag
+- Schemas: `pickFilesSchema`, `explainSchema`
+- Verified OpenAI path: NekoDroid #2 → README.md, tag “Files picked by OpenAI”
+- Neysa endpoint refused (ECONNREFUSED :443); missing key also forces OpenAI
+
+## 2026-10-23 — SerpApi Learn this first
+- `lib/serp.ts`, `concepts` on explain schema, UI card under hints
+- Checked: NekoDroid #6 → 3 Rust testing links (doc.rust-lang.org…); no key → section omitted
+
 ## Next
-- Match / explain / review APIs + forms
-- Prefer GITHUB_TOKEN on Vercel (prod debug is 404 by design)
+- Match API + home form
+- Confirm Neysa tag once key + network work

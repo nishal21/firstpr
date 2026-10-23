@@ -237,6 +237,43 @@ export async function getUserLanguages(username: string): Promise<string[]> {
   );
 }
 
+export async function getIssue(
+  owner: string,
+  repo: string,
+  number: number,
+): Promise<GoodFirstIssue> {
+  return cached(`issue:${owner}/${repo}:${number}`, async () =>
+    gh(async () => {
+      const client = getOctokit();
+      const { data } = await client.issues.get({
+        owner,
+        repo,
+        issue_number: number,
+      });
+
+      if ("pull_request" in data && data.pull_request) {
+        throw new GitHubError(
+          `Issue #${number} is a pull request, not an issue`,
+          "github_error",
+        );
+      }
+
+      return {
+        number: data.number,
+        title: data.title,
+        body: data.body ?? null,
+        labels: data.labels
+          .map((label) => (typeof label === "string" ? label : (label.name ?? "")))
+          .filter(Boolean),
+        assignees: (data.assignees ?? []).map((a) => a.login).filter(Boolean),
+        htmlUrl: data.html_url,
+        createdAt: data.created_at,
+        comments: data.comments,
+      };
+    }),
+  );
+}
+
 export async function listGoodFirstIssues(
   owner: string,
   repo: string,

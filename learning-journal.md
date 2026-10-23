@@ -18,6 +18,18 @@
 - Shell `OPENAI_BASE_URL=http://localhost:4000` breaks SDK — ignore localhost base URL, use `https://api.openai.com/v1`.
 - `/api/debug` includes `llm: { ok: true }` + `[llm] task=… model=… tokens…` logs.
 
+## 2026-10-23 — Neysa file pick + Explain
+- `lib/neysa.ts` `pickFiles`: chat.completions JSON (no Responses/structured outputs), 10s AbortSignal, Zod + path filter, OpenAI fallback via `generateJson`. Never throws.
+- Explain: `POST /api/explain`, `/explain` UI shows muted tag “Files picked by Gemma 4 on Neysa” | “Files picked by OpenAI”.
+- Neysa host currently ECONNREFUSED from this machine → always OpenAI until endpoint + `NEYSA_API_KEY` in `.env.local` work.
+- Fixed empty duplicate `NEYSA_BASE_URL=` in `.env` (first empty value won).
+
+## 2026-10-23 — Learn this first (SerpApi)
+- `explainSchema.concepts` required (1–2 search phrases).
+- `lib/serp.ts` `learnLinks(q)` → SerpApi Google, 6s timeout, prefer docs hosts, Map cache, never throws.
+- Explain UI: “Learn this first” card under hints + “Search by SerpApi”; hidden when no key/results.
+- Verified #6 → doc.rust-lang.org testing links; empty key → 0 links.
+
 ## Next for another agent
 1. Wire `/` match form → `POST /api/match`.
-2. Add real schemas in `lib/schemas.ts`; product rule: never write the user’s fix.
+2. Confirm Neysa tag when endpoint + key work.

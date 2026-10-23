@@ -34,6 +34,12 @@ export default function RootLayout({
               <Link href="/" className="hover:text-blue-600">
                 Find an issue
               </Link>
+              <Link
+                href="/explain?owner=nishal21&repo=NekoDroid&issue=2"
+                className="hover:text-blue-600"
+              >
+                Explain
+              </Link>
               <Link href="/review" className="hover:text-blue-600">
                 Review my PR
               </Link>

@@ -10,6 +10,7 @@ const envSchema = z.object({
   NEYSA_BASE_URL: z.string().optional(),
   NEYSA_API_KEY: z.string().optional(),
   NEYSA_MODEL: z.string().optional(),
+  SERPAPI_KEY: z.string().optional(),
   DEMO_REPO: z.string().default("nishal21/NekoDroid"),
   DEMO_MODE: z.string().default("auto"),
 });
@@ -27,6 +28,7 @@ function loadEnv(): Env {
     NEYSA_BASE_URL: process.env.NEYSA_BASE_URL,
     NEYSA_API_KEY: process.env.NEYSA_API_KEY,
     NEYSA_MODEL: process.env.NEYSA_MODEL,
+    SERPAPI_KEY: process.env.SERPAPI_KEY,
     DEMO_REPO: process.env.DEMO_REPO,
     DEMO_MODE: process.env.DEMO_MODE,
   });
