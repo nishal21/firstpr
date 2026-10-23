@@ -37,6 +37,7 @@ export async function POST(request: Request) {
       owner: result.owner,
       repo: result.repo,
       sha: result.sha,
+      language: result.language,
       issue: {
         number: result.issue.number,
         title: result.issue.title,
@@ -47,6 +48,7 @@ export async function POST(request: Request) {
       explanation: result.explanation,
       citations: result.citations,
       droppedCitations: result.droppedCitations,
+      learn: result.learn,
     });
   } catch (err) {
     if (err instanceof GitHubError) {

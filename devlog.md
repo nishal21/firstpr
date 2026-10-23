@@ -73,6 +73,11 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - `/explain` redirects to `/issue/...`
 - Checked: POST #4 → src/main.ts L775–L778 verified permalinks
 
+## 2026-10-23 — Learn this first relevance
+- `lib/serp.ts` language prepend/filter/boost + site: fallback; Explain returns `language` + `learn`
+- Prompt: concept terms start with language/tool
+- Checked: #6 Rust Book/By Example; #4 MDN Window.alert
+
 ## Next
 - Hints + refusal
 - Review flow

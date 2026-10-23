@@ -65,6 +65,11 @@
 - `POST /api/explain` `{ owner, repo, number, lang }`; UI at `/issue/[owner]/[repo]/[number]`.
 - Verified #4: citations `src/main.ts` L775–L778 (+ nearby), Open on GitHub permalink with sha.
 
+## 2026-10-23 — Learn this first relevance
+- Pass `repo.language` into Explain; concept terms must start with language/tool.
+- `learnLinks(q, lang)`: prepend lang, filter by mention (official docs hosts always pass), boost Rust/JS/TS docs; site: fallback if needed. Hide section if &lt;2 links.
+- Verified: #6 → doc.rust-lang.org testing; #4 → developer.mozilla.org alert().
+
 ## Next for another agent
 1. Hints ladder + refusal (BUILD-PLAN prompt 8).
 2. Review PR flow.

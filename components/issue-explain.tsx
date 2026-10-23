@@ -37,6 +37,13 @@ type ExplainApiResponse = {
     verified: true;
   }[];
   droppedCitations: number;
+  language?: string | null;
+  learn: {
+    title: string;
+    link: string;
+    snippet: string;
+    site: string;
+  }[] | null;
   error?: string;
   code?: string;
 };
@@ -228,6 +235,33 @@ export function IssueExplain({
               </div>
             ))}
           </dl>
+        </div>
+      ) : null}
+
+      {data.learn && data.learn.length >= 2 ? (
+        <div className="rounded-xl border border-slate-200 bg-white p-5">
+          <h2 className="text-sm font-semibold text-slate-900">
+            Learn this first
+          </h2>
+          <ul className="mt-3 flex flex-col gap-3">
+            {data.learn.map((item) => (
+              <li key={item.link} className="text-sm">
+                <a
+                  href={item.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-blue-600 hover:underline"
+                >
+                  {item.title}
+                </a>
+                <span className="ml-2 text-xs text-slate-400">{item.site}</span>
+                {item.snippet ? (
+                  <p className="mt-0.5 text-xs text-slate-500">{item.snippet}</p>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-xs text-slate-400">Search by SerpApi</p>
         </div>
       ) : null}
 

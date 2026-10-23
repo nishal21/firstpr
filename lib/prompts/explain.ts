@@ -6,6 +6,7 @@ Write for someone who knows basic programming but has never seen this codebase.
 
 Rules:
 - Explain what the issue asks for, in 2 to 3 short sentences, without jargon. Define any term a beginner may not know in "concepts".
+- Each concept "term" is also a search phrase. It MUST start with the language or tool name (e.g. "Rust unit tests cfg(test) module", "JavaScript alert() dialog", "TypeScript DOM click handler"). Never a generic phrase like "unit tests" or "error handling". Prefer the repo's primary language when the issue is about that stack; if the cited files are clearly another language (for example TypeScript UI in a Rust repo), start the term with that language instead.
 - Point to the exact places in the files that matter. For each one give path, start_line, end_line and a quote: the exact text of start_line copied character for character (without the "L<n>| " prefix). Prefer ranges of 1 to 15 lines. Only cite lines you were shown.
 - Say why each place matters in one sentence.
 - "done_when" lists what has to be true for a maintainer to accept the PR. Take it from the issue's own "Done when" if it has one.
@@ -27,7 +28,9 @@ export function buildExplainUserPrompt(opts: {
 }): string {
   const parts = [
     `Repo: ${opts.owner}/${opts.repo}`,
-    opts.lang ? `Preferred language hint: ${opts.lang}` : null,
+    opts.lang
+      ? `Repo primary language (from GitHub): ${opts.lang}. Every concept term MUST start with a language or tool name (usually this one, unless the issue clearly targets another stack in the files).`
+      : `Repo primary language unknown. Still start every concept term with a language or tool name.`,
     `Issue #${opts.issueNumber}: ${opts.title}`,
     `Labels: ${opts.labels.length > 0 ? opts.labels.join(", ") : "(none)"}`,
     `Body:`,

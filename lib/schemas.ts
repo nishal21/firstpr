@@ -48,7 +48,11 @@ export const explainSchema = z.object({
   concepts: z
     .array(
       z.object({
-        term: z.string(),
+        term: z
+          .string()
+          .describe(
+            'search phrase starting with language/tool, e.g. "Rust unit tests cfg(test) module"',
+          ),
         explanation: z.string().describe("one beginner-friendly sentence"),
       }),
     )

@@ -15,6 +15,7 @@ import { generateJson } from "@/lib/llm";
 import { pickFiles } from "@/lib/pickFiles";
 import { buildExplainUserPrompt, EXPLAIN_SYSTEM } from "@/lib/prompts/explain";
 import { explainSchema, type ExplainOutput } from "@/lib/schemas";
+import { gatherLearnLinks, type LearnLink } from "@/lib/serp";
 
 export type ExplainCitation = {
   path: string;
@@ -30,9 +31,13 @@ export type ExplainIssueResult = {
   sha: string;
   owner: string;
   repo: string;
+  /** GitHub repo.language (primary language). */
+  language: string | null;
   explanation: ExplainOutput;
   citations: ExplainCitation[];
   droppedCitations: number;
+  /** Null when fewer than 2 language-relevant results. */
+  learn: LearnLink[] | null;
 };
 
 const CHECKS_HEADING_RE =
@@ -119,6 +124,8 @@ export async function explainIssue(opts: {
     }
   }
 
+  const language = lang?.trim() || repoInfo.language || null;
+
   const rawExplanation = await generateJson({
     task: "explain",
     system: EXPLAIN_SYSTEM,
@@ -129,7 +136,7 @@ export async function explainIssue(opts: {
       title: issue.title,
       body: issue.body,
       labels: issue.labels,
-      lang: lang ?? repoInfo.language,
+      lang: language,
       contributingSection,
       fileBlocks,
     }),
@@ -189,13 +196,17 @@ export async function explainIssue(opts: {
     });
   }
 
+  const learnLinks = await gatherLearnLinks(explanation.concepts, language);
+
   return {
     issue,
     sha,
     owner,
     repo,
+    language,
     explanation,
     citations,
     droppedCitations,
+    learn: learnLinks.length >= 2 ? learnLinks : null,
   };
 }

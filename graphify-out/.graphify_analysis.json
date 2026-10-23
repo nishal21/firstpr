@@ -240,6 +240,53 @@
       "components_tsx"
     ],
     "7": [
+      "lib_serp",
+      "lib_serp_blocked_host_snippets",
+      "lib_serp_cache",
+      "lib_serp_detectlanguageinphrase",
+      "lib_serp_filterbylanguage",
+      "lib_serp_gatherlearnlinks",
+      "lib_serp_hostnameof",
+      "lib_serp_isblocked",
+      "lib_serp_isofficialdocshost",
+      "lib_serp_known_languages",
+      "lib_serp_lang_boost_hosts",
+      "lib_serp_languagealiases",
+      "lib_serp_learnlinks",
+      "lib_serp_mentionslanguage",
+      "lib_serp_normalizelangkey",
+      "lib_serp_organicresult",
+      "lib_serp_preferencescore",
+      "lib_serp_preferred_hosts",
+      "lib_serp_querymentionslanguage",
+      "lib_serp_rankandtake",
+      "lib_serp_serpsearch",
+      "lib_serp_tolearnlink"
+    ],
+    "8": [
+      "app_api_explain_route",
+      "app_api_explain_route_explainbody",
+      "app_api_explain_route_post",
+      "lib_explain",
+      "lib_explain_buildfileblock",
+      "lib_explain_explaincitation",
+      "lib_explain_explainissue",
+      "lib_explain_explainissueresult",
+      "lib_explain_extractcontributingchecks",
+      "lib_prompts_explain",
+      "lib_prompts_explain_buildexplainuserprompt",
+      "lib_schemas",
+      "lib_schemas_explainoutput",
+      "lib_schemas_explainschema",
+      "lib_schemas_firstpasspickoutput",
+      "lib_schemas_pickfilesoutput",
+      "lib_schemas_pickfilesschema",
+      "lib_serp_learnlink",
+      "scripts_verify_learn",
+      "scripts_verify_learn_check",
+      "scripts_verify_learn_main"
+    ],
+    "9": [
       "app_page",
       "app_page_home",
       "components_explain_client",
@@ -261,26 +308,7 @@
       "components_ui_input_input",
       "lib_utils"
     ],
-    "8": [
-      "app_api_explain_route",
-      "app_api_explain_route_explainbody",
-      "app_api_explain_route_post",
-      "lib_explain",
-      "lib_explain_buildfileblock",
-      "lib_explain_explaincitation",
-      "lib_explain_explainissue",
-      "lib_explain_explainissueresult",
-      "lib_explain_extractcontributingchecks",
-      "lib_prompts_explain",
-      "lib_prompts_explain_buildexplainuserprompt",
-      "lib_schemas",
-      "lib_schemas_explainoutput",
-      "lib_schemas_explainschema",
-      "lib_schemas_firstpasspickoutput",
-      "lib_schemas_pickfilesoutput",
-      "lib_schemas_pickfilesschema"
-    ],
-    "9": [
+    "10": [
       "app_api_debug_route",
       "app_api_debug_route_get",
       "lib_pickfiles",
@@ -295,20 +323,6 @@
       "lib_pickfiles_pickfileswithai",
       "lib_pickfiles_resolvetotreepath",
       "lib_schemas_firstpasspickschema"
-    ],
-    "10": [
-      "lib_serp",
-      "lib_serp_blocked_host_snippets",
-      "lib_serp_cache",
-      "lib_serp_hostnameof",
-      "lib_serp_isblocked",
-      "lib_serp_learnlink",
-      "lib_serp_learnlinks",
-      "lib_serp_organicresult",
-      "lib_serp_preferencescore",
-      "lib_serp_preferred_hosts",
-      "lib_serp_rankandtake",
-      "lib_serp_tolearnlink"
     ],
     "11": [
       "lib_lines",
@@ -414,10 +428,10 @@
     "4": 0.06896551724137931,
     "5": 0.07692307692307693,
     "6": 0.09090909090909091,
-    "7": 0.16842105263157894,
-    "8": 0.17647058823529413,
-    "9": 0.23076923076923078,
-    "10": 0.2878787878787879,
+    "7": 0.19913419913419914,
+    "8": 0.14761904761904762,
+    "9": 0.16842105263157894,
+    "10": 0.23076923076923078,
     "11": 0.32727272727272727,
     "12": 0.32142857142857145,
     "13": 0.25,
@@ -471,18 +485,18 @@
       "degree": 10
     },
     {
+      "id": "lib_explain_explainissue",
+      "label": "explainIssue()",
+      "degree": 9
+    },
+    {
+      "id": "lib_serp_learnlinks",
+      "label": "learnLinks()",
+      "degree": 9
+    },
+    {
       "id": "lib_github_gettree",
       "label": "getTree()",
-      "degree": 7
-    },
-    {
-      "id": "lib_neysa_rankcandidates",
-      "label": "rankCandidates()",
-      "degree": 7
-    },
-    {
-      "id": "tsconfig_include",
-      "label": "include",
       "degree": 7
     }
   ],
