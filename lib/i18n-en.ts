@@ -4,14 +4,19 @@ export const en = {
   "nav.review": "Review my PR",
   "nav.language": "Language",
   "nav.progress": "FirstPR progress",
+  "nav.menuOpen": "Open menu",
+  "nav.menuClose": "Close menu",
 
   "footer.built": "Built at AIBoomi Startup Weekend Kochi by DuoMatter",
+  "footer.tagline": "Match. Explain. Review. You write the fix.",
 
+  "hero.eyebrow": "FirstPR never writes your code.",
   "hero.title": "Your first PR, written by you, ready to merge.",
   "hero.subtitle":
     "FirstPR finds a real beginner issue, shows you exactly where to look, and checks your PR before a maintainer sees it.",
   "hero.trust":
     "FirstPR never writes your code. It shows you where to look and checks your PR before a maintainer sees it.",
+  "hero.cta": "Find my first issue",
 
   "home.matchHeading": "Match",
 

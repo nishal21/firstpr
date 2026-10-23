@@ -171,6 +171,34 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - Routes match/explain/hint/review wrapped; UI saved-result dot; friendly errors; error.tsx/not-found.tsx
 - `npx tsx scripts/record-demo.ts`; verified DEMO_MODE=on → all cache 200
 
+## 2026-10-24 — Theme / header / hero redesign
+- FirstPR blue tokens; sticky logo header + mobile menu; hero eyebrow + CTA
+- i18n: hero.eyebrow, hero.cta, nav.menuOpen/Close
+- `npm run build` after redesign
+
+## 2026-10-24 — 360px layout polish
+- FlowProgress: scroll-snap, hidden scrollbar, ChevronRight; LandingSteps 1→3 cols
+- Forms/cards: min-w-0, min-h-11, theme tokens; mono in overflow-x-auto
+- Browser: /, explain, review @ 360/390/768/1280 no overflow; ml+ar OK
+- `npm run build`
+
+## 2026-10-24 — Footer / icons / metadata
+- `components/site-footer.tsx`: navy surface, nav + tagline + built, watermark FirstPR
+- `globals.css`: footer-glow-drift / footer-logo-float (reduced-motion gated)
+- Copied brand → `app/icon.png`, `app/apple-icon.png`
+- `layout.tsx`: metadataBase, openGraph, twitter summary_large_image, viewport themeColor
+- Check: anim off under reduce; og:image → logo-full.png; `npm run build` ok
+
+## 2026-10-24 — Brand favicon + footer scene art
+- `app/favicon.ico` ← brand favicon
+- Removed footer scene image (looked broken); navy footer only
+
+## 2026-10-24 — GitHub App webhook
+- `npm i @octokit/app`; env vars in `.env.example` + `lib/env.ts`
+- `lib/github-app.ts` handlers; `lib/webhook-format.ts` explain markdown
+- `app/api/github/webhook/route.ts`: verify, 202, `after(verifyAndReceive)`
+- Bots ignored; no PR line comments (issues.createComment only)
+
 ## Next
-- Commit `data/demo/*.json` with the demo feature
-- Prod: set DEMO_MODE=auto (or on for always-fixture demo)
+- Wire App webhook to `/api/github/webhook`; test NekoDroid #5
+- Commit when asked

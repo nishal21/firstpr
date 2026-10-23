@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import {
   Inter,
   Noto_Sans_Arabic,
@@ -70,10 +70,43 @@ const notoArabic = Noto_Sans_Arabic({
   weight: ["400", "500", "600", "700"],
 });
 
+const siteDescription =
+  "Find a beginner issue, see where to look, and check your PR before a maintainer does.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL("https://firstpr-coral.vercel.app"),
   title: "FirstPR",
-  description:
-    "Find a beginner issue, see where to look, and check your PR before a maintainer does.",
+  description: siteDescription,
+  openGraph: {
+    title: "FirstPR",
+    description: siteDescription,
+    url: "https://firstpr-coral.vercel.app",
+    images: [
+      {
+        url: "/brand/logo-full.png",
+        width: 1874,
+        height: 714,
+        alt: "FirstPR",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "FirstPR",
+    description: siteDescription,
+    images: [
+      {
+        url: "/brand/logo-full.png",
+        width: 1874,
+        height: 714,
+        alt: "FirstPR",
+      },
+    ],
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0473FD",
 };
 
 export default function RootLayout({
@@ -97,7 +130,7 @@ export default function RootLayout({
         notoArabic.variable,
       )}
     >
-      <body className="flex min-h-full flex-col bg-white font-sans text-slate-900">
+      <body className="flex min-h-full flex-col overflow-x-hidden bg-background font-sans text-foreground">
         <LanguageProvider>
           <SiteHeader />
           <main className="flex-1">{children}</main>

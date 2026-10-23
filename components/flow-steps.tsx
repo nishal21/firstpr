@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import { useT } from "@/components/language-provider";
 import { cn } from "@/lib/utils";
 
 export type FlowStep = "match" | "explain" | "review";
 
 /**
- * Top progress for issue + review pages. Current step in blue-600.
+ * Top progress for issue + review pages. Current step in primary.
  */
 export function FlowProgress({ current }: { current: FlowStep }) {
   const t = useT();
@@ -25,30 +26,35 @@ export function FlowProgress({ current }: { current: FlowStep }) {
   return (
     <nav
       aria-label={t("nav.progress")}
-      className="mb-8 overflow-x-auto border-b border-slate-200 pb-4"
+      className="mb-8 overflow-x-auto border-b border-border pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
     >
-      <ol className="flex min-w-0 flex-wrap items-center gap-1 text-sm sm:gap-2">
+      <ol className="flex min-w-0 flex-nowrap items-center gap-1 text-sm snap-x snap-mandatory">
         {steps.map((step, i) => {
           const isCurrent = step.id === current;
           const isPast = i < currentIndex;
           return (
-            <li key={step.id} className="flex items-center gap-1 sm:gap-2">
+            <li
+              key={step.id}
+              className="flex shrink-0 snap-start items-center gap-1"
+            >
               {i > 0 ? (
-                <span
-                  className="mx-1 text-slate-300 select-none"
+                <ChevronRight
+                  className="mx-0.5 size-4 shrink-0 text-muted-foreground/50"
                   aria-hidden
-                >
-                  →
-                </span>
+                />
               ) : null}
               <Link
                 href={step.href}
                 aria-current={isCurrent ? "step" : undefined}
                 className={cn(
-                  "rounded-md px-1.5 py-0.5 font-medium outline-none focus-visible:ring-2 focus-visible:ring-blue-600/40",
-                  isCurrent && "text-blue-600",
-                  isPast && !isCurrent && "text-slate-500 hover:text-blue-600",
-                  !isPast && !isCurrent && "text-slate-400 hover:text-slate-600",
+                  "inline-flex min-h-11 items-center rounded-md px-3 py-2 font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
+                  isCurrent && "text-primary",
+                  isPast &&
+                    !isCurrent &&
+                    "text-muted-foreground hover:text-primary",
+                  !isPast &&
+                    !isCurrent &&
+                    "text-muted-foreground/70 hover:text-foreground",
                 )}
               >
                 {step.label}
@@ -71,19 +77,19 @@ export function LandingSteps() {
   ];
 
   return (
-    <div className="grid gap-6 sm:grid-cols-3">
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
       {copy.map((step, i) => (
         <div
           key={step.title}
-          className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+          className="min-w-0 rounded-xl border border-border bg-card p-5 shadow-sm"
         >
-          <p className="text-xs font-semibold tracking-wide text-blue-600 uppercase">
+          <p className="text-xs font-semibold tracking-wide text-primary uppercase">
             {t("steps.step", { n: i + 1 })}
           </p>
-          <h2 className="mt-1 text-lg font-semibold text-slate-900">
+          <h2 className="mt-1 text-lg font-semibold text-foreground">
             {step.title}
           </h2>
-          <p className="mt-2 text-sm leading-relaxed text-slate-600">
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground break-words">
             {step.line}
           </p>
         </div>

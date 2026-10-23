@@ -101,33 +101,46 @@ export default function ReviewPage() {
     <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
       <FlowProgress current="review" />
 
-      <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
+      <h1 className="text-2xl font-semibold tracking-tight text-foreground">
         {t("review.title")}
       </h1>
-      <p className="mt-2 max-w-2xl text-slate-600">{t("review.subtitle")}</p>
+      <p className="mt-2 max-w-2xl text-sm text-muted-foreground sm:text-base">
+        {t("review.subtitle")}
+      </p>
 
       <form
-        className="mt-8 rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
+        className="mt-8 min-w-0 rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6"
         onSubmit={(e) => {
           e.preventDefault();
           void run();
         }}
       >
         <Tabs value={tab} onValueChange={(v) => setTab(String(v))}>
-          <TabsList variant="line" className="mb-4 w-full max-w-full sm:w-auto">
-            <TabsTrigger value="pr" className="flex-1 sm:flex-none">
-              {t("review.tabPr")}
-            </TabsTrigger>
-            <TabsTrigger value="diff" className="flex-1 sm:flex-none">
-              {t("review.tabDiff")}
-            </TabsTrigger>
-          </TabsList>
+          <div className="mb-4 max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <TabsList
+              variant="line"
+              className="inline-flex h-auto min-h-11 w-max max-w-none sm:w-auto"
+            >
+              <TabsTrigger
+                value="pr"
+                className="min-h-11 flex-none px-4 sm:flex-none"
+              >
+                {t("review.tabPr")}
+              </TabsTrigger>
+              <TabsTrigger
+                value="diff"
+                className="min-h-11 flex-none px-4 sm:flex-none"
+              >
+                {t("review.tabDiff")}
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="pr" className="space-y-3">
-            <label className="block text-sm font-medium text-slate-700">
+            <label className="block text-sm font-medium text-foreground">
               {t("review.prUrl")}
               <Input
-                className="mt-1.5 h-10 w-full rounded-xl border-slate-200 focus-visible:border-blue-600 focus-visible:ring-blue-600/30"
+                className="mt-1.5 min-h-11 h-11 w-full rounded-xl border-border focus-visible:border-primary focus-visible:ring-ring/30"
                 placeholder={t("review.prUrlPlaceholder")}
                 value={prUrl}
                 onChange={(e) => setPrUrl(e.target.value)}
@@ -137,31 +150,31 @@ export default function ReviewPage() {
           </TabsContent>
 
           <TabsContent value="diff" className="space-y-3">
-            <label className="block text-sm font-medium text-slate-700">
+            <label className="block text-sm font-medium text-foreground">
               {t("review.diff")}
               <Textarea
-                className="mt-1.5 min-h-40 w-full rounded-xl border-slate-200 font-mono text-xs focus-visible:border-blue-600 focus-visible:ring-blue-600/30"
+                className="mt-1.5 min-h-40 w-full max-w-full overflow-x-auto rounded-xl border-border font-mono text-sm focus-visible:border-primary focus-visible:ring-ring/30"
                 placeholder={t("review.diffPlaceholder")}
                 value={diff}
                 onChange={(e) => setDiff(e.target.value)}
                 disabled={loading}
               />
             </label>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <label className="block text-sm font-medium text-slate-700">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <label className="block min-w-0 text-sm font-medium text-foreground">
                 {t("review.repo")}
                 <Input
-                  className="mt-1.5 h-10 w-full rounded-xl border-slate-200 focus-visible:border-blue-600 focus-visible:ring-blue-600/30"
+                  className="mt-1.5 min-h-11 h-11 w-full rounded-xl border-border focus-visible:border-primary focus-visible:ring-ring/30"
                   placeholder={t("review.repoPlaceholder")}
                   value={repo}
                   onChange={(e) => setRepo(e.target.value)}
                   disabled={loading}
                 />
               </label>
-              <label className="block text-sm font-medium text-slate-700">
+              <label className="block min-w-0 text-sm font-medium text-foreground">
                 {t("review.issueNumber")}
                 <Input
-                  className="mt-1.5 h-10 w-full rounded-xl border-slate-200 focus-visible:border-blue-600 focus-visible:ring-blue-600/30"
+                  className="mt-1.5 min-h-11 h-11 w-full rounded-xl border-border focus-visible:border-primary focus-visible:ring-ring/30"
                   placeholder={t("review.issuePlaceholder")}
                   value={issueNumber}
                   onChange={(e) => setIssueNumber(e.target.value)}
@@ -174,14 +187,14 @@ export default function ReviewPage() {
 
         <Button
           type="submit"
-          className="mt-5 h-10 w-full rounded-xl bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-600/40 sm:w-auto"
+          className="mt-5 min-h-11 h-11 w-full rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring/40 sm:w-auto"
           disabled={
             loading || (tab === "pr" ? !prUrl.trim() : !diff.trim())
           }
         >
           {loading ? (
             <>
-              <Spinner className="text-white" />
+              <Spinner className="text-primary-foreground" />
               {t("review.running")}
             </>
           ) : (
@@ -192,16 +205,18 @@ export default function ReviewPage() {
 
       {loading ? (
         <div className="mt-10 space-y-6">
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <p className="text-sm font-medium text-blue-600">
+          <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+            <p className="text-sm font-medium text-primary">
               {loadingSteps[stepIndex]}…
             </p>
             <ul className="mt-3 space-y-2">
               {loadingSteps.map((step, i) => (
                 <li
                   key={step}
-                  className={`text-sm ${
-                    i <= stepIndex ? "text-slate-800" : "text-slate-400"
+                  className={`text-sm break-words ${
+                    i <= stepIndex
+                      ? "text-foreground"
+                      : "text-muted-foreground/60"
                   }`}
                 >
                   {i < stepIndex ? "✓ " : i === stepIndex ? "→ " : "  "}
@@ -210,30 +225,29 @@ export default function ReviewPage() {
               ))}
             </ul>
           </div>
-          <div className="flex flex-col items-center gap-4 rounded-xl border border-slate-200 bg-white p-8 shadow-sm sm:flex-row sm:items-start">
-            <Skeleton className="size-36 shrink-0 rounded-full bg-slate-100" />
-            <div className="w-full space-y-3">
-              <Skeleton className="h-6 w-32 rounded-lg bg-slate-100" />
-              <Skeleton className="h-4 w-full rounded-lg bg-slate-100" />
-              <Skeleton className="h-4 w-5/6 rounded-lg bg-slate-100" />
+          <div className="flex flex-col items-center gap-4 rounded-xl border border-border bg-card p-4 shadow-sm sm:flex-row sm:items-start sm:p-8">
+            <Skeleton className="size-36 shrink-0 rounded-full bg-muted" />
+            <div className="w-full min-w-0 space-y-3">
+              <Skeleton className="h-6 w-32 rounded-lg bg-muted" />
+              <Skeleton className="h-4 w-full rounded-lg bg-muted" />
+              <Skeleton className="h-4 w-5/6 rounded-lg bg-muted" />
             </div>
           </div>
-          <div className="space-y-2 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            <Skeleton className="h-12 w-full rounded-lg bg-slate-100" />
-            <Skeleton className="h-12 w-full rounded-lg bg-slate-100" />
-            <Skeleton className="h-12 w-full rounded-lg bg-slate-100" />
+          <div className="space-y-2 rounded-xl border border-border bg-card p-5 shadow-sm">
+            <Skeleton className="h-12 w-full rounded-lg bg-muted" />
+            <Skeleton className="h-12 w-full rounded-lg bg-muted" />
+            <Skeleton className="h-12 w-full rounded-lg bg-muted" />
           </div>
         </div>
       ) : null}
 
       {error ? (
         <div className="mt-8 rounded-xl border border-red-200 bg-red-50 p-5 shadow-sm">
-          <p className="text-sm text-red-800">{error}</p>
+          <p className="text-sm text-red-800 break-words">{error}</p>
           <Button
             type="button"
             variant="outline"
-            size="sm"
-            className="mt-3 rounded-xl border-slate-200"
+            className="mt-3 min-h-11 rounded-xl border-border"
             onClick={() => void run()}
           >
             {t("review.retry")}
@@ -242,14 +256,14 @@ export default function ReviewPage() {
       ) : null}
 
       {result && !loading ? (
-        <div className="relative mt-10">
+        <div className="relative mt-10 min-w-0">
           <SavedResultDot show={fromCache} />
           {result.pr?.htmlUrl ? (
-            <p className="mb-4 text-sm text-slate-500">
+            <p className="mb-4 text-sm text-muted-foreground break-words">
               {t("review.reviewing")}{" "}
               <a
                 href={result.pr.htmlUrl}
-                className="text-blue-600 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-blue-600/40"
+                className="text-primary outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring/40"
                 target="_blank"
                 rel="noreferrer"
               >

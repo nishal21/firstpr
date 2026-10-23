@@ -98,7 +98,7 @@ export function LangToggle({ className }: { className?: string }) {
               right: pos.right,
               maxHeight: pos.maxHeight,
             }}
-            className="fixed z-[200] w-56 overflow-y-auto overscroll-contain rounded-md border border-slate-200 bg-white py-1 text-sm shadow-lg [scrollbar-gutter:stable]"
+            className="fixed z-[200] w-56 overflow-y-auto overscroll-contain rounded-md border border-border bg-card py-1 text-sm shadow-lg [scrollbar-gutter:stable]"
           >
             {UI_LANGS.map((code) => {
               const selected = code === lang;
@@ -108,8 +108,8 @@ export function LangToggle({ className }: { className?: string }) {
                     type="button"
                     onClick={() => pick(code)}
                     className={cn(
-                      "flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-slate-700 outline-none hover:bg-slate-50 focus-visible:bg-slate-50",
-                      selected && "bg-slate-50 text-slate-900",
+                      "flex min-h-11 w-full items-center justify-between gap-3 px-3 py-2 text-left text-foreground outline-none hover:bg-muted focus-visible:bg-muted",
+                      selected && "bg-muted text-foreground",
                     )}
                   >
                     <span className="whitespace-nowrap">
@@ -117,7 +117,7 @@ export function LangToggle({ className }: { className?: string }) {
                     </span>
                     {selected ? (
                       <Check
-                        className="size-3.5 shrink-0 text-blue-600"
+                        className="size-3.5 shrink-0 text-primary"
                         aria-hidden
                       />
                     ) : (
@@ -142,7 +142,7 @@ export function LangToggle({ className }: { className?: string }) {
         aria-expanded={open}
         aria-label={t("nav.language")}
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-600 outline-none hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-blue-600/40 disabled:opacity-60"
+        className="inline-flex min-h-11 h-11 items-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-card px-3 text-sm text-muted-foreground outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/40 disabled:opacity-60"
       >
         <Globe className="size-3.5 shrink-0" aria-hidden />
         <span>{ready ? UI_LANG_NATIVE[lang] : "…"}</span>

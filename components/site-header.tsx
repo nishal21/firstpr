@@ -1,45 +1,134 @@
 "use client";
 
+import { useEffect, useId, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Menu, X } from "lucide-react";
 import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/components/language-provider";
+import { cn } from "@/lib/utils";
+
+const NAV_LINKS = [
+  { href: "/", key: "nav.findIssue" as const },
+  { href: "/issue/nishal21/NekoDroid/4", key: "nav.explain" as const },
+  { href: "/review", key: "nav.review" as const },
+];
+
+function linkActive(pathname: string, href: string): boolean {
+  if (href === "/") return pathname === "/";
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 export function SiteHeader() {
   const t = useT();
+  const pathname = usePathname();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuId = useId();
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setMenuOpen(false);
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
 
   return (
-    <header className="border-b border-slate-200 bg-white">
+    <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4 sm:px-6">
         <Link
           href="/"
-          className="flex shrink-0 items-center gap-2 font-semibold text-slate-900 outline-none focus-visible:ring-2 focus-visible:ring-blue-600/40"
+          className="flex shrink-0 items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
         >
-          <span className="size-2 rounded-full bg-blue-600" aria-hidden />
-          FirstPR
+          <Image
+            src="/brand/logo-mark-192.png"
+            alt=""
+            width={28}
+            height={28}
+            className="size-7"
+            priority
+          />
+          <Image
+            src="/brand/wordmark-light.png"
+            alt="FirstPR"
+            width={120}
+            height={24}
+            className="h-6 w-auto"
+            priority
+          />
         </Link>
 
-        <nav className="flex flex-wrap items-center justify-end gap-x-4 gap-y-1 text-sm text-slate-600 sm:gap-x-5">
-          <Link
-            href="/"
-            className="whitespace-nowrap outline-none hover:text-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/40"
-          >
-            {t("nav.findIssue")}
-          </Link>
-          <Link
-            href="/issue/nishal21/NekoDroid/4"
-            className="whitespace-nowrap outline-none hover:text-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/40"
-          >
-            {t("nav.explain")}
-          </Link>
-          <Link
-            href="/review"
-            className="whitespace-nowrap outline-none hover:text-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/40"
-          >
-            {t("nav.review")}
-          </Link>
+        {/* Desktop nav */}
+        <nav className="hidden items-center gap-x-5 text-sm text-muted-foreground md:flex">
+          {NAV_LINKS.map((link) => {
+            const active = linkActive(pathname, link.href);
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  "inline-flex min-h-11 items-center whitespace-nowrap outline-none hover:text-primary focus-visible:ring-2 focus-visible:ring-ring/40",
+                  active && "font-medium text-primary",
+                )}
+              >
+                {t(link.key)}
+              </Link>
+            );
+          })}
           <LangToggle />
         </nav>
+
+        {/* Mobile: lang + menu — no overflow-hidden so LangToggle portal stays free */}
+        <div className="flex items-center gap-1 md:hidden">
+          <LangToggle />
+          <button
+            type="button"
+            className="inline-flex size-11 items-center justify-center rounded-xl text-foreground outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/40"
+            aria-expanded={menuOpen}
+            aria-controls={menuId}
+            aria-label={menuOpen ? t("nav.menuClose") : t("nav.menuOpen")}
+            onClick={() => setMenuOpen((v) => !v)}
+          >
+            {menuOpen ? (
+              <X className="size-5" aria-hidden />
+            ) : (
+              <Menu className="size-5" aria-hidden />
+            )}
+          </button>
+        </div>
       </div>
+
+      {menuOpen ? (
+        <nav
+          id={menuId}
+          className="border-t border-border bg-background md:hidden"
+        >
+          <div className="mx-auto flex max-w-5xl flex-col px-4 py-2 sm:px-6">
+            {NAV_LINKS.map((link) => {
+              const active = linkActive(pathname, link.href);
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMenuOpen(false)}
+                  className={cn(
+                    "flex min-h-11 items-center text-sm text-muted-foreground outline-none hover:text-primary focus-visible:ring-2 focus-visible:ring-ring/40",
+                    active && "font-medium text-primary",
+                  )}
+                >
+                  {t(link.key)}
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
+      ) : null}
     </header>
   );
 }

@@ -109,10 +109,10 @@ export function MatchForm() {
           e.preventDefault();
           if (!pending && username.trim()) runMatch();
         }}
-        className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
+        className="flex flex-col gap-4 rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6"
       >
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
-          <label className="flex w-full flex-1 flex-col gap-1.5 text-sm text-slate-600">
+        <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-end">
+          <label className="flex w-full min-w-0 flex-1 flex-col gap-1.5 text-sm text-muted-foreground">
             {t("match.username")}
             <Input
               value={username}
@@ -121,23 +121,23 @@ export function MatchForm() {
               required
               autoComplete="username"
               disabled={pending}
-              className="h-10 w-full rounded-xl border-slate-200 focus-visible:border-blue-600 focus-visible:ring-blue-600/30"
+              className="min-h-11 h-11 w-full rounded-xl border-border focus-visible:border-primary focus-visible:ring-ring/30"
             />
           </label>
-          <label className="flex w-full flex-1 flex-col gap-1.5 text-sm text-slate-600">
+          <label className="flex w-full min-w-0 flex-1 flex-col gap-1.5 text-sm text-muted-foreground">
             {t("match.repo")}
             <Input
               value={repo}
               onChange={(e) => setRepo(e.target.value)}
               placeholder={t("match.repoPlaceholder")}
               disabled={pending}
-              className="h-10 w-full rounded-xl border-slate-200 focus-visible:border-blue-600 focus-visible:ring-blue-600/30"
+              className="min-h-11 h-11 w-full rounded-xl border-border focus-visible:border-primary focus-visible:ring-ring/30"
             />
           </label>
           <Button
             type="submit"
             disabled={pending || !username.trim()}
-            className="h-10 w-full rounded-xl bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-600/40 sm:w-auto sm:shrink-0"
+            className="min-h-11 h-11 w-full shrink-0 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring/40 sm:w-auto"
           >
             {pending ? (
               <>
@@ -153,40 +153,40 @@ export function MatchForm() {
 
       {pending ? (
         <div className="flex flex-col gap-6">
-          <ol className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-600 shadow-sm">
+          <ol className="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground shadow-sm">
             {progressSteps.map((label, i) => (
               <li
                 key={label}
-                className={`flex items-center gap-2 py-1.5 ${
-                  i <= stepIndex ? "text-slate-900" : "text-slate-400"
+                className={`flex min-w-0 items-center gap-2 py-1.5 ${
+                  i <= stepIndex ? "text-foreground" : "text-muted-foreground/60"
                 }`}
               >
                 <span
                   className={`size-1.5 shrink-0 rounded-full ${
-                    i <= stepIndex ? "bg-blue-600" : "bg-slate-300"
+                    i <= stepIndex ? "bg-primary" : "bg-border"
                   }`}
                 />
-                {label}
+                <span className="min-w-0 break-words">{label}</span>
                 {i === stepIndex ? "…" : null}
               </li>
             ))}
           </ol>
-          <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            <Skeleton className="h-6 w-2/3 rounded-lg bg-slate-100" />
-            <Skeleton className="h-4 w-full rounded-lg bg-slate-100" />
-            <Skeleton className="h-4 w-5/6 rounded-lg bg-slate-100" />
-            <Skeleton className="mt-2 h-10 w-40 rounded-xl bg-slate-100" />
+          <div className="space-y-3 rounded-xl border border-border bg-card p-5 shadow-sm">
+            <Skeleton className="h-6 w-2/3 rounded-lg bg-muted" />
+            <Skeleton className="h-4 w-full rounded-lg bg-muted" />
+            <Skeleton className="h-4 w-5/6 rounded-lg bg-muted" />
+            <Skeleton className="mt-2 h-11 w-40 rounded-xl bg-muted" />
           </div>
         </div>
       ) : null}
 
       {error ? (
         <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-700 shadow-sm">
-          <p>{error}</p>
+          <p className="break-words">{error}</p>
           <Button
             type="button"
             variant="outline"
-            className="mt-3 rounded-xl border-slate-200"
+            className="mt-3 min-h-11 rounded-xl border-border"
             onClick={runMatch}
           >
             {t("match.retry")}
@@ -195,17 +195,19 @@ export function MatchForm() {
       ) : null}
 
       {data && !pending ? (
-        <div className="flex flex-col gap-6">
-          <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
+        <div className="flex min-w-0 flex-col gap-6">
+          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
             <span>{t("match.youWrite")}</span>
             {data.languages.length === 0 ? (
-              <span className="text-slate-500">{t("match.noPublicRepos")}</span>
+              <span className="text-muted-foreground">
+                {t("match.noPublicRepos")}
+              </span>
             ) : (
               data.languages.map((lang) => (
                 <Badge
                   key={lang}
                   variant="secondary"
-                  className="rounded-md border border-slate-200"
+                  className="rounded-md border border-border text-xs"
                 >
                   {lang}
                 </Badge>
@@ -214,9 +216,9 @@ export function MatchForm() {
           </div>
 
           {data.picked ? (
-            <article className="relative rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+            <article className="relative min-w-0 rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6">
               <SavedResultDot show={fromCache} />
-              <div className="mb-2 flex flex-wrap items-center gap-2">
+              <div className="mb-2 flex min-w-0 flex-wrap items-center gap-2">
                 {data.picked.difficultyBadge ? (
                   <DifficultyBadge label={data.picked.difficultyBadge} />
                 ) : null}
@@ -224,7 +226,7 @@ export function MatchForm() {
                   href={data.picked.htmlUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-lg font-semibold text-blue-600 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-blue-600/40 sm:text-xl"
+                  className="min-w-0 break-words text-lg font-semibold text-primary outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring/40 sm:text-xl"
                 >
                   #{data.picked.number} {data.picked.title}
                 </a>
@@ -232,15 +234,17 @@ export function MatchForm() {
                   <Badge
                     key={label}
                     variant="secondary"
-                    className="rounded-md border border-slate-200"
+                    className="rounded-md border border-border text-xs"
                   >
                     {label}
                   </Badge>
                 ))}
               </div>
-              <p className="text-slate-600">{data.picked.fitReason}</p>
+              <p className="break-words text-muted-foreground">
+                {data.picked.fitReason}
+              </p>
               {data.picked.difficultyReason ? (
-                <p className="mt-1 text-xs text-slate-500">
+                <p className="mt-1 text-xs text-muted-foreground">
                   {data.picked.difficultyReason}
                 </p>
               ) : null}
@@ -248,18 +252,18 @@ export function MatchForm() {
                 href={`/issue/${data.picked.owner}/${data.picked.repo}/${data.picked.number}`}
                 className={cn(
                   buttonVariants(),
-                  "mt-4 h-10 rounded-xl bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-600/40",
+                  "mt-4 inline-flex min-h-11 items-center rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring/40",
                 )}
               >
                 {t("match.explainIssue")}
               </Link>
             </article>
           ) : noIssues ? (
-            <p className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-600 shadow-sm">
+            <p className="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground shadow-sm break-words">
               {t("match.noIssuesBefore")}
               <Link
                 href="/"
-                className="font-medium text-blue-600 hover:underline"
+                className="font-medium text-primary hover:underline"
                 onClick={(e) => {
                   e.preventDefault();
                   setRepo("nishal21/NekoDroid");
@@ -272,16 +276,16 @@ export function MatchForm() {
           ) : null}
 
           {data.others.length > 0 ? (
-            <div className="flex flex-col gap-3">
-              <h2 className="text-sm font-semibold tracking-wide text-slate-500 uppercase">
+            <div className="flex min-w-0 flex-col gap-3">
+              <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
                 {t("match.otherFits")}
               </h2>
               {data.others.map((issue) => (
                 <article
                   key={`${issue.owner}/${issue.repo}#${issue.number}`}
-                  className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+                  className="min-w-0 rounded-xl border border-border bg-card p-4 shadow-sm"
                 >
-                  <div className="mb-1 flex flex-wrap items-center gap-2">
+                  <div className="mb-1 flex min-w-0 flex-wrap items-center gap-2">
                     {issue.difficultyBadge ? (
                       <DifficultyBadge label={issue.difficultyBadge} />
                     ) : null}
@@ -289,20 +293,26 @@ export function MatchForm() {
                       href={issue.htmlUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="font-medium text-blue-600 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-blue-600/40"
+                      className="min-w-0 break-words font-medium text-primary outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring/40"
                     >
                       #{issue.number} {issue.title}
                     </a>
                     {issue.labels.map((label) => (
-                      <Badge key={label} variant="outline" className="rounded-md">
+                      <Badge
+                        key={label}
+                        variant="outline"
+                        className="rounded-md text-xs"
+                      >
                         {label}
                       </Badge>
                     ))}
                   </div>
-                  <p className="text-sm text-slate-500">{issue.fitReason}</p>
+                  <p className="text-sm text-muted-foreground break-words">
+                    {issue.fitReason}
+                  </p>
                   <Link
                     href={`/issue/${issue.owner}/${issue.repo}/${issue.number}`}
-                    className="mt-2 inline-block text-sm text-blue-600 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-blue-600/40"
+                    className="mt-2 inline-flex min-h-11 items-center text-sm text-primary outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring/40"
                   >
                     {t("match.explainIssue")}
                   </Link>
@@ -312,19 +322,21 @@ export function MatchForm() {
           ) : null}
 
           {data.skipped.length > 0 ? (
-            <div className="flex flex-col gap-3">
-              <h2 className="text-sm font-semibold tracking-wide text-slate-500 uppercase">
+            <div className="flex min-w-0 flex-col gap-3">
+              <h2 className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
                 {t("match.alreadyTaken")}
               </h2>
               {data.skipped.map((issue) => (
                 <article
                   key={`skip-${issue.owner}/${issue.repo}#${issue.number}`}
-                  className="rounded-xl border border-slate-200 bg-slate-50 p-4 opacity-80"
+                  className="min-w-0 rounded-xl border border-border bg-muted p-4 opacity-80"
                 >
-                  <p className="font-medium text-slate-500">
+                  <p className="font-medium text-muted-foreground break-words">
                     #{issue.number} {issue.title}
                   </p>
-                  <p className="mt-1 text-sm text-slate-400">{issue.reason}</p>
+                  <p className="mt-1 text-sm text-muted-foreground/80 break-words">
+                    {issue.reason}
+                  </p>
                 </article>
               ))}
             </div>

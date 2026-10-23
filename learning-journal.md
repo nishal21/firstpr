@@ -176,6 +176,33 @@
 - Routes set `x-firstpr-source`; UI tiny “saved result” dot; friendly rate_limited/timeout/not_found
 - Verified: DEMO_MODE=on → match / explain#4 / hints+refuse / review#1+#7 all cache 200
 
+## 2026-10-24 — Theme / header / hero
+- Blue palette tokens; sticky header with mark+wordmark; mobile Menu panel
+- Hero eyebrow pill + primary CTA → #match; LangToggle unchanged (portal)
+- Build: `npm run build` exit 0
+
+## 2026-10-24 — 360px polish
+- No page overflow at 360–1280 on /, explain, review; LangToggle ml/ar OK
+- Theme tokens replace slate/white leftovers on listed components
+- Build exit 0
+
+## 2026-10-24 — Animated footer + brand icons + metadata
+- Dark footer `#172235`, CSS glow 16s + logo float 4s under `prefers-reduced-motion: no-preference`
+- `app/icon.png` + `app/apple-icon.png` from `public/brand/`; leave `favicon.ico`
+- metadataBase / OG / twitter → `/brand/logo-full.png`; viewport `themeColor: #0473FD`
+- i18n `footer.tagline` in en + ml/hi + all world packs; `footer.built` unchanged
+- Verified: no x-scroll 360/1280; reduced-motion → anim none; build exit 0; og:image absolute URL
+
+## 2026-10-24 — Favicon + footer scene
+- Brand favicon in `app/favicon.ico`
+- Scene photo removed — fade looked broken; footer is navy + logo/nav/built only
+
+## 2026-10-24 — GitHub App webhook
+- `@octokit/app` + `POST /api/github/webhook` (202 + `after()`, verify → 401)
+- `/firstpr explain` on issues → explain + L1 hint comment; PR open/sync → score card comment
+- Env: `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY`, `GITHUB_WEBHOOK_SECRET`
+- Done when: comment on NekoDroid #5 gets a reply ~1 min
+
 ## Next for another agent
-1. Commit fixtures + demo code; attribution stays off
-2. Offline walkthrough with DEMO_MODE=on
+1. Install App on NekoDroid; set webhook URL + secrets; test `/firstpr explain` on #5
+2. Commit when asked; attribution off

@@ -14,13 +14,18 @@ export const es = fill({
   "nav.review": "Revisar mi PR",
   "nav.language": "Idioma",
   "nav.progress": "Progreso de FirstPR",
+  "nav.menuOpen": "Abrir menú",
+  "nav.menuClose": "Cerrar menú",
   "footer.built":
     "Hecho en AIBoomi Startup Weekend Kochi por DuoMatter",
+  "footer.tagline": "Match. Explain. Review. Tú escribes el fix.",
+  "hero.eyebrow": "FirstPR nunca escribe tu código.",
   "hero.title": "Tu primer PR, escrito por ti, listo para merge.",
   "hero.subtitle":
     "FirstPR encuentra un issue real para principiantes, te muestra dónde mirar y revisa tu PR antes de que lo vea un maintainer.",
   "hero.trust":
     "FirstPR nunca escribe tu código. Te muestra dónde mirar y revisa tu PR antes de que lo vea un maintainer.",
+  "hero.cta": "Encontrar mi primer issue",
   "home.matchHeading": "Match",
   "steps.step": "Paso {n}",
   "steps.match.title": "Match",
@@ -126,13 +131,18 @@ export const fr = fill({
   "nav.review": "Review mon PR",
   "nav.language": "Langue",
   "nav.progress": "Progression FirstPR",
+  "nav.menuOpen": "Ouvrir le menu",
+  "nav.menuClose": "Fermer le menu",
   "footer.built":
     "Créé à AIBoomi Startup Weekend Kochi par DuoMatter",
+  "footer.tagline": "Match. Explain. Review. Tu écris le correctif.",
+  "hero.eyebrow": "FirstPR n'écrit jamais ton code.",
   "hero.title": "Ton premier PR, écrit par toi, prêt à merge.",
   "hero.subtitle":
     "FirstPR trouve un vrai issue débutant, montre où regarder, et vérifie ton PR avant un maintainer.",
   "hero.trust":
     "FirstPR n'écrit jamais ton code. Il montre où regarder et vérifie ton PR avant un maintainer.",
+  "hero.cta": "Trouver mon premier issue",
   "home.matchHeading": "Match",
   "steps.step": "Étape {n}",
   "steps.match.line":
@@ -230,13 +240,18 @@ export const de = fill({
   "nav.review": "Meinen PR prüfen",
   "nav.language": "Sprache",
   "nav.progress": "FirstPR-Fortschritt",
+  "nav.menuOpen": "Menü öffnen",
+  "nav.menuClose": "Menü schließen",
   "footer.built":
     "Gebaut bei AIBoomi Startup Weekend Kochi von DuoMatter",
+  "footer.tagline": "Match. Explain. Review. Du schreibst den Fix.",
+  "hero.eyebrow": "FirstPR schreibt nie deinen Code.",
   "hero.title": "Dein erster PR, von dir geschrieben, bereit zum Merge.",
   "hero.subtitle":
     "FirstPR findet ein echtes Beginner-Issue, zeigt wo du hinschauen sollst, und prüft deinen PR bevor ein Maintainer ihn sieht.",
   "hero.trust":
     "FirstPR schreibt nie deinen Code. Es zeigt wo du hinschauen sollst und prüft deinen PR vorher.",
+  "hero.cta": "Mein erstes Issue finden",
   "steps.step": "Schritt {n}",
   "steps.match.line":
     "GitHub-Benutzername eingeben. Wir wählen ein offenes, unzugeordnetes good first issue.",
@@ -324,11 +339,16 @@ export const pt = fill({
   "nav.findIssue": "Encontrar um issue",
   "nav.review": "Revisar meu PR",
   "nav.language": "Idioma",
+  "nav.menuOpen": "Abrir menu",
+  "nav.menuClose": "Fechar menu",
+  "footer.tagline": "Match. Explain. Review. Você escreve o fix.",
+  "hero.eyebrow": "FirstPR nunca escreve seu código.",
   "hero.title": "Seu primeiro PR, escrito por você, pronto para merge.",
   "hero.subtitle":
     "FirstPR encontra um issue real para iniciantes, mostra onde olhar e verifica seu PR antes de um maintainer.",
   "hero.trust":
     "FirstPR nunca escreve seu código. Mostra onde olhar e verifica seu PR antes.",
+  "hero.cta": "Encontrar meu primeiro issue",
   "steps.step": "Passo {n}",
   "steps.match.line":
     "Digite um usuário GitHub. Escolhemos um good first issue aberto sem dono.",
@@ -375,11 +395,16 @@ export const zh = fill({
   "nav.findIssue": "找一个 issue",
   "nav.review": "Review 我的 PR",
   "nav.language": "语言",
+  "nav.menuOpen": "打开菜单",
+  "nav.menuClose": "关闭菜单",
+  "footer.tagline": "Match. Explain. Review. 修复由你来写。",
+  "hero.eyebrow": "FirstPR 从不替你写代码。",
   "hero.title": "你的第一个 PR，由你自己写好，准备 merge。",
   "hero.subtitle":
     "FirstPR 会找到真实的新手 issue，指出该看哪里，并在 maintainer 看到之前检查你的 PR。",
   "hero.trust":
     "FirstPR 从不替你写代码。它只告诉你看哪里，并在 maintainer 之前检查 PR。",
+  "hero.cta": "找我的第一个 issue",
   "steps.step": "第 {n} 步",
   "steps.match.line":
     "输入 GitHub 用户名。我们会选一个无人认领的 open good first issue。",
@@ -426,11 +451,16 @@ export const ja = fill({
   "nav.findIssue": "issue を探す",
   "nav.review": "自分の PR を Review",
   "nav.language": "言語",
+  "nav.menuOpen": "メニューを開く",
+  "nav.menuClose": "メニューを閉じる",
+  "footer.tagline": "Match. Explain. Review. 修正はあなたが書く。",
+  "hero.eyebrow": "FirstPR はコードを書きません。",
   "hero.title": "最初の PR。あなたが書いて、merge できる状態に。",
   "hero.subtitle":
     "FirstPR は本物の beginner issue を見つけ、見る場所を示し、maintainer の前に PR をチェックします。",
   "hero.trust":
     "FirstPR はコードを書きません。見る場所を示し、maintainer の前に PR を確認します。",
+  "hero.cta": "最初の issue を探す",
   "steps.step": "ステップ {n}",
   "steps.match.line":
     "GitHub ユーザー名を入力。未アサインの open good first issue を選びます。",
@@ -477,11 +507,16 @@ export const ko = fill({
   "nav.findIssue": "issue 찾기",
   "nav.review": "내 PR Review",
   "nav.language": "언어",
+  "nav.menuOpen": "메뉴 열기",
+  "nav.menuClose": "메뉴 닫기",
+  "footer.tagline": "Match. Explain. Review. 수정은 당신이 작성합니다.",
+  "hero.eyebrow": "FirstPR는 코드를 대신 쓰지 않습니다.",
   "hero.title": "첫 PR, 직접 쓰고, merge 준비 완료.",
   "hero.subtitle":
     "FirstPR는 진짜 beginner issue를 찾고, 어디를 볼지 알려주며, maintainer보다 먼저 PR을 검사합니다.",
   "hero.trust":
     "FirstPR는 코드를 대신 쓰지 않습니다. 어디를 볼지 보여주고 maintainer 전에 PR을 확인합니다.",
+  "hero.cta": "첫 issue 찾기",
   "steps.step": "{n}단계",
   "steps.match.line":
     "GitHub 사용자 이름을 입력하세요. 아무도 안 맡은 open good first issue를 고릅니다.",
@@ -525,11 +560,16 @@ export const ar = fill({
   "nav.findIssue": "ابحث عن issue",
   "nav.review": "راجع PR الخاص بي",
   "nav.language": "اللغة",
+  "nav.menuOpen": "فتح القائمة",
+  "nav.menuClose": "إغلاق القائمة",
+  "footer.tagline": "Match. Explain. Review. أنت تكتب الإصلاح.",
+  "hero.eyebrow": "FirstPR لا يكتب شفرتك أبدًا.",
   "hero.title": "أول PR لك، تكتبه أنت، جاهز للـ merge.",
   "hero.subtitle":
     "FirstPR يجد issue حقيقيًا للمبتدئين، يوضح أين تنظر، ويراجع PR قبل أن يراه الـ maintainer.",
   "hero.trust":
     "FirstPR لا يكتب شفرتك أبدًا. يوضح أين تنظر ويراجع PR قبل الـ maintainer.",
+  "hero.cta": "اعثر على أول issue لي",
   "steps.step": "الخطوة {n}",
   "match.username": "اسم مستخدم GitHub",
   "match.repo": "Repo (اختياري)",
@@ -567,11 +607,16 @@ export const ru = fill({
   "nav.findIssue": "Найти issue",
   "nav.review": "Проверить мой PR",
   "nav.language": "Язык",
+  "nav.menuOpen": "Открыть меню",
+  "nav.menuClose": "Закрыть меню",
+  "footer.tagline": "Match. Explain. Review. Исправление пишете вы.",
+  "hero.eyebrow": "FirstPR никогда не пишет твой код.",
   "hero.title": "Твой первый PR — ты пишешь, он готов к merge.",
   "hero.subtitle":
     "FirstPR находит настоящий beginner issue, показывает куда смотреть и проверяет PR до maintainer.",
   "hero.trust":
     "FirstPR никогда не пишет твой код. Показывает куда смотреть и проверяет PR заранее.",
+  "hero.cta": "Найти мой первый issue",
   "steps.step": "Шаг {n}",
   "match.username": "Имя пользователя GitHub",
   "match.repo": "Repo (необязательно)",
@@ -609,11 +654,16 @@ export const ta = fill({
   "nav.findIssue": "ஒரு issue தேடு",
   "nav.review": "என் PR-ஐ Review செய்",
   "nav.language": "மொழி",
+  "nav.menuOpen": "மெனுவைத் திற",
+  "nav.menuClose": "மெனுவை மூடு",
+  "footer.tagline": "Match. Explain. Review. நீங்கள் எழுதுகிறீர்கள்.",
+  "hero.eyebrow": "FirstPR உங்கள் கோடை எழுதாது.",
   "hero.title": "உங்கள் முதல் PR, நீங்கள் எழுதியது, merge செய்ய தயார்.",
   "hero.subtitle":
     "FirstPR உண்மையான beginner issue-ஐ கண்டுபிடித்து, எங்கே பார்க்க வேண்டும் எனக் காட்டி, maintainer பார்ப்பதற்கு முன் PR-ஐ சரிபார்க்கும்.",
   "hero.trust":
     "FirstPR உங்கள் கோடை எழுதாது. எங்கே பார்க்க வேண்டும் எனக் காட்டி PR-ஐ முன்கூட்டியே சரிபார்க்கும்.",
+  "hero.cta": "என் முதல் issue-ஐ கண்டுபிடி",
   "steps.step": "படி {n}",
   "match.username": "GitHub பயனர்பெயர்",
   "match.repo": "Repo (விருப்பமானது)",
@@ -651,11 +701,16 @@ export const bn = fill({
   "nav.findIssue": "একটি issue খুঁজুন",
   "nav.review": "আমার PR Review করুন",
   "nav.language": "ভাষা",
+  "nav.menuOpen": "মেনু খুলুন",
+  "nav.menuClose": "মেনু বন্ধ করুন",
+  "footer.tagline": "Match. Explain. Review. আপনি লেখেন।",
+  "hero.eyebrow": "FirstPR আপনার কোড লেখে না।",
   "hero.title": "আপনার প্রথম PR, আপনি লিখেছেন, merge-এর জন্য প্রস্তুত।",
   "hero.subtitle":
     "FirstPR আসল beginner issue খুঁজে দেয়, কোথায় দেখবেন বলে, এবং maintainer-এর আগে PR পরীক্ষা করে।",
   "hero.trust":
     "FirstPR আপনার কোড লেখে না। কোথায় দেখবেন দেখায় এবং আগেই PR পরীক্ষা করে।",
+  "hero.cta": "আমার প্রথম issue খুঁজুন",
   "steps.step": "ধাপ {n}",
   "match.username": "GitHub ব্যবহারকারীর নাম",
   "match.repo": "Repo (ঐচ্ছিক)",
@@ -693,11 +748,16 @@ export const id = fill({
   "nav.findIssue": "Cari issue",
   "nav.review": "Review PR saya",
   "nav.language": "Bahasa",
+  "nav.menuOpen": "Buka menu",
+  "nav.menuClose": "Tutup menu",
+  "footer.tagline": "Match. Explain. Review. Anda yang menulis perbaikannya.",
+  "hero.eyebrow": "FirstPR tidak pernah menulis kode Anda.",
   "hero.title": "PR pertama Anda, ditulis Anda, siap di-merge.",
   "hero.subtitle":
     "FirstPR menemukan issue pemula nyata, menunjukkan ke mana melihat, dan memeriksa PR sebelum maintainer.",
   "hero.trust":
     "FirstPR tidak pernah menulis kode Anda. Ia menunjukkan ke mana melihat dan memeriksa PR lebih dulu.",
+  "hero.cta": "Temukan issue pertama saya",
   "steps.step": "Langkah {n}",
   "match.username": "Nama pengguna GitHub",
   "match.repo": "Repo (opsional)",

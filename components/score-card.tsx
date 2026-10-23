@@ -35,14 +35,15 @@ function ScoreRing({
     score >= 80 ? "#059669" : score >= 55 ? "#d97706" : "#dc2626";
 
   return (
-    <div className="relative mx-auto h-36 w-36">
+    <div className="relative mx-auto h-36 w-36 shrink-0">
       <svg className="h-full w-full -rotate-90" viewBox="0 0 128 128" aria-hidden>
         <circle
           cx="64"
           cy="64"
           r={r}
           fill="none"
-          stroke="#e2e8f0"
+          stroke="currentColor"
+          className="text-border"
           strokeWidth="10"
         />
         <circle
@@ -59,10 +60,10 @@ function ScoreRing({
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-3xl font-semibold tabular-nums text-slate-900">
+        <span className="text-3xl font-semibold tabular-nums text-foreground">
           {score}
         </span>
-        <span className="text-xs text-slate-500">{outOfLabel}</span>
+        <span className="text-xs text-muted-foreground">{outOfLabel}</span>
       </div>
     </div>
   );
@@ -92,7 +93,7 @@ function StatusIcon({
   if (status === "na") {
     return (
       <span
-        className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-400"
+        className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground"
         title={naTitle}
       >
         <Minus className="h-3.5 w-3.5" strokeWidth={2.5} />
@@ -125,7 +126,7 @@ function severityBadge(severity: ReviewLineComment["severity"]) {
     return "border-red-200 bg-red-50 text-red-800";
   if (severity === "suggestion")
     return "border-amber-200 bg-amber-50 text-amber-900";
-  return "border-slate-200 bg-slate-50 text-slate-700";
+  return "border-border bg-muted text-foreground";
 }
 
 export function ScoreCard({ result }: { result: ReviewResult }) {
@@ -154,23 +155,24 @@ export function ScoreCard({ result }: { result: ReviewResult }) {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+    <div className="min-w-0 space-y-8">
+      <div className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-8">
         <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-start sm:text-left">
           <ScoreRing score={result.score} outOfLabel={t("score.outOf")} />
-          <div className="flex-1 space-y-3">
+          <div className="min-w-0 flex-1 space-y-3">
             <Badge
               variant="outline"
               className={`rounded-lg border px-2.5 py-1 text-sm font-medium ${verdictClass(result.verdict)}`}
             >
               {t(verdictKey(result.verdict))}
             </Badge>
-            <p className="text-base text-slate-700">{result.summary}</p>
+            <p className="text-base text-foreground break-words">
+              {result.summary}
+            </p>
             <Button
               type="button"
               variant="outline"
-              size="sm"
-              className="rounded-lg"
+              className="min-h-11 rounded-lg"
               onClick={copyMarkdown}
             >
               <Copy className="h-3.5 w-3.5" />
@@ -180,11 +182,11 @@ export function ScoreCard({ result }: { result: ReviewResult }) {
         </div>
       </div>
 
-      <section className="space-y-3">
-        <h2 className="text-sm font-semibold tracking-tight text-slate-900">
+      <section className="min-w-0 space-y-3">
+        <h2 className="text-sm font-semibold tracking-tight text-foreground">
           {t("score.checklist")}
         </h2>
-        <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white">
+        <ul className="divide-y divide-border rounded-xl border border-border bg-card">
           {result.checklist.map((item) => (
             <li
               key={`${item.source}-${item.id}`}
@@ -197,27 +199,33 @@ export function ScoreCard({ result }: { result: ReviewResult }) {
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span
-                    className={`text-sm font-medium ${
-                      item.status === "na" ? "text-slate-500" : "text-slate-900"
+                    className={`text-sm font-medium break-words ${
+                      item.status === "na"
+                        ? "text-muted-foreground"
+                        : "text-foreground"
                     }`}
                   >
                     {item.label}
                   </span>
                   {item.status === "na" ? (
-                    <span className="rounded border border-slate-200 bg-slate-50 px-1.5 py-px text-[10px] font-medium uppercase tracking-wide text-slate-400">
+                    <span className="rounded border border-border bg-muted px-1.5 py-px text-xs font-medium uppercase tracking-wide text-muted-foreground">
                       {t("score.notApplicable")}
                     </span>
                   ) : (
-                    <span className="rounded border border-slate-200 bg-slate-50 px-1.5 py-px text-[10px] font-medium uppercase tracking-wide text-slate-500">
+                    <span className="rounded border border-border bg-muted px-1.5 py-px text-xs font-medium uppercase tracking-wide text-muted-foreground">
                       {item.source === "ai" ? t("score.ai") : t("score.rule")}
                     </span>
                   )}
                 </div>
-                <p className="mt-0.5 text-xs text-slate-500">{item.evidence}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground break-words">
+                  {item.evidence}
+                </p>
                 {item.status !== "pass" &&
                 item.status !== "na" &&
                 item.fix ? (
-                  <p className="mt-1 text-sm text-blue-600">{item.fix}</p>
+                  <p className="mt-1 text-sm text-primary break-words">
+                    {item.fix}
+                  </p>
                 ) : null}
               </div>
             </li>
@@ -226,27 +234,34 @@ export function ScoreCard({ result }: { result: ReviewResult }) {
       </section>
 
       {byFile.length > 0 ? (
-        <section className="space-y-3">
-          <h2 className="text-sm font-semibold tracking-tight text-slate-900">
+        <section className="min-w-0 space-y-3">
+          <h2 className="text-sm font-semibold tracking-tight text-foreground">
             {t("score.lineComments")}
           </h2>
           <div className="space-y-4">
             {byFile.map(([path, comments]) => (
               <div
                 key={path}
-                className="rounded-xl border border-slate-200 bg-white p-4"
+                className="min-w-0 rounded-xl border border-border bg-card p-4"
               >
-                <p className="font-mono text-sm text-slate-800">{path}</p>
+                <div className="max-w-full overflow-x-auto rounded-md">
+                  <p className="font-mono text-sm text-foreground break-all">
+                    {path}
+                  </p>
+                </div>
                 <ul className="mt-3 space-y-3">
                   {comments.map((c, i) => (
-                    <li key={`${c.path}:${c.line}:${i}`} className="text-sm">
+                    <li
+                      key={`${c.path}:${c.line}:${i}`}
+                      className="min-w-0 text-sm"
+                    >
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-mono text-xs text-slate-500">
+                        <span className="font-mono text-xs text-muted-foreground">
                           L{c.line}
                         </span>
                         <Badge
                           variant="outline"
-                          className={`rounded-md text-[10px] uppercase ${severityBadge(c.severity)}`}
+                          className={`rounded-md text-xs uppercase ${severityBadge(c.severity)}`}
                         >
                           {t(severityKey(c.severity))}
                         </Badge>
@@ -255,14 +270,16 @@ export function ScoreCard({ result }: { result: ReviewResult }) {
                             href={c.filesChangedUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline"
+                            className="inline-flex min-h-11 items-center gap-1 text-xs text-primary hover:underline"
                           >
                             {t("score.filesChanged")}
                             <ExternalLink className="h-3 w-3" />
                           </a>
                         ) : null}
                       </div>
-                      <p className="mt-1 text-slate-700">{c.comment}</p>
+                      <p className="mt-1 text-foreground break-words">
+                        {c.comment}
+                      </p>
                     </li>
                   ))}
                 </ul>
@@ -273,19 +290,21 @@ export function ScoreCard({ result }: { result: ReviewResult }) {
       ) : null}
 
       {result.questions_a_maintainer_would_ask.length > 0 ? (
-        <section className="space-y-3">
-          <h2 className="text-sm font-semibold tracking-tight text-slate-900">
+        <section className="min-w-0 space-y-3">
+          <h2 className="text-sm font-semibold tracking-tight text-foreground">
             {t("score.questions")}
           </h2>
-          <ul className="list-disc space-y-2 rounded-xl border border-slate-200 bg-white px-8 py-4 text-sm text-slate-700">
+          <ul className="list-disc space-y-2 rounded-xl border border-border bg-card px-6 py-4 text-sm text-foreground sm:px-8">
             {result.questions_a_maintainer_would_ask.map((q) => (
-              <li key={q}>{q}</li>
+              <li key={q} className="break-words">
+                {q}
+              </li>
             ))}
           </ul>
         </section>
       ) : null}
 
-      <p className="text-center text-sm text-slate-600">
+      <p className="text-center text-sm text-muted-foreground break-words">
         {result.encouragement}
       </p>
     </div>

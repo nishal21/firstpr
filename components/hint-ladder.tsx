@@ -61,16 +61,18 @@ function lineChip(path: string, start: number, end: number): string {
 function PointsChips({ points }: { points: HintPoint[] }) {
   if (points.length === 0) return null;
   return (
-    <div className="mt-3 flex flex-wrap gap-2">
+    <div className="mt-3 flex max-w-full flex-wrap gap-2">
       {points.map((p) => (
         <a
           key={`${p.path}:${p.start_line}-${p.end_line}`}
           href={p.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-md border border-slate-200 bg-white px-2 py-1 font-mono text-xs text-blue-600 hover:bg-slate-50"
+          className="inline-flex max-w-full min-h-11 items-center overflow-x-auto rounded-md border border-border bg-card px-3 py-2 font-mono text-sm text-primary hover:bg-muted"
         >
-          {lineChip(p.path, p.start_line, p.end_line)}
+          <span className="truncate sm:whitespace-normal sm:break-all">
+            {lineChip(p.path, p.start_line, p.end_line)}
+          </span>
         </a>
       ))}
     </div>
@@ -89,18 +91,22 @@ function HintCard({
   const { payload, points } = stored;
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
-      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+    <div className="min-w-0 rounded-xl border border-border bg-muted/60 p-4">
+      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
         {t("hint.level", { n: stored.level, label: t(labelKey) })}
       </p>
-      <p className="mt-2 text-sm leading-relaxed text-slate-800">{payload.hint}</p>
+      <p className="mt-2 text-sm leading-relaxed text-foreground break-words">
+        {payload.hint}
+      </p>
 
       {stored.level === 3 &&
       payload.pseudocode &&
       payload.pseudocode.length > 0 ? (
-        <ol className="mt-3 list-decimal space-y-1.5 rounded-lg border border-slate-200 bg-white p-3 pl-8 text-sm text-slate-800">
+        <ol className="mt-3 list-decimal space-y-1.5 rounded-lg border border-border bg-card p-3 pl-8 text-sm text-foreground">
           {payload.pseudocode.map((step) => (
-            <li key={step}>{step}</li>
+            <li key={step} className="break-words">
+              {step}
+            </li>
           ))}
         </ol>
       ) : null}
@@ -108,8 +114,8 @@ function HintCard({
       <PointsChips points={points} />
 
       {payload.check_yourself ? (
-        <p className="mt-3 text-sm text-slate-600">
-          <span className="font-medium text-slate-800">
+        <p className="mt-3 text-sm text-muted-foreground break-words">
+          <span className="font-medium text-foreground">
             {t("hint.checkYourself")}{" "}
           </span>
           {payload.check_yourself}
@@ -264,23 +270,23 @@ export function HintLadder({
   ).map((s) => hints[s.level]!);
 
   return (
-    <div className="relative rounded-xl border border-slate-200 bg-white p-5">
+    <div className="relative min-w-0 rounded-xl border border-border bg-card p-5">
       <SavedResultDot show={fromCache} />
-      <h2 className="text-sm font-semibold text-slate-900">{t("hint.title")}</h2>
-      <p className="mt-1 text-sm text-slate-500">{t("hint.subtitle")}</p>
+      <h2 className="text-sm font-semibold text-foreground">{t("hint.title")}</h2>
+      <p className="mt-1 text-sm text-muted-foreground">{t("hint.subtitle")}</p>
 
       <ol className="mt-5 space-y-0">
         {STEP_KEYS.map((step, i) => {
           const isUnlocked = unlocked >= step.level;
           return (
-            <li key={step.level} className="flex gap-3">
+            <li key={step.level} className="flex min-w-0 gap-3">
               <div className="flex flex-col items-center">
                 <span
                   className={[
                     "flex size-8 items-center justify-center rounded-full text-sm font-medium",
                     isUnlocked
-                      ? "bg-blue-600 text-white"
-                      : "border border-slate-200 text-slate-400",
+                      ? "bg-primary text-primary-foreground"
+                      : "border border-border text-muted-foreground",
                   ].join(" ")}
                 >
                   {step.level}
@@ -289,17 +295,17 @@ export function HintLadder({
                   <div
                     className={[
                       "my-1 w-px flex-1 min-h-6",
-                      unlocked > step.level ? "bg-blue-600" : "bg-slate-200",
+                      unlocked > step.level ? "bg-primary" : "bg-border",
                     ].join(" ")}
                     aria-hidden
                   />
                 ) : null}
               </div>
-              <div className="pb-4 pt-1.5">
+              <div className="min-w-0 pb-4 pt-1.5">
                 <p
                   className={[
-                    "text-sm font-medium",
-                    isUnlocked ? "text-slate-900" : "text-slate-400",
+                    "text-sm font-medium break-words",
+                    isUnlocked ? "text-foreground" : "text-muted-foreground",
                   ].join(" ")}
                 >
                   {t(step.labelKey)}
@@ -315,11 +321,11 @@ export function HintLadder({
           type="button"
           onClick={() => void unlockNextHint()}
           disabled={hintPending || unlocked >= 3}
-          className="rounded-xl bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-600/40"
+          className="min-h-11 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring/40"
         >
           {hintPending ? (
             <>
-              <Spinner className="text-white" />
+              <Spinner className="text-primary-foreground" />
               {t("hint.loading")}
             </>
           ) : (
@@ -327,7 +333,9 @@ export function HintLadder({
           )}
         </Button>
         {unlocked >= 3 ? (
-          <span className="text-xs text-slate-400">{t("hint.allUnlocked")}</span>
+          <span className="text-xs text-muted-foreground">
+            {t("hint.allUnlocked")}
+          </span>
         ) : null}
       </div>
 
@@ -338,14 +346,17 @@ export function HintLadder({
           ))}
         </div>
       ) : (
-        <p className="mt-5 text-sm text-slate-500">{t("hint.pressNext")}</p>
+        <p className="mt-5 text-sm text-muted-foreground">{t("hint.pressNext")}</p>
       )}
 
-      <div className="mt-8 space-y-2 border-t border-slate-100 pt-6">
-        <label htmlFor="ask-firstpr" className="text-sm font-medium text-slate-900">
+      <div className="mt-8 space-y-2 border-t border-border pt-6">
+        <label
+          htmlFor="ask-firstpr"
+          className="text-sm font-medium text-foreground"
+        >
           {t("hint.askTitle")}
         </label>
-        <div className="flex gap-2">
+        <div className="flex min-w-0 gap-2">
           <Input
             id="ask-firstpr"
             value={ask}
@@ -355,7 +366,7 @@ export function HintLadder({
             }}
             placeholder={t("hint.askPlaceholder")}
             disabled={chatPending}
-            className="rounded-xl border-slate-200 focus-visible:border-blue-600 focus-visible:ring-blue-600/30"
+            className="min-h-11 h-11 min-w-0 flex-1 rounded-xl border-border focus-visible:border-primary focus-visible:ring-ring/30"
           />
           <Button
             type="button"
@@ -364,20 +375,16 @@ export function HintLadder({
             disabled={chatPending || !ask.trim()}
             onClick={() => void sendChat(ask)}
             aria-label={t("hint.send")}
-            className="rounded-xl border-slate-200 focus-visible:ring-blue-600/40"
+            className="size-11 shrink-0 rounded-xl border-border focus-visible:ring-ring/40"
           >
-            {chatPending ? (
-              <Spinner />
-            ) : (
-              <Send className="size-4" />
-            )}
+            {chatPending ? <Spinner /> : <Send className="size-4" />}
           </Button>
         </div>
         <button
           type="button"
           disabled={chatPending}
           onClick={() => void sendChat(refuseChip)}
-          className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-700 hover:bg-slate-100 disabled:opacity-50"
+          className="inline-flex min-h-11 items-center rounded-full border border-border bg-muted px-3 py-2 text-sm text-foreground hover:bg-muted/80 disabled:opacity-50"
         >
           {refuseChip}
         </button>
@@ -385,12 +392,11 @@ export function HintLadder({
 
       {error ? (
         <div className="mt-4 space-y-2" role="alert">
-          <p className="text-sm text-red-600">{error}</p>
+          <p className="text-sm text-red-600 break-words">{error}</p>
           <Button
             type="button"
             variant="outline"
-            size="sm"
-            className="rounded-xl border-slate-200"
+            className="min-h-11 rounded-xl border-border"
             onClick={() => void unlockNextHint()}
           >
             {t("explain.retry")}
@@ -404,39 +410,41 @@ export function HintLadder({
             msg.role === "user" ? (
               <div
                 key={msg.id}
-                className="ml-8 rounded-xl rounded-br-sm bg-blue-600 px-4 py-2.5 text-sm text-white"
+                className="ml-4 break-words rounded-xl rounded-br-sm bg-primary px-4 py-2.5 text-sm text-primary-foreground sm:ml-8"
               >
                 {msg.text}
               </div>
             ) : (
-              <div key={msg.id} className="mr-8 space-y-2">
-                <p className="text-xs font-medium text-slate-500">FirstPR</p>
+              <div key={msg.id} className="mr-4 min-w-0 space-y-2 sm:mr-8">
+                <p className="text-xs font-medium text-muted-foreground">
+                  FirstPR
+                </p>
                 {msg.refused ? (
-                  <div className="rounded-xl border border-slate-200 border-l-4 border-l-blue-600 bg-white p-4">
-                    <div className="flex items-start gap-2">
+                  <div className="rounded-xl border border-border border-l-4 border-l-primary bg-card p-4">
+                    <div className="flex min-w-0 items-start gap-2">
                       <Lock
-                        className="mt-0.5 size-4 shrink-0 text-blue-600"
+                        className="mt-0.5 size-4 shrink-0 text-primary"
                         aria-hidden
                       />
-                      <div>
-                        <p className="text-sm font-bold text-slate-900">
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-foreground break-words">
                           {msg.refusal_message || t("hint.wontWrite")}
                         </p>
-                        <p className="mt-3 text-sm leading-relaxed text-slate-700">
+                        <p className="mt-3 text-sm leading-relaxed text-muted-foreground break-words">
                           {msg.text}
                         </p>
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="rounded-xl rounded-bl-sm border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-800">
+                  <div className="break-words rounded-xl rounded-bl-sm border border-border bg-muted px-4 py-2.5 text-sm text-foreground">
                     {msg.text}
                   </div>
                 )}
                 <PointsChips points={msg.points} />
                 {msg.check_yourself ? (
-                  <p className="text-sm text-slate-600">
-                    <span className="font-medium text-slate-800">
+                  <p className="text-sm text-muted-foreground break-words">
+                    <span className="font-medium text-foreground">
                       {t("hint.checkYourself")}{" "}
                     </span>
                     {msg.check_yourself}
@@ -446,7 +454,7 @@ export function HintLadder({
             ),
           )}
           {chatPending ? (
-            <p className="text-sm text-slate-400">{t("hint.thinking")}</p>
+            <p className="text-sm text-muted-foreground">{t("hint.thinking")}</p>
           ) : null}
         </div>
       ) : null}

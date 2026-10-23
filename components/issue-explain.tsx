@@ -140,18 +140,18 @@ export function IssueExplain({
     return (
       <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
         <FlowProgress current="explain" />
-        <p className="mb-6 text-sm font-medium text-blue-600">
+        <p className="mb-6 text-sm font-medium text-primary">
           {loadingSteps[stepIndex]}…
         </p>
         <div className="space-y-6">
-          <Skeleton className="h-8 w-2/3 rounded-lg bg-slate-100" />
-          <Skeleton className="h-4 w-40 rounded-lg bg-slate-100" />
-          <div className="grid gap-6 md:grid-cols-2">
-            <Skeleton className="h-28 w-full rounded-xl bg-slate-100" />
-            <Skeleton className="h-28 w-full rounded-xl bg-slate-100" />
+          <Skeleton className="h-8 w-2/3 rounded-lg bg-muted" />
+          <Skeleton className="h-4 w-40 rounded-lg bg-muted" />
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <Skeleton className="h-28 w-full rounded-xl bg-muted" />
+            <Skeleton className="h-28 w-full rounded-xl bg-muted" />
           </div>
-          <Skeleton className="h-40 w-full rounded-xl bg-slate-100" />
-          <Skeleton className="h-32 w-full rounded-xl bg-slate-100" />
+          <Skeleton className="h-40 w-full rounded-xl bg-muted" />
+          <Skeleton className="h-32 w-full rounded-xl bg-muted" />
         </div>
       </section>
     );
@@ -161,12 +161,12 @@ export function IssueExplain({
     return (
       <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
         <FlowProgress current="explain" />
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <p className="text-sm text-slate-700">
+        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+          <p className="text-sm text-foreground break-words">
             {error || t("explain.somethingWrong")}
           </p>
           <Button
-            className="mt-4 rounded-xl border-slate-200"
+            className="mt-4 min-h-11 rounded-xl border-border"
             variant="outline"
             onClick={() => window.location.reload()}
           >
@@ -182,11 +182,14 @@ export function IssueExplain({
 
   return (
     <section className="relative mx-auto max-w-5xl space-y-8 px-4 py-12 sm:px-6">
-      <SavedResultDot show={fromCache} className="pointer-events-none absolute right-4 top-4 size-1.5 rounded-full bg-slate-300 sm:right-6" />
+      <SavedResultDot
+        show={fromCache}
+        className="pointer-events-none absolute right-4 top-4 size-1.5 rounded-full bg-muted-foreground/40 sm:right-6"
+      />
       <FlowProgress current="explain" />
-      <header className="space-y-3">
-        <div className="flex flex-wrap items-center gap-2 text-sm text-slate-500">
-          <span>
+      <header className="min-w-0 space-y-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-2 text-sm text-muted-foreground">
+          <span className="min-w-0 break-words">
             {owner}/{repo}
           </span>
           <span aria-hidden>·</span>
@@ -194,7 +197,7 @@ export function IssueExplain({
             href={issue.htmlUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-blue-600 hover:underline"
+            className="inline-flex min-h-11 items-center gap-1 text-primary hover:underline"
           >
             #{issue.number}
             <ExternalLink className="size-3.5" aria-hidden />
@@ -203,7 +206,7 @@ export function IssueExplain({
             <DifficultyBadge label={data.difficultyBadge} />
           ) : null}
         </div>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground break-words sm:text-3xl">
           {issue.title}
         </h1>
         {issue.labels.length > 0 ? (
@@ -212,7 +215,7 @@ export function IssueExplain({
               <Badge
                 key={label}
                 variant="secondary"
-                className="rounded-md border border-slate-200 bg-slate-50 font-normal text-slate-700"
+                className="rounded-md border border-border bg-muted font-normal text-xs text-foreground"
               >
                 {label}
               </Badge>
@@ -224,44 +227,48 @@ export function IssueExplain({
       {limitsNotice ? (
         <div
           role="status"
-          className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+          className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 break-words"
         >
           {limitsNotice}
         </div>
       ) : null}
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-slate-900">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="min-w-0 rounded-xl border border-border bg-card p-5 shadow-sm">
+          <h2 className="text-sm font-semibold text-foreground">
             {t("explain.whatAsking")}
           </h2>
-          <p className="mt-2 text-sm leading-relaxed text-slate-600">
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground break-words">
             {explanation.summary}
           </p>
         </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-slate-900">
+        <div className="min-w-0 rounded-xl border border-border bg-card p-5 shadow-sm">
+          <h2 className="text-sm font-semibold text-foreground">
             {t("explain.whyMatters")}
           </h2>
-          <p className="mt-2 text-sm leading-relaxed text-slate-600">
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground break-words">
             {explanation.why_it_matters}
           </p>
         </div>
       </div>
 
       {explanation.concepts.length > 0 ? (
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-slate-900">
+        <div className="min-w-0 rounded-xl border border-border bg-card p-5 shadow-sm">
+          <h2 className="text-sm font-semibold text-foreground">
             {t("explain.words")}
           </h2>
-          <dl className="mt-3 divide-y divide-slate-100">
+          <dl className="mt-3 divide-y divide-border">
             {explanation.concepts.map((c) => (
               <div
                 key={c.term}
-                className="grid gap-1 py-3 first:pt-0 last:pb-0 sm:grid-cols-[10rem_1fr] sm:gap-4"
+                className="grid grid-cols-1 gap-1 py-3 first:pt-0 last:pb-0 sm:grid-cols-[10rem_1fr] sm:gap-4"
               >
-                <dt className="text-sm font-medium text-slate-900">{c.term}</dt>
-                <dd className="text-sm text-slate-600">{c.explanation}</dd>
+                <dt className="min-w-0 text-sm font-medium text-foreground break-words">
+                  {c.term}
+                </dt>
+                <dd className="min-w-0 text-sm text-muted-foreground break-words">
+                  {c.explanation}
+                </dd>
               </div>
             ))}
           </dl>
@@ -269,40 +276,44 @@ export function IssueExplain({
       ) : null}
 
       {data.learn && data.learn.length >= 2 ? (
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-slate-900">
+        <div className="min-w-0 rounded-xl border border-border bg-card p-5 shadow-sm">
+          <h2 className="text-sm font-semibold text-foreground">
             {t("explain.learnFirst")}
           </h2>
           <ul className="mt-3 flex flex-col gap-3">
             {data.learn.map((item) => (
-              <li key={item.link} className="text-sm">
+              <li key={item.link} className="min-w-0 text-sm">
                 <a
                   href={item.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-medium text-blue-600 hover:underline"
+                  className="break-words font-medium text-primary hover:underline"
                 >
                   {item.title}
                 </a>
-                <span className="ml-2 text-xs text-slate-400">{item.site}</span>
+                <span className="ml-2 text-xs text-muted-foreground">
+                  {item.site}
+                </span>
                 {item.snippet ? (
-                  <p className="mt-0.5 text-xs text-slate-500">{item.snippet}</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground break-words">
+                    {item.snippet}
+                  </p>
                 ) : null}
               </li>
             ))}
           </ul>
-          <p className="mt-3 text-xs text-slate-400">
+          <p className="mt-3 text-xs text-muted-foreground">
             {t("explain.searchBySerpapi")}
           </p>
         </div>
       ) : null}
 
-      <div>
-        <h2 className="mb-3 text-sm font-semibold text-slate-900">
+      <div className="min-w-0">
+        <h2 className="mb-3 text-sm font-semibold text-foreground">
           {t("explain.whereLook")}
         </h2>
         {citations.length === 0 ? (
-          <p className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-600">
+          <p className="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground">
             {t("explain.noCitations")}
           </p>
         ) : (
@@ -310,23 +321,27 @@ export function IssueExplain({
             {citations.map((c) => (
               <li
                 key={`${c.path}:${c.start}-${c.end}:${c.why}`}
-                className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+                className="min-w-0 rounded-xl border border-border bg-card p-5 shadow-sm"
               >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="font-mono text-sm font-medium text-slate-900">
-                      {c.path}{" "}
-                      <span className="font-normal text-slate-500">
-                        {lineRangeLabel(c.start, c.end)}
-                      </span>
+                <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+                  <div className="min-w-0 flex-1">
+                    <div className="max-w-full overflow-x-auto rounded-md">
+                      <p className="font-mono text-sm font-medium text-foreground whitespace-nowrap sm:whitespace-normal sm:break-all">
+                        {c.path}{" "}
+                        <span className="font-normal text-muted-foreground">
+                          {lineRangeLabel(c.start, c.end)}
+                        </span>
+                      </p>
+                    </div>
+                    <p className="mt-1 text-sm text-muted-foreground break-words">
+                      {c.why}
                     </p>
-                    <p className="mt-1 text-sm text-slate-600">{c.why}</p>
                   </div>
                   <a
                     href={c.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-blue-600 hover:bg-slate-50"
+                    className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm text-primary hover:bg-muted"
                   >
                     {t("explain.openOnGithub")}
                     <ExternalLink className="size-3.5" aria-hidden />
@@ -342,40 +357,44 @@ export function IssueExplain({
         )}
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-slate-900">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="min-w-0 rounded-xl border border-border bg-card p-5 shadow-sm">
+          <h2 className="text-sm font-semibold text-foreground">
             {t("explain.doneWhen")}
           </h2>
           {explanation.done_when.length > 0 ? (
-            <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-slate-600">
+            <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-muted-foreground">
               {explanation.done_when.map((item) => (
-                <li key={item}>{item}</li>
+                <li key={item} className="break-words">
+                  {item}
+                </li>
               ))}
             </ul>
           ) : (
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 text-sm text-muted-foreground">
               {t("explain.noChecklist")}
             </p>
           )}
         </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-slate-900">
+        <div className="min-w-0 rounded-xl border border-border bg-card p-5 shadow-sm">
+          <h2 className="text-sm font-semibold text-foreground">
             {t("explain.howCheck")}
           </h2>
           {explanation.how_to_check.length > 0 ? (
             <div className="mt-3 flex flex-wrap gap-2">
               {explanation.how_to_check.map((cmd) => (
-                <code
+                <div
                   key={cmd}
-                  className="rounded-md border border-slate-200 bg-slate-50 px-2 py-1 font-mono text-xs break-all text-slate-800"
+                  className="max-w-full overflow-x-auto rounded-md border border-border bg-muted"
                 >
-                  {cmd}
-                </code>
+                  <code className="inline-block px-2 py-1 font-mono text-sm text-foreground break-all">
+                    {cmd}
+                  </code>
+                </div>
               ))}
             </div>
           ) : (
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 text-sm text-muted-foreground">
               {t("explain.noCommands")}
             </p>
           )}
@@ -384,16 +403,16 @@ export function IssueExplain({
 
       <HintLadder owner={owner} repo={repo} number={number} />
 
-      <div className="flex flex-wrap items-center gap-4 border-t border-slate-200 pt-6 text-sm">
+      <div className="flex min-w-0 flex-wrap items-center gap-4 border-t border-border pt-6 text-sm">
         <Link
           href="/"
-          className="text-blue-600 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-blue-600/40"
+          className="inline-flex min-h-11 items-center text-primary outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring/40"
         >
           {t("explain.findAnother")}
         </Link>
         <Link
           href="/review"
-          className="rounded-xl bg-blue-600 px-4 py-2 font-medium text-white outline-none hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-600/40"
+          className="inline-flex min-h-11 items-center rounded-xl bg-primary px-4 py-2 font-medium text-primary-foreground outline-none hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring/40"
         >
           {t("explain.reviewPr")}
         </Link>

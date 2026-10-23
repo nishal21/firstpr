@@ -6,15 +6,20 @@ export const ml: Record<I18nKey, string> = {
   "nav.review": "എന്റെ PR Review ചെയ്യുക",
   "nav.language": "ഭാഷ",
   "nav.progress": "FirstPR പുരോഗതി",
+  "nav.menuOpen": "മെനു തുറക്കുക",
+  "nav.menuClose": "മെനു അടയ്ക്കുക",
 
   "footer.built":
     "AIBoomi Startup Weekend Kochi-യിൽ DuoMatter നിർമ്മിച്ചത്",
+  "footer.tagline": "Match. Explain. Review. നിങ്ങൾ എഴുതുക.",
 
+  "hero.eyebrow": "FirstPR നിങ്ങളുടെ കോഡ് എഴുതില്ല.",
   "hero.title": "നിങ്ങളുടെ ആദ്യ PR, നിങ്ങൾ എഴുതിയത്, merge ചെയ്യാൻ തയ്യാർ.",
   "hero.subtitle":
     "FirstPR ഒരു യഥാർത്ഥ beginner issue കണ്ടെത്തി, എവിടെ നോക്കണമെന്ന് കാണിച്ചുതരുന്നു, maintainer കാണുന്നതിന് മുമ്പ് നിങ്ങളുടെ PR പരിശോധിക്കുന്നു.",
   "hero.trust":
     "FirstPR നിങ്ങളുടെ കോഡ് എഴുതില്ല. എവിടെ നോക്കണമെന്ന് കാണിക്കുകയും maintainer കാണുന്നതിന് മുമ്പ് PR പരിശോധിക്കുകയും ചെയ്യുന്നു.",
+  "hero.cta": "എന്റെ ആദ്യ issue കണ്ടെത്തുക",
 
   "home.matchHeading": "Match",
 
@@ -154,15 +159,20 @@ export const hi: Record<I18nKey, string> = {
   "nav.review": "मेरा PR Review करें",
   "nav.language": "भाषा",
   "nav.progress": "FirstPR प्रगति",
+  "nav.menuOpen": "मेनू खोलें",
+  "nav.menuClose": "मेनू बंद करें",
 
   "footer.built":
     "AIBoomi Startup Weekend Kochi में DuoMatter द्वारा बनाया गया",
+  "footer.tagline": "Match. Explain. Review. आप लिखते हैं।",
 
+  "hero.eyebrow": "FirstPR आपका कोड नहीं लिखता।",
   "hero.title": "आपका पहला PR, आपके लिखे हुए, merge के लिए तैयार।",
   "hero.subtitle":
     "FirstPR एक असली beginner issue ढूँढता है, कहाँ देखना है दिखाता है, और maintainer से पहले आपके PR की जाँच करता है।",
   "hero.trust":
     "FirstPR आपका कोड नहीं लिखता। यह दिखाता है कहाँ देखें, और maintainer से पहले PR जाँचता है।",
+  "hero.cta": "मेरा पहला issue खोजें",
 
   "home.matchHeading": "Match",
 
