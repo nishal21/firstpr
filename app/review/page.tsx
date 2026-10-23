@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { FlowProgress } from "@/components/flow-steps";
+import { useContentLang } from "@/components/lang-provider";
 import { ScoreCard } from "@/components/score-card";
 import { Spinner } from "@/components/spinner";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ type ReviewApiResponse = ReviewResult & {
 };
 
 export default function ReviewPage() {
+  const { lang: contentLang } = useContentLang();
   const [tab, setTab] = useState("pr");
   const [prUrl, setPrUrl] = useState(
     "https://github.com/nishal21/NekoDroid/pull/7",
@@ -61,13 +63,14 @@ export default function ReviewPage() {
     try {
       const body =
         tab === "pr"
-          ? { prUrl: prUrl.trim() }
+          ? { prUrl: prUrl.trim(), lang: contentLang }
           : {
               diff: diff.trim(),
               repo: repo.trim() || undefined,
               issueNumber: issueNumber.trim()
                 ? Number(issueNumber.trim())
                 : undefined,
+              lang: contentLang,
             };
 
       const res = await fetch("/api/review", {

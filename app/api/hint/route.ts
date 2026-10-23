@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { parseContentLang } from "@/lib/content-lang";
 import { GitHubError } from "@/lib/github";
 import { getHint, type HintLevel } from "@/lib/hints";
 import { LlmError } from "@/lib/llm";
@@ -22,7 +23,7 @@ export async function POST(request: Request) {
     const repo = body.repo?.trim();
     const number = Number(body.number);
     const level = Number(body.level) as HintLevel;
-    const lang = body.lang?.trim() || null;
+    const lang = parseContentLang(body.lang);
     const userMessage = body.userMessage ?? null;
     const previousHints = Array.isArray(body.previousHints)
       ? body.previousHints.map(String)

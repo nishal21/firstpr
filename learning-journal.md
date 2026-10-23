@@ -137,6 +137,12 @@
 - `lib/limits-notice.ts` `formatLimitsNotice` cleans + hides empty/fluff; applied in `explain.ts`.
 - UI: amber box only when cleaned text exists (no low-confidence-only fallback).
 
+## 2026-10-24 — Content language toggle
+- `lib/content-lang.ts`: en/ml/hi + ta/te/kn/bn/mr/gu/pa/es/fr/de/pt/zh/ja/ko/ar; prompt appendix; cache key.
+- Top bar: EN|മല|हिं + More… select; localStorage + `?lang=`; script fonts via next/font.
+- explain/hint/review system prompts use `*SystemForLang`; UI chrome stays English.
+- Verified #4 ml: Malayalam prose, `src/main.ts` + lines English; en switches back.
+
 ## Next for another agent
-1. Redeploy Vercel so Match badges + limits copy hit production.
-2. Optional: open demo PR A for #4 stage path.
+1. Redeploy Vercel (langs + Match + limits).
+2. Optional: demo PR A for #4.

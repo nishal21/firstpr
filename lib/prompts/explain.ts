@@ -1,3 +1,5 @@
+import { withContentLang, type ContentLang } from "@/lib/content-lang";
+
 export const EXPLAIN_SYSTEM = `You explain one GitHub issue to a beginner who is about to make their first pull request.
 
 You get: the repo name, the issue (title, body, labels), parts of the repo's CONTRIBUTING.md, and up to 3 source files. Every file line starts with "L<number>| ". Those are the only line numbers you may use.
@@ -15,6 +17,13 @@ Rules:
 - If a file or detail you need was missing from the excerpts, set confidence to "low" and fill unsure_about with 1–2 short sentences for a beginner. Start with "Heads up:". Name what you could not see, then what they should open (file and what to search for). Example: "Heads up: I couldn't see where extract.py sets this state. Open extract.py and search for scan_root before you start." Never use phrases like "supplied source excerpts", "not shown", "not provided", or other meta wording. If you have enough to explain the issue, set unsure_about to null — do not invent a warning.
 - Never guess a file or line you were not given.
 - Plain sentences. No hype, no emojis.`;
+
+/** System prompt with optional Malayalam/Hindi prose instruction. */
+export function explainSystemForLang(
+  lang?: ContentLang | string | null,
+): string {
+  return withContentLang(EXPLAIN_SYSTEM, lang);
+}
 
 export function buildExplainUserPrompt(opts: {
   owner: string;

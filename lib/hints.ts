@@ -1,7 +1,11 @@
 import { explainIssueCached, type ExplainIssueResult } from "@/lib/explain";
 import { permalink } from "@/lib/lines";
 import { generateJson } from "@/lib/llm";
-import { buildHintUserPrompt, HINTS_SYSTEM } from "@/lib/prompts/hints";
+import { parseContentLang } from "@/lib/content-lang";
+import {
+  buildHintUserPrompt,
+  hintsSystemForLang,
+} from "@/lib/prompts/hints";
 import { hintSchema, type HintOutput } from "@/lib/schemas";
 
 export const ASKED_FOR_CODE_RE =
@@ -145,9 +149,10 @@ async function callHintModel(opts: {
   extraInstruction?: string | null;
 }): Promise<HintOutput> {
   const { explained } = opts;
+  const contentLang = parseContentLang(opts.lang);
   const raw = await generateJson({
     task: "hint",
-    system: HINTS_SYSTEM,
+    system: hintsSystemForLang(contentLang),
     user: buildHintUserPrompt({
       owner: explained.owner,
       repo: explained.repo,
@@ -165,7 +170,7 @@ async function callHintModel(opts: {
         end: c.end,
         why: c.why,
       })),
-      lang: opts.lang ?? explained.language,
+      codeLang: explained.language,
       extraInstruction: opts.extraInstruction,
     }),
     schema: hintSchema,

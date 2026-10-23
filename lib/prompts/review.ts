@@ -1,3 +1,5 @@
+import { withContentLang, type ContentLang } from "@/lib/content-lang";
+
 export const REVIEW_SYSTEM = `You are FirstPR's maintainer-ready check. A beginner wrote a pull request and wants to know whether a maintainer would accept it, before the maintainer sees it. Review it the way a careful, kind maintainer of this repo would.
 
 You get: the PR title, description and branch name; the linked issue (title and body, may be missing); the repo's CONTRIBUTING.md; the changed files with their diff patches; and the results of rule-based checks already run by code.
@@ -17,6 +19,13 @@ Rules:
 - No score. Code computes the score.
 - Plain, direct, kind. No emojis.`;
 
+/** System prompt with optional Malayalam/Hindi prose instruction. */
+export function reviewSystemForLang(
+  lang?: ContentLang | string | null,
+): string {
+  return withContentLang(REVIEW_SYSTEM, lang);
+}
+
 export function buildReviewUserPrompt(opts: {
   title: string;
   body: string | null;
@@ -25,12 +34,13 @@ export function buildReviewUserPrompt(opts: {
   contributing: string;
   filesWithPatches: { path: string; patch: string }[];
   checksJson: string;
-  lang?: string | null;
+  /** Repo programming language hint (not content lang). */
+  codeLang?: string | null;
   pastedDiff?: boolean;
 }): string {
   const parts = [
-    opts.lang
-      ? `Repo language hint: ${opts.lang}`
+    opts.codeLang
+      ? `Repo language hint: ${opts.codeLang}`
       : `Repo language hint: (unknown)`,
     opts.pastedDiff
       ? `Input mode: PASTED DIFF (no PR URL). For contributing_rules, judge only code style, test placement, forbidden files, and scope from the diff. Do not fail for missing branch name, PR body, or check output.`

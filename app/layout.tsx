@@ -1,6 +1,21 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import Link from "next/link";
+import {
+  Inter,
+  Noto_Sans_Arabic,
+  Noto_Sans_Bengali,
+  Noto_Sans_Devanagari,
+  Noto_Sans_Gujarati,
+  Noto_Sans_Gurmukhi,
+  Noto_Sans_JP,
+  Noto_Sans_KR,
+  Noto_Sans_Kannada,
+  Noto_Sans_Malayalam,
+  Noto_Sans_SC,
+  Noto_Sans_Tamil,
+  Noto_Sans_Telugu,
+} from "next/font/google";
+import { LangProvider } from "@/components/lang-provider";
+import { SiteHeader } from "@/components/site-header";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import "./globals.css";
@@ -8,6 +23,88 @@ import "./globals.css";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
+});
+
+const notoMalayalam = Noto_Sans_Malayalam({
+  subsets: ["malayalam"],
+  variable: "--font-ml",
+  weight: ["400", "500", "600", "700"],
+});
+
+const notoDevanagari = Noto_Sans_Devanagari({
+  subsets: ["devanagari"],
+  variable: "--font-deva",
+  weight: ["400", "500", "600", "700"],
+});
+
+const notoTamil = Noto_Sans_Tamil({
+  subsets: ["tamil"],
+  variable: "--font-ta",
+  weight: ["400", "500", "600", "700"],
+  preload: false,
+});
+
+const notoTelugu = Noto_Sans_Telugu({
+  subsets: ["telugu"],
+  variable: "--font-te",
+  weight: ["400", "500", "600", "700"],
+  preload: false,
+});
+
+const notoKannada = Noto_Sans_Kannada({
+  subsets: ["kannada"],
+  variable: "--font-kn",
+  weight: ["400", "500", "600", "700"],
+  preload: false,
+});
+
+const notoBengali = Noto_Sans_Bengali({
+  subsets: ["bengali"],
+  variable: "--font-bn",
+  weight: ["400", "500", "600", "700"],
+  preload: false,
+});
+
+const notoGujarati = Noto_Sans_Gujarati({
+  subsets: ["gujarati"],
+  variable: "--font-gu",
+  weight: ["400", "500", "600", "700"],
+  preload: false,
+});
+
+const notoGurmukhi = Noto_Sans_Gurmukhi({
+  subsets: ["gurmukhi"],
+  variable: "--font-pa",
+  weight: ["400", "500", "600", "700"],
+  preload: false,
+});
+
+const notoSc = Noto_Sans_SC({
+  subsets: ["latin"],
+  variable: "--font-zh",
+  weight: ["400", "500", "700"],
+  preload: false,
+});
+
+const notoJp = Noto_Sans_JP({
+  subsets: ["latin"],
+  variable: "--font-ja",
+  weight: ["400", "500", "700"],
+  preload: false,
+});
+
+const notoKr = Noto_Sans_KR({
+  subsets: ["latin"],
+  variable: "--font-ko",
+  weight: ["400", "500", "700"],
+  preload: false,
+});
+
+const notoArabic = Noto_Sans_Arabic({
+  subsets: ["arabic"],
+  variable: "--font-ar",
+  weight: ["400", "500", "600", "700"],
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -22,48 +119,35 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("h-full antialiased", inter.variable)}>
+    <html
+      lang="en"
+      className={cn(
+        "h-full antialiased",
+        inter.variable,
+        notoMalayalam.variable,
+        notoDevanagari.variable,
+        notoTamil.variable,
+        notoTelugu.variable,
+        notoKannada.variable,
+        notoBengali.variable,
+        notoGujarati.variable,
+        notoGurmukhi.variable,
+        notoSc.variable,
+        notoJp.variable,
+        notoKr.variable,
+        notoArabic.variable,
+      )}
+    >
       <body className="flex min-h-full flex-col bg-white font-sans text-slate-900">
-        <header className="border-b border-slate-200 bg-white">
-          <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4 sm:px-6">
-            <Link
-              href="/"
-              className="flex shrink-0 items-center gap-2 font-semibold text-slate-900 outline-none focus-visible:ring-2 focus-visible:ring-blue-600/40"
-            >
-              <span className="size-2 rounded-full bg-blue-600" aria-hidden />
-              FirstPR
-            </Link>
-            <nav className="flex flex-wrap items-center justify-end gap-x-4 gap-y-1 text-sm text-slate-600 sm:gap-x-6">
-              <Link
-                href="/"
-                className="outline-none hover:text-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/40"
-              >
-                Find an issue
-              </Link>
-              <Link
-                href="/issue/nishal21/NekoDroid/4"
-                className="outline-none hover:text-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/40"
-              >
-                Explain
-              </Link>
-              <Link
-                href="/review"
-                className="outline-none hover:text-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/40"
-              >
-                Review my PR
-              </Link>
-            </nav>
-          </div>
-        </header>
-
-        <main className="flex-1">{children}</main>
-
-        <footer className="border-t border-slate-200">
-          <div className="mx-auto max-w-5xl px-4 py-6 text-center text-sm text-slate-500 sm:px-6">
-            Built at AIBoomi Startup Weekend Kochi by DuoMatter
-          </div>
-        </footer>
-
+        <LangProvider>
+          <SiteHeader />
+          <main className="flex-1">{children}</main>
+          <footer className="border-t border-slate-200">
+            <div className="mx-auto max-w-5xl px-4 py-6 text-center text-sm text-slate-500 sm:px-6">
+              Built at AIBoomi Startup Weekend Kochi by DuoMatter
+            </div>
+          </footer>
+        </LangProvider>
         <Toaster />
       </body>
     </html>

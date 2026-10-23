@@ -1,3 +1,5 @@
+import { withContentLang, type ContentLang } from "@/lib/content-lang";
+
 export const HINTS_SYSTEM = `You are FirstPR's hint coach. A beginner is fixing a GitHub issue and wants to learn by writing the fix themselves. Your job is to move them one step forward without doing the work for them.
 
 You get: the issue, the explanation already shown to them (with file citations), the hint level they asked for, the hints they've already seen, an optional message from them, and asked_for_code (true if they asked you to write the fix).
@@ -17,6 +19,13 @@ Hard rules:
 - pseudocode is null unless level is 3.
 - Short. A hint is 1 to 3 sentences.`;
 
+/** System prompt with optional Malayalam/Hindi prose instruction. */
+export function hintsSystemForLang(
+  lang?: ContentLang | string | null,
+): string {
+  return withContentLang(HINTS_SYSTEM, lang);
+}
+
 export function buildHintUserPrompt(opts: {
   owner: string;
   repo: string;
@@ -29,12 +38,13 @@ export function buildHintUserPrompt(opts: {
   previousHints: string[];
   summary: string;
   citations: { path: string; start: number; end: number; why: string }[];
-  lang?: string | null;
+  /** Repo programming language (Rust, TypeScript, …), not content lang. */
+  codeLang?: string | null;
   extraInstruction?: string | null;
 }): string {
   const parts = [
     `Repo: ${opts.owner}/${opts.repo}`,
-    opts.lang ? `Language hint: ${opts.lang}` : null,
+    opts.codeLang ? `Language hint: ${opts.codeLang}` : null,
     `Issue #${opts.issueNumber}: ${opts.title}`,
     `Body:`,
     opts.body || "(empty)",

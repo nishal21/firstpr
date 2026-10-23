@@ -6,6 +6,7 @@ import { Check, ExternalLink } from "lucide-react";
 import { DifficultyBadge } from "@/components/difficulty-badge";
 import { FlowProgress } from "@/components/flow-steps";
 import { HintLadder } from "@/components/hint-ladder";
+import { useContentLang } from "@/components/lang-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -68,19 +69,22 @@ export function IssueExplain({
   owner,
   repo,
   number,
-  lang,
 }: {
   owner: string;
   repo: string;
   number: number;
+  /** @deprecated Prefer LangToggle / useContentLang; kept for page compat. */
   lang?: string | null;
 }) {
+  const { lang: contentLang, ready: langReady } = useContentLang();
   const [data, setData] = useState<ExplainApiResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [stepIndex, setStepIndex] = useState(0);
 
   useEffect(() => {
+    if (!langReady) return;
+
     let cancelled = false;
     let stepTimer: ReturnType<typeof setInterval> | undefined;
 
@@ -97,7 +101,12 @@ export function IssueExplain({
         const res = await fetch("/api/explain", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ owner, repo, number, lang: lang ?? undefined }),
+          body: JSON.stringify({
+            owner,
+            repo,
+            number,
+            lang: contentLang,
+          }),
         });
         const json = (await res.json()) as ExplainApiResponse;
         if (cancelled) return;
@@ -123,7 +132,7 @@ export function IssueExplain({
       cancelled = true;
       if (stepTimer) clearInterval(stepTimer);
     };
-  }, [owner, repo, number, lang]);
+  }, [owner, repo, number, contentLang, langReady]);
 
   if (loading) {
     return (
@@ -363,7 +372,7 @@ export function IssueExplain({
         owner={owner}
         repo={repo}
         number={number}
-        lang={data.language ?? lang}
+        lang={contentLang}
       />
 
       <div className="flex flex-wrap items-center gap-4 border-t border-slate-200 pt-6 text-sm">

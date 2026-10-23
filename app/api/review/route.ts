@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { splitDiffIntoFiles } from "@/lib/checks";
+import { parseContentLang } from "@/lib/content-lang";
 import {
   GitHubError,
   getBranchSha,
@@ -31,7 +32,7 @@ export async function POST(request: Request) {
     const body = (await request.json()) as ReviewBody;
     const prUrl = body.prUrl?.trim();
     const diff = body.diff?.trim();
-    const lang = body.lang?.trim() || null;
+    const lang = parseContentLang(body.lang);
 
     if (prUrl) {
       return NextResponse.json(await reviewFromPrUrl(prUrl, lang));

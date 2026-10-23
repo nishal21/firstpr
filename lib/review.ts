@@ -9,8 +9,12 @@ import {
   type PullFile,
   type PullRequestInfo,
 } from "@/lib/github";
+import { parseContentLang } from "@/lib/content-lang";
 import { generateJson } from "@/lib/llm";
-import { REVIEW_SYSTEM, buildReviewUserPrompt } from "@/lib/prompts/review";
+import {
+  buildReviewUserPrompt,
+  reviewSystemForLang,
+} from "@/lib/prompts/review";
 import type {
   ReviewChecklistItem,
   ReviewLineComment,
@@ -47,7 +51,10 @@ export type ReviewPrArgs = {
   owner?: string;
   repo?: string;
   prNumber?: number;
+  /** Content language (en | ml | hi | …), not programming language. */
   lang?: string | null;
+  /** Repo programming language for the review user prompt. */
+  codeLang?: string | null;
   /** Repo tree paths for check-command filtering; fetched if omitted. */
   repoPaths?: string[];
   /** Commit SHA used to load the tree when repoPaths is omitted. */
@@ -192,10 +199,13 @@ function filterLineComments(
   return out.slice(0, 6);
 }
 
-async function callReviewModel(user: string): Promise<ReviewOutput> {
+async function callReviewModel(
+  user: string,
+  contentLang: string | null | undefined,
+): Promise<ReviewOutput> {
   return generateJson({
     task: "review",
-    system: REVIEW_SYSTEM,
+    system: reviewSystemForLang(contentLang),
     user,
     schema: reviewSchema,
     schemaName: "review",
@@ -233,6 +243,7 @@ export async function reviewPr(args: ReviewPrArgs): Promise<ReviewResult> {
   const contributing = (args.contributing ?? "").slice(0, CONTRIBUTING_MAX);
   const filesWithPatches = truncatePatches(args.files, PATCHES_MAX_TOTAL);
 
+  const contentLang = parseContentLang(args.lang);
   const user = buildReviewUserPrompt({
     title: args.pr?.title ?? "(pasted diff)",
     body: args.pr?.body ?? null,
@@ -243,13 +254,13 @@ export async function reviewPr(args: ReviewPrArgs): Promise<ReviewResult> {
     contributing,
     filesWithPatches,
     checksJson: JSON.stringify(checks, null, 2),
-    lang: args.lang,
+    codeLang: args.codeLang ?? null,
     pastedDiff,
   });
 
-  let raw = await callReviewModel(user);
+  let raw = await callReviewModel(user, contentLang);
   if (!hasContributingRules(raw)) {
-    raw = await callReviewModel(user);
+    raw = await callReviewModel(user, contentLang);
   }
 
   const linked = checks.find((c) => c.id === "linked_issue");

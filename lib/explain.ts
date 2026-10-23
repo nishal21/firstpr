@@ -18,9 +18,16 @@ import {
 } from "@/lib/lines";
 import { generateJson } from "@/lib/llm";
 import { pickFiles } from "@/lib/pickFiles";
-import { buildExplainUserPrompt, EXPLAIN_SYSTEM } from "@/lib/prompts/explain";
-import { explainSchema, type ExplainOutput } from "@/lib/schemas";
+import {
+  contentLangCacheKey,
+  parseContentLang,
+} from "@/lib/content-lang";
 import { formatLimitsNotice } from "@/lib/limits-notice";
+import {
+  buildExplainUserPrompt,
+  explainSystemForLang,
+} from "@/lib/prompts/explain";
+import { explainSchema, type ExplainOutput } from "@/lib/schemas";
 import { gatherLearnLinks, type LearnLink } from "@/lib/serp";
 
 export type ExplainCitation = {
@@ -101,9 +108,11 @@ export async function explainIssue(opts: {
   owner: string;
   repo: string;
   number: number;
+  /** Content language: en | ml | hi */
   lang?: string | null;
 }): Promise<ExplainIssueResult> {
-  const { owner, repo, number: issueNumber, lang } = opts;
+  const { owner, repo, number: issueNumber } = opts;
+  const contentLang = parseContentLang(opts.lang);
 
   const [repoInfo, issue] = await Promise.all([
     getRepo(owner, repo),
@@ -117,7 +126,7 @@ export async function explainIssue(opts: {
     assessDifficulty({
       title: issue.title,
       body: issue.body,
-      cacheKey: `diff:${owner}/${repo}#${issueNumber}`,
+      cacheKey: `diff:${contentLangCacheKey(contentLang)}:${owner}/${repo}#${issueNumber}`,
     }),
   ]);
 
@@ -138,11 +147,11 @@ export async function explainIssue(opts: {
     }
   }
 
-  const language = lang?.trim() || repoInfo.language || null;
+  const language = repoInfo.language || null;
 
   const rawExplanation = await generateJson({
     task: "explain",
-    system: EXPLAIN_SYSTEM,
+    system: explainSystemForLang(contentLang),
     user: buildExplainUserPrompt({
       owner,
       repo,
@@ -244,7 +253,9 @@ export async function explainIssueCached(opts: {
   lang?: string | null;
 }): Promise<ExplainIssueResult> {
   const repoInfo = await getRepo(opts.owner, opts.repo);
-  const langKey = opts.lang?.trim() || "";
+  const langKey = contentLangCacheKey(opts.lang);
   const key = `explain:${opts.owner}/${opts.repo}:${opts.number}:${repoInfo.headSha}:${langKey}`;
-  return cached(key, () => explainIssue(opts));
+  return cached(key, () =>
+    explainIssue({ ...opts, lang: parseContentLang(opts.lang) }),
+  );
 }

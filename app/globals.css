@@ -147,3 +147,41 @@
   );
   background-size: 18px 18px;
 }
+
+/* Content-language script fonts (variables from next/font in layout). */
+.font-ml {
+  font-family: var(--font-ml), var(--font-sans), sans-serif;
+}
+.font-deva {
+  font-family: var(--font-deva), var(--font-sans), sans-serif;
+}
+.font-ta {
+  font-family: var(--font-ta), var(--font-sans), sans-serif;
+}
+.font-te {
+  font-family: var(--font-te), var(--font-sans), sans-serif;
+}
+.font-kn {
+  font-family: var(--font-kn), var(--font-sans), sans-serif;
+}
+.font-bn {
+  font-family: var(--font-bn), var(--font-sans), sans-serif;
+}
+.font-gu {
+  font-family: var(--font-gu), var(--font-sans), sans-serif;
+}
+.font-pa {
+  font-family: var(--font-pa), var(--font-sans), sans-serif;
+}
+.font-zh {
+  font-family: var(--font-zh), var(--font-sans), sans-serif;
+}
+.font-ja {
+  font-family: var(--font-ja), var(--font-sans), sans-serif;
+}
+.font-ko {
+  font-family: var(--font-ko), var(--font-sans), sans-serif;
+}
+.font-ar {
+  font-family: var(--font-ar), var(--font-sans), sans-serif;
+}

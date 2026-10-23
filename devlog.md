@@ -135,6 +135,11 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - `lib/prompts/explain.ts`, `lib/limits-notice.ts`, schema describe, `issue-explain` hide-when-empty
 - Box only when `formatLimitsNotice` returns text
 
+## 2026-10-24 — Content languages
+- `content-lang.ts`, `LangToggle`, `lang-provider`, `site-header`, layout fonts, explain/hint/review wiring
+- Quick EN/ML/HI + 15 more in select; script font classes in globals.css
+- Checked: #4 Malayalam summary + English paths; tsc clean
+
 ## Next
 - Redeploy Vercel
 - Optional: demo PR A for #4

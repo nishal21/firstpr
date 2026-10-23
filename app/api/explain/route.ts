@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { parseContentLang } from "@/lib/content-lang";
 import { explainIssueCached } from "@/lib/explain";
 import { GitHubError } from "@/lib/github";
 import { LlmError } from "@/lib/llm";
@@ -19,7 +20,7 @@ export async function POST(request: Request) {
     const owner = body.owner?.trim();
     const repo = body.repo?.trim();
     const number = Number(body.number ?? body.issueNumber);
-    const lang = body.lang?.trim() || null;
+    const lang = parseContentLang(body.lang);
 
     if (!owner || !repo || !Number.isFinite(number) || number < 1) {
       return NextResponse.json(
