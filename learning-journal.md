@@ -30,6 +30,11 @@
 - Explain UI: “Learn this first” card under hints + “Search by SerpApi”; hidden when no key/results.
 - Verified #6 → doc.rust-lang.org testing links; empty key → 0 links.
 
+## 2026-10-23 — pickFiles ranking + previews
+- Filter: skip node_modules/target/dist/.git/pkg, lockfiles, binaries; cap 300.
+- Score keyword overlap (words, backticks, fn names) → top 25; fetch 20 lines via raw GitHub.
+- Force-include body path/fn mentions; Gemma gets path+preview; Zod + 10s + OpenAI fallback unchanged.
+
 ## Next for another agent
 1. Wire `/` match form → `POST /api/match`.
 2. Confirm Neysa tag when endpoint + key work.

@@ -29,6 +29,10 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - `lib/serp.ts`, `concepts` on explain schema, UI card under hints
 - Checked: NekoDroid #6 → 3 Rust testing links (doc.rust-lang.org…); no key → section omitted
 
+## 2026-10-23 — pickFiles scoring + 20-line previews
+- `lib/neysa.ts` + explain passes `{owner,repo,sha}` for raw fetches
+- Rank/filter → top 25 previews → Gemma/OpenAI
+
 ## Next
 - Match API + home form
 - Confirm Neysa tag once key + network work

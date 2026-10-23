@@ -82,7 +82,11 @@ export async function POST(request: Request) {
     ]);
 
     const tree = await getTree(owner, repo, repoInfo.headSha);
-    const picked = await pickFiles(issue.title, issue.body ?? "", tree);
+    const picked = await pickFiles(issue.title, issue.body ?? "", tree, {
+      owner,
+      repo,
+      sha: repoInfo.headSha,
+    });
 
     let explanation = {
       summary: issue.title,
