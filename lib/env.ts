@@ -9,7 +9,7 @@ const envSchema = z.object({
   FIRST_PASS_PROVIDER: z.string().default("openai"),
   NEYSA_BASE_URL: z.string().optional(),
   NEYSA_API_KEY: z.string().optional(),
-  NEYSA_MODEL: z.string().optional(),
+  NEYSA_MODEL: z.string().default("gemma-4-26-b-a4-b-it"),
   SERPAPI_KEY: z.string().optional(),
   DEMO_REPO: z.string().default("nishal21/NekoDroid"),
   DEMO_MODE: z.string().default("auto"),

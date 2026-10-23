@@ -518,8 +518,12 @@ export async function pickFiles(
   }
 
   if (!neysa.NEYSA_BASE_URL || !neysa.NEYSA_MODEL) {
+    const missing = [
+      !neysa.NEYSA_BASE_URL ? "NEYSA_BASE_URL" : null,
+      !neysa.NEYSA_MODEL ? "NEYSA_MODEL" : null,
+    ].filter(Boolean);
     console.warn(
-      "[neysa] pickFiles: NEYSA_BASE_URL or NEYSA_MODEL missing; falling back to OpenAI",
+      `[neysa] pickFiles: missing ${missing.join(" + ")} in env (set them in Vercel Project Settings → Environment Variables); falling back to OpenAI`,
     );
     try {
       return {
