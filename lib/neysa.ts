@@ -4,11 +4,23 @@ import { getFile } from "@/lib/github";
 import { generateJson } from "@/lib/llm";
 import { pickFilesSchema } from "@/lib/schemas";
 
-export type FilePickSource = "neysa" | "openai";
+export type FilePickSource = "gemma" | "qwen" | "openai";
 
 export type PickFilesResult = {
   files: string[];
   source: FilePickSource;
+};
+
+type NeysaProviderId = "gemma" | "qwen";
+
+type NeysaProvider = {
+  id: NeysaProviderId;
+  label: string;
+  apiKey: string;
+  baseURL: string;
+  model: string;
+  /** Qwen thinking mode must be off for clean JSON. */
+  disableThinking?: boolean;
 };
 
 export type PickFilesRepo = {
@@ -23,10 +35,14 @@ Every path MUST be copied exactly from the provided candidate list.
 You are given each candidate's path and its first ~20 lines — use them.
 No markdown, no code fences, no other text.`;
 
-const NEYSA_TIMEOUT_MS = 10_000;
+const PROVIDER_TIMEOUT_MS = 6_000;
+const CONNECTION_COOLDOWN_MS = 5 * 60 * 1000;
 const MAX_CANDIDATES = 300;
 const TOP_SCORED = 25;
 const PREVIEW_LINES = 20;
+
+/** Skip providers that recently failed with a connection error. */
+const connectionCooldownUntil = new Map<NeysaProviderId, number>();
 
 const SKIP_DIRS = new Set(["node_modules", "target", "dist", ".git", "pkg"]);
 
@@ -98,11 +114,76 @@ type FilePreview = {
   preview: string;
 };
 
-function stripJsonFences(text: string): string {
-  const trimmed = text.trim();
-  const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
-  if (fenced) return fenced[1].trim();
-  return trimmed.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+function stripThinkAndExtractJson(text: string): string {
+  let cleaned = text.trim();
+  const thinkEnd = cleaned.lastIndexOf("</think>");
+  if (thinkEnd >= 0) {
+    cleaned = cleaned.slice(thinkEnd + "</think>".length).trim();
+  }
+  const fenced = cleaned.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  if (fenced) cleaned = fenced[1].trim();
+  const start = cleaned.indexOf("{");
+  const end = cleaned.lastIndexOf("}");
+  if (start >= 0 && end > start) {
+    cleaned = cleaned.slice(start, end + 1);
+  }
+  return cleaned;
+}
+
+function isConnectionError(err: unknown): boolean {
+  if (!(err instanceof Error)) return false;
+  const msg = `${err.message} ${err.name} ${(err as { cause?: { code?: string; message?: string } }).cause?.code ?? ""} ${(err as { cause?: { message?: string } }).cause?.message ?? ""}`;
+  return /ECONNREFUSED|ENOTFOUND|ECONNRESET|ETIMEDOUT|Connection error|fetch failed|network/i.test(
+    msg,
+  );
+}
+
+function markConnectionFailure(id: NeysaProviderId): void {
+  connectionCooldownUntil.set(id, Date.now() + CONNECTION_COOLDOWN_MS);
+}
+
+function isInConnectionCooldown(id: NeysaProviderId): boolean {
+  const until = connectionCooldownUntil.get(id);
+  if (!until) return false;
+  if (Date.now() >= until) {
+    connectionCooldownUntil.delete(id);
+    return false;
+  }
+  return true;
+}
+
+function listNeysaProviders(): NeysaProvider[] {
+  const e = getEnv();
+  const out: NeysaProvider[] = [];
+
+  if (e.NEYSA_GEMMA_KEY && e.NEYSA_GEMMA_URL && e.NEYSA_GEMMA_MODEL) {
+    out.push({
+      id: "gemma",
+      label: "Gemma 4 on Neysa",
+      apiKey: e.NEYSA_GEMMA_KEY,
+      baseURL: e.NEYSA_GEMMA_URL,
+      model: e.NEYSA_GEMMA_MODEL,
+    });
+  } else if (e.NEYSA_GEMMA_KEY) {
+    console.warn(
+      "[neysa] gemma: KEY set but URL or MODEL missing — skipping",
+    );
+  }
+
+  if (e.NEYSA_QWEN_KEY && e.NEYSA_QWEN_URL && e.NEYSA_QWEN_MODEL) {
+    out.push({
+      id: "qwen",
+      label: "Qwen 3.6 on Neysa",
+      apiKey: e.NEYSA_QWEN_KEY,
+      baseURL: e.NEYSA_QWEN_URL,
+      model: e.NEYSA_QWEN_MODEL,
+      disableThinking: true,
+    });
+  } else if (e.NEYSA_QWEN_KEY) {
+    console.warn("[neysa] qwen: KEY set but URL or MODEL missing — skipping");
+  }
+
+  return out;
 }
 
 function basename(path: string): string {
@@ -362,56 +443,56 @@ async function pickWithOpenAI(
   );
 }
 
-async function pickWithNeysa(
+async function pickWithProvider(
+  provider: NeysaProvider,
   issueTitle: string,
   issueBody: string,
   previews: FilePreview[],
   allowedPaths: string[],
   mustInclude: string[],
 ): Promise<string[]> {
-  const { NEYSA_BASE_URL: baseURL, NEYSA_API_KEY: apiKey, NEYSA_MODEL: model } =
-    getEnv();
+  const client = new OpenAI({
+    baseURL: provider.baseURL,
+    apiKey: provider.apiKey,
+  });
 
-  if (!apiKey) {
-    throw new Error("NEYSA_API_KEY missing");
-  }
-  if (!baseURL || !model) {
-    throw new Error("NEYSA_BASE_URL or NEYSA_MODEL missing");
-  }
+  const body: Record<string, unknown> = {
+    model: provider.model,
+    temperature: 0.2,
+    max_tokens: 400,
+    messages: [
+      { role: "system", content: PICK_SYSTEM },
+      {
+        role: "user",
+        content: buildUserPrompt(issueTitle, issueBody, previews),
+      },
+    ],
+  };
 
-  const client = new OpenAI({ baseURL, apiKey });
+  if (provider.disableThinking) {
+    body.chat_template_kwargs = { enable_thinking: false };
+  }
 
   const completion = await client.chat.completions.create(
-    {
-      model,
-      temperature: 0.2,
-      max_tokens: 400,
-      messages: [
-        { role: "system", content: PICK_SYSTEM },
-        {
-          role: "user",
-          content: buildUserPrompt(issueTitle, issueBody, previews),
-        },
-      ],
-    },
-    { signal: AbortSignal.timeout(NEYSA_TIMEOUT_MS) },
+    body as unknown as OpenAI.Chat.ChatCompletionCreateParamsNonStreaming,
+    { signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS) },
   );
 
   const content = completion.choices[0]?.message?.content;
   if (!content) {
-    throw new Error("Neysa returned empty content");
+    throw new Error("empty content");
   }
 
   let raw: unknown;
   try {
-    raw = JSON.parse(stripJsonFences(content));
+    raw = JSON.parse(stripThinkAndExtractJson(content));
   } catch {
-    throw new Error("Neysa returned invalid JSON");
+    throw new Error("invalid JSON");
   }
 
   const parsed = pickFilesSchema.safeParse(raw);
   if (!parsed.success) {
-    throw new Error(`Neysa JSON failed schema: ${parsed.error.message}`);
+    throw new Error(`schema: ${parsed.error.message}`);
   }
 
   return mergeMustInclude(
@@ -459,7 +540,7 @@ async function prepareCandidates(
 
 /**
  * Pick up to 5 relevant files for an issue.
- * Prefers Neysa (Gemma 4); falls back to OpenAI. Never throws to callers.
+ * Chain: Gemma (Neysa) → Qwen (Neysa) → OpenAI. Never throws to callers.
  */
 export async function pickFiles(
   issueTitle: string,
@@ -491,100 +572,57 @@ export async function pickFiles(
     return { files: [], source: "openai" };
   }
 
-  const neysa = getEnv();
-  if (!neysa.NEYSA_API_KEY) {
-    console.warn("[neysa] pickFiles: NEYSA_API_KEY missing; falling back to OpenAI");
-    try {
-      return {
-        files: await pickWithOpenAI(
-          issueTitle,
-          issueBody,
-          previews,
-          allowedPaths,
-          mustInclude,
-        ),
-        source: "openai",
-      };
-    } catch (err) {
+  for (const provider of listNeysaProviders()) {
+    if (isInConnectionCooldown(provider.id)) {
       console.warn(
-        "[neysa] pickFiles: OpenAI fallback failed:",
-        err instanceof Error ? err.message : err,
+        `[neysa] ${provider.id}: skipping (connection cooldown ~5m)`,
       );
-      return {
-        files: mergeMustInclude([], mustInclude, allowedPaths),
-        source: "openai",
-      };
+      continue;
     }
-  }
 
-  if (!neysa.NEYSA_BASE_URL || !neysa.NEYSA_MODEL) {
-    const missing = [
-      !neysa.NEYSA_BASE_URL ? "NEYSA_BASE_URL" : null,
-      !neysa.NEYSA_MODEL ? "NEYSA_MODEL" : null,
-    ].filter(Boolean);
-    console.warn(
-      `[neysa] pickFiles: missing ${missing.join(" + ")} in env (set them in Vercel Project Settings → Environment Variables); falling back to OpenAI`,
-    );
     try {
-      return {
-        files: await pickWithOpenAI(
-          issueTitle,
-          issueBody,
-          previews,
-          allowedPaths,
-          mustInclude,
-        ),
-        source: "openai",
-      };
-    } catch (err) {
-      console.warn(
-        "[neysa] pickFiles: OpenAI fallback failed:",
-        err instanceof Error ? err.message : err,
+      const files = await pickWithProvider(
+        provider,
+        issueTitle,
+        issueBody,
+        previews,
+        allowedPaths,
+        mustInclude,
       );
-      return {
-        files: mergeMustInclude([], mustInclude, allowedPaths),
-        source: "openai",
-      };
+      return { files, source: provider.id };
+    } catch (err) {
+      const reason =
+        err instanceof Error
+          ? err.name === "TimeoutError" || /aborted|timeout/i.test(err.message)
+            ? `timeout: ${err.message}`
+            : err.message
+          : String(err);
+      console.warn(`[neysa] ${provider.id} failed (${reason}); trying next`);
+      if (isConnectionError(err)) {
+        markConnectionFailure(provider.id);
+      }
     }
   }
 
   try {
-    const files = await pickWithNeysa(
-      issueTitle,
-      issueBody,
-      previews,
-      allowedPaths,
-      mustInclude,
+    return {
+      files: await pickWithOpenAI(
+        issueTitle,
+        issueBody,
+        previews,
+        allowedPaths,
+        mustInclude,
+      ),
+      source: "openai",
+    };
+  } catch (fallbackErr) {
+    console.warn(
+      "[neysa] pickFiles: OpenAI fallback failed:",
+      fallbackErr instanceof Error ? fallbackErr.message : fallbackErr,
     );
-    return { files, source: "neysa" };
-  } catch (err) {
-    const reason =
-      err instanceof Error
-        ? err.name === "TimeoutError" || /aborted|timeout/i.test(err.message)
-          ? `timeout/error: ${err.message}`
-          : err.message
-        : String(err);
-    console.warn(`[neysa] pickFiles failed (${reason}); falling back to OpenAI`);
-    try {
-      return {
-        files: await pickWithOpenAI(
-          issueTitle,
-          issueBody,
-          previews,
-          allowedPaths,
-          mustInclude,
-        ),
-        source: "openai",
-      };
-    } catch (fallbackErr) {
-      console.warn(
-        "[neysa] pickFiles: OpenAI fallback failed:",
-        fallbackErr instanceof Error ? fallbackErr.message : fallbackErr,
-      );
-      return {
-        files: mergeMustInclude([], mustInclude, allowedPaths),
-        source: "openai",
-      };
-    }
+    return {
+      files: mergeMustInclude([], mustInclude, allowedPaths),
+      source: "openai",
+    };
   }
 }

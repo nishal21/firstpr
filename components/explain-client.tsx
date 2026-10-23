@@ -18,7 +18,7 @@ type ExplainResponse = {
     labels: string[];
   };
   files: { path: string; htmlUrl: string }[];
-  filePickSource: "neysa" | "openai";
+  filePickSource: "gemma" | "qwen" | "openai";
   explanation: {
     summary: string;
     whyTheseFiles: string;
@@ -33,6 +33,12 @@ type ExplainResponse = {
   }[] | null;
   error?: string;
   code?: string;
+};
+
+const FILE_PICK_LABELS: Record<ExplainResponse["filePickSource"], string> = {
+  gemma: "Files picked by Gemma 4 on Neysa",
+  qwen: "Files picked by Qwen 3.6 on Neysa",
+  openai: "Files picked by OpenAI",
 };
 
 export function ExplainClient({
@@ -88,12 +94,9 @@ export function ExplainClient({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const sourceLabel =
-    data?.filePickSource === "neysa"
-      ? "Files picked by Gemma 4 on Neysa"
-      : data
-        ? "Files picked by OpenAI"
-        : null;
+  const sourceLabel = data
+    ? FILE_PICK_LABELS[data.filePickSource]
+    : null;
 
   return (
     <section className="mx-auto max-w-5xl px-4 py-10 sm:px-6">

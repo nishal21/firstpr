@@ -2,14 +2,18 @@ import { z } from "zod";
 
 const envSchema = z.object({
   OPENAI_API_KEY: z.string().optional(),
+  OPENAI_API_KEY_BACKUP: z.string().optional(),
   OPENAI_BASE_URL: z.string().optional(),
   OPENAI_MODEL: z.string().default("gpt-6-luna"),
   OPENAI_REVIEW_MODEL: z.string().default("gpt-6-luna"),
   GITHUB_TOKEN: z.string().optional(),
   FIRST_PASS_PROVIDER: z.string().default("openai"),
-  NEYSA_BASE_URL: z.string().optional(),
-  NEYSA_API_KEY: z.string().optional(),
-  NEYSA_MODEL: z.string().default("gemma-4-26-b-a4-b-it"),
+  NEYSA_GEMMA_KEY: z.string().optional(),
+  NEYSA_GEMMA_URL: z.string().optional(),
+  NEYSA_GEMMA_MODEL: z.string().optional(),
+  NEYSA_QWEN_KEY: z.string().optional(),
+  NEYSA_QWEN_URL: z.string().optional(),
+  NEYSA_QWEN_MODEL: z.string().optional(),
   SERPAPI_KEY: z.string().optional(),
   DEMO_REPO: z.string().default("nishal21/NekoDroid"),
   DEMO_MODE: z.string().default("auto"),
@@ -28,14 +32,18 @@ function readEnv(name: string): string | undefined {
 function loadEnv(): Env {
   const result = envSchema.safeParse({
     OPENAI_API_KEY: readEnv("OPENAI_API_KEY"),
+    OPENAI_API_KEY_BACKUP: readEnv("OPENAI_API_KEY_BACKUP"),
     OPENAI_BASE_URL: readEnv("OPENAI_BASE_URL"),
     OPENAI_MODEL: readEnv("OPENAI_MODEL"),
     OPENAI_REVIEW_MODEL: readEnv("OPENAI_REVIEW_MODEL"),
     GITHUB_TOKEN: readEnv("GITHUB_TOKEN"),
     FIRST_PASS_PROVIDER: readEnv("FIRST_PASS_PROVIDER"),
-    NEYSA_BASE_URL: readEnv("NEYSA_BASE_URL"),
-    NEYSA_API_KEY: readEnv("NEYSA_API_KEY"),
-    NEYSA_MODEL: readEnv("NEYSA_MODEL"),
+    NEYSA_GEMMA_KEY: readEnv("NEYSA_GEMMA_KEY"),
+    NEYSA_GEMMA_URL: readEnv("NEYSA_GEMMA_URL"),
+    NEYSA_GEMMA_MODEL: readEnv("NEYSA_GEMMA_MODEL"),
+    NEYSA_QWEN_KEY: readEnv("NEYSA_QWEN_KEY"),
+    NEYSA_QWEN_URL: readEnv("NEYSA_QWEN_URL"),
+    NEYSA_QWEN_MODEL: readEnv("NEYSA_QWEN_MODEL"),
     SERPAPI_KEY: readEnv("SERPAPI_KEY"),
     DEMO_REPO: readEnv("DEMO_REPO"),
     DEMO_MODE: readEnv("DEMO_MODE"),
@@ -56,7 +64,7 @@ export function getEnv(): Env {
   return loadEnv();
 }
 
-/** Call when an OpenAI request is about to run. */
+/** Call when an OpenAI request is about to run (primary key required). */
 export function requireOpenAIApiKey(): string {
   const key = getEnv().OPENAI_API_KEY;
   if (!key) {

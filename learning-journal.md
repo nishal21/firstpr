@@ -42,6 +42,18 @@
 - `matchIssues`: languages, list/search GFI, skip assignees, score (+ext/+docs/+comments), fitReason.
 - UI under hero; `/issue/{owner}/{repo}/{number}` redirects to Explain.
 
+## 2026-10-23 — pickFiles Gemma→Qwen→OpenAI
+- Env: `NEYSA_GEMMA_{KEY,URL,MODEL}` + `NEYSA_QWEN_*` (old `NEYSA_API_KEY/BASE_URL/MODEL` gone).
+- Chain: each 6s AbortSignal; qwen sends `chat_template_kwargs.enable_thinking=false`; strip `</think>` then `{…}` JSON + Zod; 5m in-memory skip after connection errors.
+- UI tags: “Gemma 4 on Neysa” | “Qwen 3.6 on Neysa” | “OpenAI”.
+- Verified: Gemma timeout → `source=qwen`; keys cleared → `source=openai`. Script: `npx tsx --env-file=.env scripts/verify-pick-chain.ts`.
+
+## 2026-10-23 — OpenAI backup key
+- `lib/openai.ts`: primary + optional backup clients; `withOpenAI(fn)` retries once on 401/403/429/insufficient_quota/5xx/network. No retry on 400 or Zod/bad_output. Never log keys.
+- `lib/llm.ts` `generateJson` uses `withOpenAI` (covers pickFiles OpenAI fallback, Explain, Hint, Review).
+- Env: `OPENAI_API_KEY_BACKUP`. Verified: fake primary → 401 → backup → ping + review task ok.
+
 ## Next for another agent
-1. Review PR flow.
-2. Confirm Neysa when endpoint is up.
+1. Review PR flow UI/API (LLM path already backup-aware).
+2. Redeploy Vercel: NEYSA_GEMMA_*/QWEN_* + OPENAI_API_KEY_BACKUP; remove old NEYSA_*.
+3. When Gemma :443 is up, Explain should show Gemma tag first.

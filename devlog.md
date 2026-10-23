@@ -50,7 +50,19 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - `export const instant = false` on `/issue/[owner]/[repo]/[number]` (cacheComponents + redirect)
 - `npm run build` passes locally
 
+## 2026-10-23 — pickFiles fallback chain
+- `lib/neysa.ts`: Gemma → Qwen → OpenAI; 6s each; qwen `enable_thinking:false`; connection cooldown 5m
+- `lib/env.ts` / `.env.example`: GEMMA_* + QWEN_*; removed old NEYSA_API_KEY/BASE_URL/MODEL
+- `lib/llm.ts`: dropped Neysa first_pass path (file pick owns Neysa)
+- Explain UI: gemma | qwen | openai labels
+- Checked: `verify-pick-chain.ts` → qwen then openai
+
+## 2026-10-23 — OpenAI backup key
+- Added `lib/openai.ts` `withOpenAI`; env `OPENAI_API_KEY_BACKUP`
+- All OpenAI via `generateJson` → backup on auth/quota/5xx/network
+- Checked: fake primary → backup succeeds (ping + review task)
+
 ## Next
-- Redeploy to Vercel
-- Confirm Neysa when host accepts :443
-- Review flow
+- Vercel: NEYSA_GEMMA_*/QWEN_* + OPENAI_API_KEY_BACKUP; delete old NEYSA_*
+- Review flow UI/API
+- Re-check Gemma when endpoint accepts :443
