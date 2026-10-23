@@ -88,3 +88,36 @@ export const hintSchema = z.object({
 });
 
 export type HintOutput = z.infer<typeof hintSchema>;
+
+/** Review schema — Product system prompts (BUILD-PLAN §4), word for word. */
+export const reviewSchema = z.object({
+  summary: z.string(),
+  checklist: z
+    .array(
+      z.object({
+        id: z.enum(["issue_done_when", "contributing_rules"]),
+        label: z.string(),
+        status: z.enum(["pass", "warn", "fail"]),
+        evidence: z.string().describe("what in the PR or diff shows this"),
+        fix: z
+          .string()
+          .nullable()
+          .describe("what to do next, in words; null when pass"),
+      }),
+    )
+    .length(2),
+  line_comments: z
+    .array(
+      z.object({
+        path: z.string(),
+        line: z.number().int(),
+        severity: z.enum(["blocker", "suggestion", "nit"]),
+        comment: z.string(),
+      }),
+    )
+    .max(6),
+  questions_a_maintainer_would_ask: z.array(z.string()).max(3),
+  encouragement: z.string(),
+});
+
+export type ReviewOutput = z.infer<typeof reviewSchema>;

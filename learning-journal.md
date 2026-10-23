@@ -87,6 +87,13 @@
 - `POST /api/review` { prUrl } or { diff, repo, issueNumber }.
 - Verified: NekoDroid PR #1 → linked_issue fail (no Fixes #N), score 58 almost; PR #7 has Fixes.
 
+## 2026-10-23 — AI review + ScoreCard
+- `lib/prompts/review.ts` + `reviewSchema` (BUILD-PLAN §4 word-for-word).
+- `lib/review.ts` `reviewPr`: runChecks → generateJson task review/medium → hunk-filter line_comments → merge AI checklist (never override deterministic fail) → `scoreChecks`.
+- `lib/review-format.ts`: client-safe types + “Copy as PR comment” markdown.
+- `/review` UI: PR link | paste diff tabs, loading steps, ScoreCard ring + Rule/AI tags + line comments.
+- Verified PR #7: score 57 almost, 9 checklist rows (7 Rule + 2 AI), fixes on non-pass.
+
 ## Next for another agent
-1. Review AI + score card UI (BUILD-PLAN prompt 10).
-2. Redeploy Vercel.
+1. Redeploy Vercel; optional GitHub App comment on PR open (BUILD-PLAN later).
+2. Demo PR A (`fix/log-panel-no-kernel` Fixes #4) if #7 is not the stage demo.

@@ -92,6 +92,12 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - `GoodFirstIssue.state` + `getBranchSha`
 - Checked: PR #1 linked_issue fail; returns checks + score
 
+## 2026-10-23 — AI review + ScoreCard UI
+- Added `lib/prompts/review.ts`, `reviewSchema`, `lib/review.ts`, `lib/review-format.ts`, `components/score-card.tsx`
+- `/api/review` now calls `reviewPr` (LLM + merge + score)
+- `/review` full UI; script `scripts/verify-review.ts`
+- Checked: NekoDroid #7 → 57/almost, 9 checklist rows with Rule/AI + fix lines
+
 ## Next
-- Review AI + ScoreCard UI
 - Redeploy Vercel
+- Optional: open demo PR A for stage path

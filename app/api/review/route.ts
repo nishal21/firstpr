@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { runChecks, splitDiffIntoFiles } from "@/lib/checks";
+import { splitDiffIntoFiles } from "@/lib/checks";
 import {
   GitHubError,
   getBranchSha,
@@ -13,7 +13,8 @@ import {
   type GoodFirstIssue,
   type PullRequestInfo,
 } from "@/lib/github";
-import { scoreChecks } from "@/lib/score";
+import { LlmError } from "@/lib/llm";
+import { reviewPr } from "@/lib/review";
 
 export const maxDuration = 60;
 
@@ -22,6 +23,7 @@ type ReviewBody = {
   diff?: string;
   repo?: string;
   issueNumber?: number;
+  lang?: string;
 };
 
 export async function POST(request: Request) {
@@ -29,9 +31,10 @@ export async function POST(request: Request) {
     const body = (await request.json()) as ReviewBody;
     const prUrl = body.prUrl?.trim();
     const diff = body.diff?.trim();
+    const lang = body.lang?.trim() || null;
 
     if (prUrl) {
-      return NextResponse.json(await reviewFromPrUrl(prUrl));
+      return NextResponse.json(await reviewFromPrUrl(prUrl, lang));
     }
 
     if (diff) {
@@ -40,6 +43,7 @@ export async function POST(request: Request) {
           diff,
           repo: body.repo?.trim(),
           issueNumber: body.issueNumber,
+          lang,
         }),
       );
     }
@@ -60,6 +64,13 @@ export async function POST(request: Request) {
         { status },
       );
     }
+    if (err instanceof LlmError) {
+      const status = err.code === "timeout" ? 504 : 502;
+      return NextResponse.json(
+        { error: err.message, code: err.code },
+        { status },
+      );
+    }
     return NextResponse.json(
       {
         error: err instanceof Error ? err.message : "Unexpected error",
@@ -70,7 +81,7 @@ export async function POST(request: Request) {
   }
 }
 
-async function reviewFromPrUrl(prUrl: string) {
+async function reviewFromPrUrl(prUrl: string, lang: string | null) {
   const { owner, repo, number } = parsePrUrl(prUrl);
   const [pr, files] = await Promise.all([
     getPullRequest(owner, repo, number),
@@ -87,14 +98,17 @@ async function reviewFromPrUrl(prUrl: string) {
 
   const linkedIssue = await loadFirstLinkedIssue(owner, repo, pr);
 
-  const checks = runChecks({
+  const result = await reviewPr({
     pr,
     files,
     contributing,
     linkedIssue,
     pastedDiff: false,
+    owner,
+    repo,
+    prNumber: number,
+    lang,
   });
-  const { score, verdict } = scoreChecks(checks);
 
   return {
     mode: "pr" as const,
@@ -116,9 +130,7 @@ async function reviewFromPrUrl(prUrl: string) {
           labels: linkedIssue.labels,
         }
       : null,
-    checks,
-    score,
-    verdict,
+    ...result,
   };
 }
 
@@ -126,6 +138,7 @@ async function reviewFromDiff(opts: {
   diff: string;
   repo?: string;
   issueNumber?: number;
+  lang: string | null;
 }) {
   const files = splitDiffIntoFiles(opts.diff);
   if (files.length === 0) {
@@ -160,14 +173,16 @@ async function reviewFromDiff(opts: {
     }
   }
 
-  const checks = runChecks({
+  const result = await reviewPr({
     pr,
     files,
     contributing,
     linkedIssue,
     pastedDiff: true,
+    owner: owner || undefined,
+    repo: repoName || undefined,
+    lang: opts.lang,
   });
-  const { score, verdict } = scoreChecks(checks);
 
   return {
     mode: "diff" as const,
@@ -182,9 +197,7 @@ async function reviewFromDiff(opts: {
           labels: linkedIssue.labels,
         }
       : null,
-    checks,
-    score,
-    verdict,
+    ...result,
   };
 }
 
