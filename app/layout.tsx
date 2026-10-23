@@ -1,8 +1,14 @@
 import type { Metadata } from "next";
 import {
   Inter,
+  Noto_Sans_Arabic,
+  Noto_Sans_Bengali,
   Noto_Sans_Devanagari,
+  Noto_Sans_JP,
+  Noto_Sans_KR,
   Noto_Sans_Malayalam,
+  Noto_Sans_SC,
+  Noto_Sans_Tamil,
 } from "next/font/google";
 import { LanguageProvider } from "@/components/language-provider";
 import { SiteFooter } from "@/components/site-footer";
@@ -28,6 +34,42 @@ const notoDevanagari = Noto_Sans_Devanagari({
   weight: ["400", "500", "600", "700"],
 });
 
+const notoTamil = Noto_Sans_Tamil({
+  subsets: ["tamil"],
+  variable: "--font-ta",
+  weight: ["400", "500", "600", "700"],
+});
+
+const notoBengali = Noto_Sans_Bengali({
+  subsets: ["bengali"],
+  variable: "--font-bn",
+  weight: ["400", "500", "600", "700"],
+});
+
+const notoSC = Noto_Sans_SC({
+  subsets: ["latin"],
+  variable: "--font-zh",
+  weight: ["400", "500", "700"],
+});
+
+const notoJP = Noto_Sans_JP({
+  subsets: ["latin"],
+  variable: "--font-ja",
+  weight: ["400", "500", "700"],
+});
+
+const notoKR = Noto_Sans_KR({
+  subsets: ["latin"],
+  variable: "--font-ko",
+  weight: ["400", "500", "700"],
+});
+
+const notoArabic = Noto_Sans_Arabic({
+  subsets: ["arabic"],
+  variable: "--font-ar",
+  weight: ["400", "500", "600", "700"],
+});
+
 export const metadata: Metadata = {
   title: "FirstPR",
   description:
@@ -47,6 +89,12 @@ export default function RootLayout({
         inter.variable,
         notoMalayalam.variable,
         notoDevanagari.variable,
+        notoTamil.variable,
+        notoBengali.variable,
+        notoSC.variable,
+        notoJP.variable,
+        notoKR.variable,
+        notoArabic.variable,
       )}
     >
       <body className="flex min-h-full flex-col bg-white font-sans text-slate-900">

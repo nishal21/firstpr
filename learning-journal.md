@@ -154,6 +154,14 @@
 - Only en / ml / hi; `DEFAULT_UI_LANG = "en"`; storage ignores junk → English.
 - Navbar layout restored (links + toggle); menu still portaled (z-200).
 
+## 2026-10-24 — Major world languages in UI switcher
+- `UI_LANGS`: en, ml, hi, ta, bn, es, fr, de, pt, zh, ja, ko, ar, ru, id.
+- Dicts: `i18n-en.ts`, `i18n-ml-hi.ts`, `i18n-world.ts` (fill() onto en); index `i18n.ts`.
+- Provider: `parseUiLang` for all codes; `uiLangFontClass`; ar → `dir=rtl`.
+- Fonts: Noto Tamil/Bengali/SC/JP/KR/Arabic + existing ml/deva.
+- Menu: `max-h-64` scroll, `w-52`. tsc clean.
+- Why “still no change” on vercel.app: local only until redeploy.
+
 ## Next for another agent
-1. Redeploy Vercel so production matches.
-2. Smoke: English default; switch ml/hi; menu floats over hero.
+1. Redeploy / push so firstpr-coral.vercel.app picks this up.
+2. Smoke: open globe → 15 langs; pick es/zh/ar; refresh keeps choice; ar is RTL.

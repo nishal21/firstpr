@@ -11,8 +11,10 @@ import {
 } from "react";
 import {
   DEFAULT_UI_LANG,
+  parseUiLang,
   translate,
   UI_LANG_STORAGE_KEY,
+  uiLangFontClass,
   type I18nKey,
   type TParams,
   type UiLang,
@@ -28,13 +30,15 @@ type LanguageContextValue = {
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
+function applyDocumentLang(next: UiLang) {
+  document.documentElement.lang = next;
+  document.documentElement.dir = next === "ar" ? "rtl" : "ltr";
+}
+
 function readStoredLang(): UiLang {
   if (typeof window === "undefined") return DEFAULT_UI_LANG;
   try {
-    const raw = localStorage.getItem(UI_LANG_STORAGE_KEY);
-    // Only keep a previously chosen ml/hi; anything else → English.
-    if (raw === "ml" || raw === "hi") return raw;
-    return DEFAULT_UI_LANG;
+    return parseUiLang(localStorage.getItem(UI_LANG_STORAGE_KEY));
   } catch {
     return DEFAULT_UI_LANG;
   }
@@ -47,7 +51,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const next = readStoredLang();
     setLangState(next);
-    document.documentElement.lang = next === "en" ? "en" : next;
+    applyDocumentLang(next);
     try {
       localStorage.setItem(UI_LANG_STORAGE_KEY, next);
     } catch {
@@ -58,7 +62,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   const setLang = useCallback((next: UiLang) => {
     setLangState(next);
-    document.documentElement.lang = next;
+    applyDocumentLang(next);
     try {
       localStorage.setItem(UI_LANG_STORAGE_KEY, next);
     } catch {
@@ -76,15 +80,11 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     [lang, ready, setLang, t],
   );
 
+  const fontClass = uiLangFontClass(lang);
+
   return (
     <LanguageContext.Provider value={value}>
-      <div
-        className={cn(
-          lang === "ml" && "font-ml",
-          lang === "hi" && "font-deva",
-        )}
-        data-ui-lang={lang}
-      >
+      <div className={cn(fontClass)} data-ui-lang={lang}>
         {children}
       </div>
     </LanguageContext.Provider>

@@ -148,5 +148,11 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - Menu was clipped by nav `overflow-x-auto` (looked like scroll arrows)
 - Menu portaled to `document.body` with `fixed` + z-200; default English; 3 langs only
 
+## 2026-10-24 — Expand UI langs (world)
+- Files: `lib/i18n.ts`, `i18n-en.ts`, `i18n-ml-hi.ts`, `i18n-world.ts`, `language-provider.tsx`, `LangToggle.tsx`, `layout.tsx`, `globals.css`
+- 15 langs in dropdown; storage via `parseUiLang`; scrollable menu
+- Verified: `npx tsc --noEmit` exit 0
+- Production still old until Vercel redeploy
+
 ## Next
-- Redeploy Vercel; confirm English default on fresh visit
+- Commit + push/redeploy; hard-refresh production; confirm 15 options
