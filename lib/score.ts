@@ -21,7 +21,12 @@ const WEIGHTS = {
 function statusPoints(status: CheckStatus): number {
   if (status === "pass") return 1;
   if (status === "warn") return 0.5;
+  if (status === "na") return 0; // excluded via weight skip
   return 0;
+}
+
+function isScored(status: CheckStatus | undefined): boolean {
+  return status !== undefined && status !== "na";
 }
 
 function byId(checks: CheckResult[], id: string): CheckResult | undefined {
@@ -36,13 +41,14 @@ export function verdictLabel(v: Verdict): string {
 
 /**
  * Badge follows the checklist: any fail → Needs changes; any warn → Almost ready;
- * all pass → Ready to merge.
+ * all pass → Ready to merge. N/A items are ignored.
  */
 export function verdictFromChecklist(
   items: { status: CheckStatus }[],
 ): Verdict {
-  if (items.some((i) => i.status === "fail")) return "not_yet";
-  if (items.some((i) => i.status === "warn")) return "almost";
+  const scored = items.filter((i) => i.status !== "na");
+  if (scored.some((i) => i.status === "fail")) return "not_yet";
+  if (scored.some((i) => i.status === "warn")) return "almost";
   return "ready";
 }
 
@@ -54,8 +60,9 @@ export function summaryForVerdict(
   items: { label: string; status: CheckStatus }[],
   aiSummary: string,
 ): string {
-  const fails = items.filter((i) => i.status === "fail").map((i) => i.label);
-  const warns = items.filter((i) => i.status === "warn").map((i) => i.label);
+  const scored = items.filter((i) => i.status !== "na");
+  const fails = scored.filter((i) => i.status === "fail").map((i) => i.label);
+  const warns = scored.filter((i) => i.status === "warn").map((i) => i.label);
   const ai = aiSummary.trim();
 
   if (verdict === "ready") {
@@ -71,10 +78,12 @@ export function summaryForVerdict(
   return ai ? `${head} ${ai}` : head;
 }
 
+export const PASTED_DIFF_SUMMARY =
+  "Checked the diff only. Open a PR to check the rest.";
+
 /**
  * Turn checklist statuses into a 0–100 score.
- * Until AI review exists, issue_done_when and the AI contributing item are warn.
- * Verdict from score bands is legacy; UI uses verdictFromChecklist.
+ * N/A items (and their weights) are dropped; remaining weights are scaled to 100.
  */
 export function scoreChecks(
   checks: CheckResult[],
@@ -96,24 +105,70 @@ export function scoreChecks(
   const aiContributing = opts?.aiContributingStatus ?? "warn";
   const issueDoneWhen = opts?.issueDoneWhenStatus ?? "warn";
 
-  const contributingParts = [
-    statusPoints(branch?.status ?? "warn"),
-    statusPoints(forbidden?.status ?? "warn"),
-    statusPoints(aiContributing),
-  ];
-  const contributingAvg =
-    contributingParts.reduce((a, b) => a + b, 0) / contributingParts.length;
+  // contributing_rules = average of scored parts only (skip N/A branch, etc.)
+  const contributingParts: number[] = [];
+  if (isScored(branch?.status)) {
+    contributingParts.push(statusPoints(branch!.status));
+  }
+  if (isScored(forbidden?.status)) {
+    contributingParts.push(statusPoints(forbidden!.status));
+  }
+  if (isScored(aiContributing)) {
+    contributingParts.push(statusPoints(aiContributing));
+  }
 
-  let score =
-    WEIGHTS.linked_issue * statusPoints(linked?.status ?? "fail") +
-    WEIGHTS.issue_done_when * statusPoints(issueDoneWhen) +
-    WEIGHTS.contributing_rules * contributingAvg +
-    WEIGHTS.description * statusPoints(description?.status ?? "warn") +
-    WEIGHTS.check_evidence * statusPoints(evidence?.status ?? "warn") +
-    WEIGHTS.tests_touched * statusPoints(tests?.status ?? "warn") +
-    WEIGHTS.scope * statusPoints(scope?.status ?? "warn");
+  type Weighted = { weight: number; points: number };
+  const terms: Weighted[] = [];
 
-  score = Math.round(Math.min(100, Math.max(0, score)));
+  if (isScored(linked?.status)) {
+    terms.push({
+      weight: WEIGHTS.linked_issue,
+      points: statusPoints(linked!.status),
+    });
+  }
+  if (isScored(issueDoneWhen)) {
+    terms.push({
+      weight: WEIGHTS.issue_done_when,
+      points: statusPoints(issueDoneWhen),
+    });
+  }
+  if (contributingParts.length > 0) {
+    const avg =
+      contributingParts.reduce((a, b) => a + b, 0) / contributingParts.length;
+    terms.push({ weight: WEIGHTS.contributing_rules, points: avg });
+  }
+  if (isScored(description?.status)) {
+    terms.push({
+      weight: WEIGHTS.description,
+      points: statusPoints(description!.status),
+    });
+  }
+  if (isScored(evidence?.status)) {
+    terms.push({
+      weight: WEIGHTS.check_evidence,
+      points: statusPoints(evidence!.status),
+    });
+  }
+  if (isScored(tests?.status)) {
+    terms.push({
+      weight: WEIGHTS.tests_touched,
+      points: statusPoints(tests!.status),
+    });
+  }
+  if (isScored(scope?.status)) {
+    terms.push({
+      weight: WEIGHTS.scope,
+      points: statusPoints(scope!.status),
+    });
+  }
+
+  const totalWeight = terms.reduce((s, t) => s + t.weight, 0);
+  let score = 0;
+  if (totalWeight > 0) {
+    const earned = terms.reduce((s, t) => s + t.weight * t.points, 0);
+    score = Math.round((100 * earned) / totalWeight);
+  }
+  score = Math.min(100, Math.max(0, score));
 
   const verdict: Verdict =
     score >= 80 ? "ready" : score >= 55 ? "almost" : "not_yet";

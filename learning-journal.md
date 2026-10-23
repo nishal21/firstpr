@@ -104,6 +104,11 @@
 - `expectedCheckCommands`: CONTRIBUTING cmds filtered by repo markers (`Cargo.toml`/`package.json`/…); else infer (`cargo test` / `npm run build`).
 - Copy-as-comment footer: “Scored by FirstPR. Score comes from rule checks; AI items are advisory.”
 
+## 2026-10-23 — Pasted-diff N/A scoring
+- Status `na`: Linked issue / Branch / Description / Check evidence → grey dash, “Only checked on a PR link”, out of score.
+- `scoreChecks` drops N/A weights and scales remaining to 100.
+- Summary: “Checked the diff only. Open a PR to check the rest.”
+
 ## Next for another agent
 1. Redeploy Vercel; optional GitHub App comment on PR open (BUILD-PLAN later).
 2. Demo PR A (`fix/log-panel-no-kernel` Fixes #4) if #7 is not the stage demo.

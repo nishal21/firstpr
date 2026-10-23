@@ -18,6 +18,7 @@ import type {
 } from "@/lib/review-format";
 import { reviewSchema, type ReviewOutput } from "@/lib/schemas";
 import {
+  PASTED_DIFF_SUMMARY,
   scoreChecks,
   summaryForVerdict,
   verdictFromChecklist,
@@ -102,7 +103,7 @@ export function truncatePatches(
 }
 
 function ruleFix(check: CheckResult): string | null {
-  if (check.status === "pass") return null;
+  if (check.status === "pass" || check.status === "na") return null;
   switch (check.id) {
     case "linked_issue":
       return "Add a line like “Fixes #N” in the PR description, linking the issue you worked on.";
@@ -124,13 +125,13 @@ function ruleFix(check: CheckResult): string | null {
 }
 
 function worseStatus(a: CheckStatus, b: CheckStatus): CheckStatus {
-  const rank = { fail: 0, warn: 1, pass: 2 } as const;
+  const rank = { fail: 0, warn: 1, pass: 2, na: 3 } as const;
   return rank[a] <= rank[b] ? a : b;
 }
 
 /**
  * Keep AI status unless a related deterministic check failed — then clamp.
- * Model never overrides a deterministic fail.
+ * Model never overrides a deterministic fail. N/A related checks are ignored.
  */
 function mergeAiStatus(
   aiStatus: CheckStatus,
@@ -269,9 +270,10 @@ export async function reviewPr(args: ReviewPrArgs): Promise<ReviewResult> {
   const issueItem = raw.checklist.find((c) => c.id === "issue_done_when");
   let issueDoneWhenStatus: CheckStatus = "warn";
   if (issueItem) {
-    const status = mergeAiStatus(issueItem.status, [
-      linked?.status ?? "warn",
-    ]);
+    const status = mergeAiStatus(
+      issueItem.status,
+      linked?.status && linked.status !== "na" ? [linked.status] : [],
+    );
     issueDoneWhenStatus = status;
     checklist.push({
       id: "issue_done_when",
@@ -295,10 +297,12 @@ export async function reviewPr(args: ReviewPrArgs): Promise<ReviewResult> {
   // contributing_rules from required top-level field (fallback after retry)
   let aiContributingStatus: CheckStatus = "warn";
   if (hasContributingRules(raw)) {
-    const status = mergeAiStatus(raw.contributing_rules.status, [
-      branch?.status ?? "pass",
-      forbidden?.status ?? "pass",
-    ]);
+    const related: CheckStatus[] = [];
+    if (branch?.status && branch.status !== "na") related.push(branch.status);
+    if (forbidden?.status && forbidden.status !== "na") {
+      related.push(forbidden.status);
+    }
+    const status = mergeAiStatus(raw.contributing_rules.status, related);
     aiContributingStatus = status;
     const detail = raw.contributing_rules.detail?.trim() || null;
     const fromChecklist = raw.checklist.find(
@@ -337,7 +341,9 @@ export async function reviewPr(args: ReviewPrArgs): Promise<ReviewResult> {
   });
 
   const verdict = verdictFromChecklist(checklist);
-  const summary = summaryForVerdict(verdict, checklist, raw.summary);
+  const summary = pastedDiff
+    ? PASTED_DIFF_SUMMARY
+    : summaryForVerdict(verdict, checklist, raw.summary);
 
   const line_comments = filterLineComments(
     raw.line_comments,

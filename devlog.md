@@ -109,6 +109,10 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - Footer text updated in `lib/review-format.ts`
 - Checked: pytest dropped without Python markers; #7 expects cargo + npm only
 
+## 2026-10-23 — Pasted-diff N/A
+- CheckStatus `na`; ScoreCard grey Minus; score scales applicable weights
+- Checked: four PR-only rows N/A; all-pass applicable → 100
+
 ## Next
 - Redeploy Vercel
 - Optional: open demo PR A for stage path

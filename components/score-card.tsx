@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Circle, Copy, ExternalLink, X } from "lucide-react";
+import { Check, Circle, Copy, ExternalLink, Minus, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,6 @@ import {
   type ReviewResult,
 } from "@/lib/review-format";
 import { verdictLabel, type Verdict } from "@/lib/score";
-
 
 function verdictClass(v: Verdict): string {
   if (v === "ready") return "bg-emerald-50 text-emerald-800 border-emerald-200";
@@ -73,6 +72,16 @@ function StatusIcon({ status }: { status: ReviewChecklistItem["status"] }) {
     return (
       <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center">
         <Circle className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
+      </span>
+    );
+  }
+  if (status === "na") {
+    return (
+      <span
+        className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-400"
+        title="Not applicable"
+      >
+        <Minus className="h-3.5 w-3.5" strokeWidth={2.5} />
       </span>
     );
   }
@@ -155,15 +164,27 @@ export function ScoreCard({ result }: { result: ReviewResult }) {
               <StatusIcon status={item.status} />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm font-medium text-slate-900">
+                  <span
+                    className={`text-sm font-medium ${
+                      item.status === "na" ? "text-slate-500" : "text-slate-900"
+                    }`}
+                  >
                     {item.label}
                   </span>
-                  <span className="rounded border border-slate-200 bg-slate-50 px-1.5 py-px text-[10px] font-medium uppercase tracking-wide text-slate-500">
-                    {item.source === "ai" ? "AI" : "Rule"}
-                  </span>
+                  {item.status === "na" ? (
+                    <span className="rounded border border-slate-200 bg-slate-50 px-1.5 py-px text-[10px] font-medium uppercase tracking-wide text-slate-400">
+                      Not applicable
+                    </span>
+                  ) : (
+                    <span className="rounded border border-slate-200 bg-slate-50 px-1.5 py-px text-[10px] font-medium uppercase tracking-wide text-slate-500">
+                      {item.source === "ai" ? "AI" : "Rule"}
+                    </span>
+                  )}
                 </div>
                 <p className="mt-0.5 text-xs text-slate-500">{item.evidence}</p>
-                {item.status !== "pass" && item.fix ? (
+                {item.status !== "pass" &&
+                item.status !== "na" &&
+                item.fix ? (
                   <p className="mt-1 text-sm text-blue-600">{item.fix}</p>
                 ) : null}
               </div>

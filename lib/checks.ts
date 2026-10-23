@@ -1,6 +1,6 @@
 import type { GoodFirstIssue, PullFile, PullRequestInfo } from "@/lib/github";
 
-export type CheckStatus = "pass" | "warn" | "fail";
+export type CheckStatus = "pass" | "warn" | "fail" | "na";
 
 export type CheckResult = {
   id: string;
@@ -9,12 +9,20 @@ export type CheckResult = {
   evidence: string;
 };
 
+/** PR-only checks skipped when reviewing a pasted diff. */
+export const PR_ONLY_CHECK_IDS = [
+  "linked_issue",
+  "branch_name",
+  "description",
+  "check_evidence",
+] as const;
+
 export type RunChecksArgs = {
   pr: PullRequestInfo | null;
   files: PullFile[];
   contributing: string | null;
   linkedIssue: GoodFirstIssue | null;
-  /** When true, PR-only checks become warn ("Pasted diff, no PR details"). */
+  /** When true, PR-only checks are N/A (excluded from score). */
   pastedDiff?: boolean;
   /**
    * Paths from the repo tree (or known root markers). Used to filter / infer
@@ -23,7 +31,7 @@ export type RunChecksArgs = {
   repoPaths?: string[];
 };
 
-const PASTED = "Pasted diff, no PR details";
+const NA_PR_ONLY = "Only checked on a PR link";
 
 const KNOWN_CHECK_COMMANDS = [
   "cargo test",
@@ -296,7 +304,7 @@ function checkLinkedIssue(
   const id = "linked_issue";
   const label = "Linked issue";
   if (pastedDiff || !pr) {
-    return check(id, label, "warn", PASTED);
+    return check(id, label, "na", NA_PR_ONLY);
   }
   if (pr.linkedIssueNumbers.length === 0) {
     return check(
@@ -333,7 +341,7 @@ function checkBranchName(
 ): CheckResult {
   const id = "branch_name";
   const label = "Branch name";
-  if (pastedDiff || !pr) return check(id, label, "warn", PASTED);
+  if (pastedDiff || !pr) return check(id, label, "na", NA_PR_ONLY);
 
   if (!contributing?.trim()) {
     return check(id, label, "pass", "No branch rule in CONTRIBUTING.md");
@@ -366,7 +374,7 @@ function checkDescription(
 ): CheckResult {
   const id = "description";
   const label = "PR description";
-  if (pastedDiff || !pr) return check(id, label, "warn", PASTED);
+  if (pastedDiff || !pr) return check(id, label, "na", NA_PR_ONLY);
   const body = (pr.body ?? "").trim();
   if (!body) return check(id, label, "fail", "Description is empty");
   if (body.length < 80) {
@@ -388,7 +396,7 @@ function checkEvidence(
 ): CheckResult {
   const id = "check_evidence";
   const label = "Check evidence";
-  if (pastedDiff || !pr) return check(id, label, "warn", PASTED);
+  if (pastedDiff || !pr) return check(id, label, "na", NA_PR_ONLY);
 
   const commands = expectedCheckCommands(contributing, repoPaths);
   if (commands.length === 0) {

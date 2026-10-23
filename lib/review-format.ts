@@ -44,6 +44,12 @@ export function formatReviewMarkdown(result: ReviewResult): string {
   ];
 
   for (const item of result.checklist) {
+    if (item.status === "na") {
+      lines.push(
+        `- — **${item.label}** (Not applicable): ${item.evidence}`,
+      );
+      continue;
+    }
     const icon =
       item.status === "pass" ? "✅" : item.status === "warn" ? "⚠️" : "❌";
     const tag = item.source === "ai" ? "AI" : "Rule";
