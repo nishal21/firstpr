@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, Globe } from "lucide-react";
+import { Check, ChevronDown, Globe } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { UI_LANGS, UI_LANG_NATIVE, type UiLang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -42,18 +42,26 @@ export function LangToggle({ className }: { className?: string }) {
         aria-label={t("nav.language")}
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          "inline-flex h-8 max-w-[9.5rem] items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2 text-sm text-slate-600 outline-none hover:text-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/40 sm:max-w-none",
+          "inline-flex h-8 items-center gap-1.5 whitespace-nowrap rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-600 outline-none hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-blue-600/40 disabled:opacity-60",
         )}
       >
         <Globe className="size-3.5 shrink-0" aria-hidden />
-        <span className="truncate">{UI_LANG_NATIVE[lang]}</span>
+        <span>{UI_LANG_NATIVE[lang]}</span>
+        <ChevronDown
+          size={14}
+          className={cn(
+            "shrink-0 text-slate-400 transition-transform",
+            open && "rotate-180",
+          )}
+          aria-hidden
+        />
       </button>
 
       {open ? (
         <ul
           role="listbox"
           aria-label={t("nav.language")}
-          className="absolute top-full right-0 z-50 mt-1 min-w-[9.5rem] overflow-hidden rounded-md border border-slate-200 bg-white py-1 text-sm shadow-sm"
+          className="absolute top-full right-0 z-50 mt-1 w-40 overflow-hidden rounded-md border border-slate-200 bg-white py-1 text-sm shadow-sm"
         >
           {UI_LANGS.map((code) => {
             const selected = code === lang;
@@ -67,9 +75,14 @@ export function LangToggle({ className }: { className?: string }) {
                     selected && "text-slate-900",
                   )}
                 >
-                  <span>{UI_LANG_NATIVE[code]}</span>
+                  <span className="whitespace-nowrap">
+                    {UI_LANG_NATIVE[code]}
+                  </span>
                   {selected ? (
-                    <Check className="size-3.5 shrink-0 text-blue-600" aria-hidden />
+                    <Check
+                      className="size-3.5 shrink-0 text-blue-600"
+                      aria-hidden
+                    />
                   ) : (
                     <span className="size-3.5 shrink-0" aria-hidden />
                   )}

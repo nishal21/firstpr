@@ -143,6 +143,9 @@
 - All Home / Explain / Review chrome via `t("key")`. AI explain/hint/review text stays English.
 - Fonts: Noto Sans Malayalam + Devanagari when ml/hi.
 
+## 2026-10-24 — Lang switcher: no native select
+- Globe + language + ChevronDown button; absolute dropdown w-40; Esc/outside/select close.
+
 ## Next for another agent
 1. Redeploy Vercel.
 2. Smoke: switch to മലയാളം on /, /issue/…/4, /review — labels flip instantly; refresh keeps lang.

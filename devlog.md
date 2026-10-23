@@ -140,5 +140,9 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - Wired Match/Explain/Review/ScoreCard/Hints/FlowSteps to `useT()`
 - AI content lang no longer driven by UI toggle; tsc clean
 
+## 2026-10-24 — Lang switcher polish
+- `LangToggle`: button only (globe + name + ChevronDown 14px); custom w-40 menu; no `<select>`
+- Checked: closes on pick / outside / Esc; setLang updates UI instantly
+
 ## Next
 - Redeploy Vercel; visual smoke on phone/laptop navbar
