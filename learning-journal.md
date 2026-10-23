@@ -132,6 +132,11 @@
 - Verified: NekoDroid #4 → Beginner-friendly; Graphify-Labs/graphify#3666 → Stretch.
 - Script: `scripts/verify-difficulty-match.ts` (loads `.env`).
 
+## 2026-10-24 — Explain limits notice
+- Prompt + schema: `unsure_about` = 1–2 sentences, start “Heads up:”, what missing + which file to open/search; null if nothing missing; ban “supplied source excerpts” / “not shown”.
+- `lib/limits-notice.ts` `formatLimitsNotice` cleans + hides empty/fluff; applied in `explain.ts`.
+- UI: amber box only when cleaned text exists (no low-confidence-only fallback).
+
 ## Next for another agent
-1. Redeploy Vercel so Match badges hit production.
+1. Redeploy Vercel so Match badges + limits copy hit production.
 2. Optional: open demo PR A for #4 stage path.

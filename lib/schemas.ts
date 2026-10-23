@@ -60,7 +60,12 @@ export const explainSchema = z.object({
   done_when: z.array(z.string()).max(6),
   how_to_check: z.array(z.string()).describe("commands from CONTRIBUTING.md"),
   confidence: z.enum(["high", "medium", "low"]),
-  unsure_about: z.string().nullable(),
+  unsure_about: z
+    .string()
+    .nullable()
+    .describe(
+      '1–2 short beginner sentences starting with "Heads up:" — what you could not see and which file to open/search. Null when nothing important is missing. No meta phrases like "supplied source excerpts" or "not shown".',
+    ),
 });
 
 export type ExplainOutput = z.infer<typeof explainSchema>;

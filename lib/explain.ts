@@ -20,6 +20,7 @@ import { generateJson } from "@/lib/llm";
 import { pickFiles } from "@/lib/pickFiles";
 import { buildExplainUserPrompt, EXPLAIN_SYSTEM } from "@/lib/prompts/explain";
 import { explainSchema, type ExplainOutput } from "@/lib/schemas";
+import { formatLimitsNotice } from "@/lib/limits-notice";
 import { gatherLearnLinks, type LearnLink } from "@/lib/serp";
 
 export type ExplainCitation = {
@@ -211,13 +212,18 @@ export async function explainIssue(opts: {
 
   const learnLinks = await gatherLearnLinks(explanation.concepts, language);
 
+  const cleaned: ExplainOutput = {
+    ...explanation,
+    unsure_about: formatLimitsNotice(explanation.unsure_about),
+  };
+
   return {
     issue,
     sha,
     owner,
     repo,
     language,
-    explanation,
+    explanation: cleaned,
     citations,
     droppedCitations,
     learn: learnLinks.length >= 2 ? learnLinks : null,

@@ -131,6 +131,10 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - UI: `components/difficulty-badge.tsx` on Match + Explain
 - Checked: #4 Beginner-friendly; graphify#3666 Stretch; tsc clean
 
+## 2026-10-24 — Explain limits notice
+- `lib/prompts/explain.ts`, `lib/limits-notice.ts`, schema describe, `issue-explain` hide-when-empty
+- Box only when `formatLimitsNotice` returns text
+
 ## Next
 - Redeploy Vercel
 - Optional: demo PR A for #4

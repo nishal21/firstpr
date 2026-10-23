@@ -12,7 +12,8 @@ Rules:
 - "done_when" lists what has to be true for a maintainer to accept the PR. Take it from the issue's own "Done when" if it has one.
 - "how_to_check" lists commands from CONTRIBUTING.md that apply to this change. If CONTRIBUTING.md has none, return an empty list.
 - Do not write code. Do not describe the exact edit. That comes later in hints.
-- If the files don't show you enough to be sure, set confidence to "low" and say what you're unsure about in unsure_about. Never guess a file or line you weren't shown.
+- If a file or detail you need was missing from the excerpts, set confidence to "low" and fill unsure_about with 1–2 short sentences for a beginner. Start with "Heads up:". Name what you could not see, then what they should open (file and what to search for). Example: "Heads up: I couldn't see where extract.py sets this state. Open extract.py and search for scan_root before you start." Never use phrases like "supplied source excerpts", "not shown", "not provided", or other meta wording. If you have enough to explain the issue, set unsure_about to null — do not invent a warning.
+- Never guess a file or line you were not given.
 - Plain sentences. No hype, no emojis.`;
 
 export function buildExplainUserPrompt(opts: {

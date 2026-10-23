@@ -165,8 +165,7 @@ export function IssueExplain({
   }
 
   const { issue, explanation, citations } = data;
-  const showUnsure =
-    explanation.confidence === "low" || explanation.unsure_about != null;
+  const limitsNotice = explanation.unsure_about?.trim() || null;
 
   return (
     <section className="mx-auto max-w-5xl space-y-8 px-4 py-12 sm:px-6">
@@ -208,13 +207,12 @@ export function IssueExplain({
         ) : null}
       </header>
 
-      {showUnsure ? (
+      {limitsNotice ? (
         <div
           role="status"
           className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
         >
-          {explanation.unsure_about?.trim() ||
-            "Confidence is low for this explanation. Double-check the files on GitHub before you start."}
+          {limitsNotice}
         </div>
       ) : null}
 
