@@ -38,6 +38,10 @@
 ## 2026-10-23 — Demo issues #4 / #5
 - Explain demo shortcuts + default + nav link: NekoDroid #4 and #5 (was #2 / #6).
 
+## 2026-10-23 — Match
+- `matchIssues`: languages, list/search GFI, skip assignees, score (+ext/+docs/+comments), fitReason.
+- UI under hero; `/issue/{owner}/{repo}/{number}` redirects to Explain.
+
 ## Next for another agent
-1. Wire `/` match form → `POST /api/match`.
-2. Confirm Neysa tag when endpoint + key work.
+1. Review PR flow.
+2. Confirm Neysa when endpoint is up.

@@ -37,6 +37,11 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - Explain shortcuts, default issue, nav Explain link now NekoDroid #4 and #5
 - Match/Review: no hardcoded issue nums yet
 
+## 2026-10-23 — Match
+- `lib/match.ts`, `POST /api/match`, home `MatchForm`, `/issue/...` → explain
+- Score without AI; skip assignees; languages badges
+- Checked: NekoDroid → picked from open set; #2 Assigned to @iniyananto-sys
+
 ## Next
-- Match API + home form
 - Confirm Neysa tag once key + network work
+- Review flow
