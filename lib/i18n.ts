@@ -18,30 +18,38 @@ import {
 export type { I18nKey } from "@/lib/i18n-en";
 export { en } from "@/lib/i18n-en";
 
-/** Supported UI languages (English default + major world languages). */
+/**
+ * Supported UI languages (English default).
+ * Order = what shows at the top of the globe menu (major world langs first).
+ */
 export const UI_LANGS = [
   "en",
-  "ml",
-  "hi",
-  "ta",
-  "bn",
   "es",
-  "fr",
-  "de",
-  "pt",
   "zh",
-  "ja",
-  "ko",
+  "hi",
   "ar",
+  "fr",
+  "pt",
   "ru",
+  "ja",
+  "de",
+  "ko",
   "id",
+  "bn",
+  "ta",
+  "ml",
 ] as const;
+
+/** Bump when the language list changes so clients drop stale caches/feel a refresh. */
+export const UI_LANG_LIST_VERSION = 2;
 
 export type UiLang = (typeof UI_LANGS)[number];
 
 export const DEFAULT_UI_LANG: UiLang = "en";
 
-export const UI_LANG_STORAGE_KEY = "firstpr-lang";
+/** Separate from legacy AI content-lang key so the two never overwrite each other. */
+export const UI_LANG_STORAGE_KEY = "firstpr-ui-lang";
+const LEGACY_UI_LANG_STORAGE_KEY = "firstpr-lang";
 
 const UI_LANG_SET = new Set<string>(UI_LANGS);
 
@@ -110,6 +118,29 @@ export function parseUiLang(value: string | null | undefined): UiLang {
   const v = value?.trim().toLowerCase();
   if (v && UI_LANG_SET.has(v)) return v as UiLang;
   return DEFAULT_UI_LANG;
+}
+
+/** Read preferred UI lang from localStorage (new key, then legacy). */
+export function readStoredUiLang(): UiLang {
+  if (typeof window === "undefined") return DEFAULT_UI_LANG;
+  try {
+    const fresh = localStorage.getItem(UI_LANG_STORAGE_KEY);
+    if (fresh != null) return parseUiLang(fresh);
+    const legacy = localStorage.getItem(LEGACY_UI_LANG_STORAGE_KEY);
+    return parseUiLang(legacy);
+  } catch {
+    return DEFAULT_UI_LANG;
+  }
+}
+
+export function writeStoredUiLang(lang: UiLang): void {
+  try {
+    localStorage.setItem(UI_LANG_STORAGE_KEY, lang);
+    // Keep legacy key in sync for anything still reading it.
+    localStorage.setItem(LEGACY_UI_LANG_STORAGE_KEY, lang);
+  } catch {
+    /* ignore */
+  }
 }
 
 export type TParams = Record<string, string | number>;

@@ -162,6 +162,10 @@
 - Menu: `max-h-64` scroll, `w-52`. tsc clean.
 - Why “still no change” on vercel.app: local only until redeploy.
 
+## 2026-10-24 — Globe list look empty / “not changing”
+- Cause: 15 langs were live but en/ml/hi sat on top; closed button only shows current lang.
+- Fix: major langs first; taller scroll menu; separate `firstpr-ui-lang` key; pushed.
+
 ## Next for another agent
-1. Redeploy / push so firstpr-coral.vercel.app picks this up.
-2. Smoke: open globe → 15 langs; pick es/zh/ar; refresh keeps choice; ar is RTL.
+1. After Vercel deploy: hard refresh → open globe → see Español/中文 without scrolling past ml.
+2. Pick Spanish, refresh, confirm it sticks.

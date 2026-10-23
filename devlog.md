@@ -154,5 +154,11 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - Verified: `npx tsc --noEmit` exit 0
 - Production still old until Vercel redeploy
 
+## 2026-10-24 — Lang menu visibility
+- Reordered UI_LANGS: en, es, zh, hi, ar, fr… (ml last) so opens show world langs
+- Menu: viewport maxHeight, flip up, taller rows + scrollbar gutter
+- Storage key `firstpr-ui-lang` (+ legacy sync); useLayoutEffect hydrate
+- Pushed to main for Vercel
+
 ## Next
-- Commit + push/redeploy; hard-refresh production; confirm 15 options
+- Hard-refresh production; open globe — first rows should be English/Español/中文/…
