@@ -116,7 +116,7 @@ export function MatchForm() {
             <Input
               value={repo}
               onChange={(e) => setRepo(e.target.value)}
-              placeholder="nishal21/NekoDroid"
+              placeholder="NekoDroid or owner/repo"
               disabled={pending}
               className="h-10 w-full rounded-xl border-slate-200 focus-visible:border-blue-600 focus-visible:ring-blue-600/30"
             />

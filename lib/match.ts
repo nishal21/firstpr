@@ -1,8 +1,11 @@
 import { env } from "@/lib/env";
 import {
+  getRepo,
   getUserLanguages,
+  GitHubError,
   listGoodFirstIssues,
   parseRepo,
+  REPO_NOT_FOUND_MSG,
   searchGoodFirstIssues,
   type GoodFirstIssue,
 } from "@/lib/github";
@@ -118,6 +121,62 @@ function scoreIssue(
   return { score, fitReason };
 }
 
+const FALLBACK_OWNER = "nishal21";
+
+/**
+ * Resolve a forgiving repo field: owner/repo, GitHub URL, or bare name.
+ * Bare name tries `username/repo`, then `nishal21/repo`.
+ */
+async function resolveMatchRepo(
+  repoInput: string,
+  username: string,
+): Promise<{ owner: string; repo: string }> {
+  const trimmed = repoInput.trim();
+  if (!trimmed) {
+    throw new GitHubError(REPO_NOT_FOUND_MSG, "not_found");
+  }
+
+  // URL or owner/repo — parse and verify it exists.
+  if (/github\.com[/:]/i.test(trimmed) || trimmed.includes("/")) {
+    let parsed: { owner: string; repo: string };
+    try {
+      parsed = parseRepo(trimmed);
+    } catch (err) {
+      if (err instanceof GitHubError) throw err;
+      throw new GitHubError(REPO_NOT_FOUND_MSG, "not_found");
+    }
+    try {
+      await getRepo(parsed.owner, parsed.repo);
+      return parsed;
+    } catch (err) {
+      if (err instanceof GitHubError && err.code === "not_found") {
+        throw new GitHubError(REPO_NOT_FOUND_MSG, "not_found");
+      }
+      throw err;
+    }
+  }
+
+  // Bare repo name: try username first, then nishal21.
+  const bare = parseRepo(trimmed, { defaultOwner: username });
+  try {
+    await getRepo(bare.owner, bare.repo);
+    return bare;
+  } catch (err) {
+    if (!(err instanceof GitHubError) || err.code !== "not_found") throw err;
+  }
+
+  if (username.toLowerCase() !== FALLBACK_OWNER) {
+    try {
+      await getRepo(FALLBACK_OWNER, bare.repo);
+      return { owner: FALLBACK_OWNER, repo: bare.repo };
+    } catch (err) {
+      if (!(err instanceof GitHubError) || err.code !== "not_found") throw err;
+    }
+  }
+
+  throw new GitHubError(REPO_NOT_FOUND_MSG, "not_found");
+}
+
 /**
  * Match a beginner to open good-first issues. No AI — scoring only.
  */
@@ -140,9 +199,16 @@ export async function matchIssues(opts: {
   let candidates: Array<GoodFirstIssue & { owner: string; repo: string }> = [];
 
   if (repoInput) {
-    const { owner, repo } = parseRepo(repoInput);
-    const list = await listGoodFirstIssues(owner, repo);
-    candidates = list.map((issue) => withRepo(issue, owner, repo));
+    const { owner, repo } = await resolveMatchRepo(repoInput, username);
+    try {
+      const list = await listGoodFirstIssues(owner, repo);
+      candidates = list.map((issue) => withRepo(issue, owner, repo));
+    } catch (err) {
+      if (err instanceof GitHubError && err.code === "not_found") {
+        throw new GitHubError(REPO_NOT_FOUND_MSG, "not_found");
+      }
+      throw err;
+    }
   } else {
     const found = await searchGoodFirstIssues(languages, 20);
     candidates = found.flatMap((issue) => {

@@ -121,6 +121,10 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - `flow-steps.tsx`, `spinner.tsx`; page/match/issue/review/hint/layout/globals
 - No lib or API changes
 
+## 2026-10-23 — Forgiving Match repo
+- `lib/github.ts` parseRepo + `lib/match.ts` resolveMatchRepo (username → nishal21)
+- Checked: bare / owner/repo / URL → #3 on NekoDroid
+
 ## Next
 - Redeploy Vercel
 - Optional: open demo PR A for stage path

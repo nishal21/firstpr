@@ -119,6 +119,11 @@
 - `FlowProgress` on issue + review; spinners + skeletons while loading; empty Match copy.
 - Mobile: full-width inputs, wrapping chips/nav; Enter submits forms; focus rings blue.
 
+## 2026-10-23 — Forgiving Match repo field
+- `parseRepo`: URL / owner/repo / bare (+ defaultOwner); friendly “Couldn't find that repo. Try owner/repo.”
+- `resolveMatchRepo`: bare name tries username then `nishal21`.
+- Verified: `NekoDroid`, `nishal21/NekoDroid`, full URL all pick an issue.
+
 ## Next for another agent
 1. Redeploy Vercel; optional GitHub App comment on PR open (BUILD-PLAN later).
 2. Demo PR A (`fix/log-panel-no-kernel` Fixes #4) if #7 is not the stage demo.

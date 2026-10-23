@@ -44,8 +44,13 @@ export async function POST(request: Request) {
     if (err instanceof GitHubError) {
       const status =
         err.code === "rate_limited" ? 429 : err.code === "not_found" ? 404 : 502;
+      const message =
+        err.message.includes("Invalid repo") ||
+        err.message.startsWith("Invalid repo identifier")
+          ? "Couldn't find that repo. Try owner/repo."
+          : err.message;
       return NextResponse.json(
-        { error: err.message, code: err.code },
+        { error: message, code: err.code },
         { status },
       );
     }

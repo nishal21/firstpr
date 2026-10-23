@@ -151,28 +151,58 @@ function parseLinkedIssueNumbers(body: string | null | undefined): number[] {
   return [...numbers].sort((a, b) => a - b);
 }
 
-export function parseRepo(input: string): { owner: string; repo: string } {
+const REPO_NOT_FOUND_MSG = "Couldn't find that repo. Try owner/repo.";
+
+function cleanRepoName(raw: string): string {
+  return raw
+    .trim()
+    .replace(/\/+$/, "")
+    .replace(/\.git$/i, "")
+    .replace(/\/+$/, "");
+}
+
+/**
+ * Parse owner/repo from "owner/repo", a GitHub URL (with optional .git / trailing
+ * slash), or a bare repo name when `defaultOwner` is set.
+ * Never throws "Invalid repo identifier" — uses a friendly message instead.
+ */
+export function parseRepo(
+  input: string,
+  opts?: { defaultOwner?: string },
+): { owner: string; repo: string } {
   const trimmed = input.trim();
+  if (!trimmed) {
+    throw new GitHubError(REPO_NOT_FOUND_MSG, "not_found");
+  }
+
   const urlMatch = trimmed.match(
-    /(?:https?:\/\/)?(?:www\.)?github\.com[/:]([^/]+)\/([^/#?]+)/i,
+    /(?:https?:\/\/)?(?:www\.)?github\.com[/:]([^/]+)\/([^/#?\s]+)/i,
   );
   if (urlMatch) {
     return {
       owner: urlMatch[1],
-      repo: urlMatch[2].replace(/\.git$/i, ""),
+      repo: cleanRepoName(urlMatch[2]),
     };
   }
 
-  const slash = trimmed.match(/^([^/]+)\/([^/]+)$/);
+  const slash = trimmed.match(/^([^/\s]+)\/([^/\s]+)$/);
   if (slash) {
     return {
       owner: slash[1],
-      repo: slash[2].replace(/\.git$/i, ""),
+      repo: cleanRepoName(slash[2]),
     };
   }
 
-  throw new GitHubError(`Invalid repo identifier: ${input}`, "github_error");
+  // Bare repo name: "NekoDroid" → defaultOwner/NekoDroid
+  const bare = cleanRepoName(trimmed);
+  if (opts?.defaultOwner && /^[\w.-]+$/.test(bare) && !bare.includes("/")) {
+    return { owner: opts.defaultOwner, repo: bare };
+  }
+
+  throw new GitHubError(REPO_NOT_FOUND_MSG, "not_found");
 }
+
+export { REPO_NOT_FOUND_MSG };
 
 export function parsePrUrl(url: string): {
   owner: string;
