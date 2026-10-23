@@ -44,6 +44,8 @@ export async function POST(req: Request) {
     );
   }
 
+  console.log(`[webhook] accepted ${name} delivery=${id}`);
+
   // GitHub wants a reply within ~10s; do LLM work after the response.
   after(async () => {
     try {
@@ -54,6 +56,7 @@ export async function POST(req: Request) {
         signature,
         payload,
       });
+      console.log(`[webhook] finished ${name} delivery=${id}`);
     } catch (err) {
       console.error(
         "[webhook] verifyAndReceive failed:",

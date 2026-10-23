@@ -100,48 +100,115 @@ async function loadPrBundle(
   return { pr, files };
 }
 
+async function postComment(
+  octokit: InstallationOctokit,
+  owner: string,
+  repo: string,
+  issue_number: number,
+  body: string,
+): Promise<void> {
+  await octokit.rest.issues.createComment({
+    owner,
+    repo,
+    issue_number,
+    body,
+  });
+}
+
 function registerHandlers(app: App<{ Octokit: typeof Octokit }>): void {
   if (handlersRegistered) return;
   handlersRegistered = true;
 
   app.webhooks.on("issue_comment.created", async ({ octokit, payload }) => {
-    if (isBotSender(payload.sender)) return;
-    if (payload.issue.pull_request) return;
+    if (isBotSender(payload.sender)) {
+      console.log("[webhook] skip issue_comment: sender is Bot");
+      return;
+    }
 
     const commentBody = payload.comment.body ?? "";
-    if (!commentBody.trimStart().startsWith("/firstpr explain")) return;
+    const isExplain = commentBody.trimStart().startsWith("/firstpr explain");
+    if (!isExplain) {
+      console.log("[webhook] skip issue_comment: not /firstpr explain");
+      return;
+    }
 
     const owner = payload.repository.owner.login;
     const repo = payload.repository.name;
     const number = payload.issue.number;
+    const onPr = Boolean(payload.issue.pull_request);
+
+    // Explain only runs on issues. Say so on PRs so it doesn't look dead.
+    if (onPr) {
+      console.log(
+        `[webhook] /firstpr explain on PR ${owner}/${repo}#${number} — tip only`,
+      );
+      await postComment(
+        octokit,
+        owner,
+        repo,
+        number,
+        [
+          "FirstPR **explain** only works on **issues**, not pull requests.",
+          "",
+          `Open an issue (e.g. [#5](https://github.com/${owner}/${repo}/issues/5)) and comment:`,
+          "```",
+          "/firstpr explain",
+          "```",
+          "",
+          "PRs get an automatic score-card comment when opened or updated — no command needed.",
+        ].join("\n"),
+      );
+      return;
+    }
 
     console.log(`[webhook] /firstpr explain on ${owner}/${repo}#${number}`);
 
-    const explained = await explainIssueCached({ owner, repo, number });
-    const hintResult = await getHint({
-      owner,
-      repo,
-      number,
-      level: 1,
-    });
+    try {
+      const explained = await explainIssueCached({ owner, repo, number });
+      const hintResult = await getHint({
+        owner,
+        repo,
+        number,
+        level: 1,
+      });
 
-    const body = formatExplainWebhookComment(
-      explained,
-      hintResult.hint.hint,
-    );
+      const body = formatExplainWebhookComment(
+        explained,
+        hintResult.hint.hint,
+      );
 
-    await octokit.rest.issues.createComment({
-      owner,
-      repo,
-      issue_number: number,
-      body,
-    });
+      await postComment(octokit, owner, repo, number, body);
+      console.log(`[webhook] posted explain on ${owner}/${repo}#${number}`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error(`[webhook] explain failed:`, message);
+      try {
+        await postComment(
+          octokit,
+          owner,
+          repo,
+          number,
+          [
+            "FirstPR hit an error while explaining this issue.",
+            "",
+            `\`\`\`\n${message.slice(0, 500)}\n\`\`\``,
+            "",
+            "_Check Vercel logs for `[webhook]` / OpenAI / GitHub App permissions (Issues: Read & write)._",
+          ].join("\n"),
+        );
+      } catch (postErr) {
+        console.error("[webhook] could not post error comment:", postErr);
+      }
+    }
   });
 
   app.webhooks.on(
     ["pull_request.opened", "pull_request.synchronize"],
     async ({ octokit, payload }) => {
-      if (isBotSender(payload.sender)) return;
+      if (isBotSender(payload.sender)) {
+        console.log("[webhook] skip pull_request: sender is Bot");
+        return;
+      }
 
       const owner = payload.repository.owner.login;
       const repo = payload.repository.name;
@@ -151,50 +218,66 @@ function registerHandlers(app: App<{ Octokit: typeof Octokit }>): void {
         `[webhook] review PR ${owner}/${repo}#${number} (${payload.action})`,
       );
 
-      const { pr, files } = await loadPrBundle(octokit, owner, repo, number);
-
-      let contributing: string | null = null;
-      let treeSha: string | undefined;
       try {
-        const baseSha = await getBranchSha(owner, repo, pr.baseRef);
-        treeSha = baseSha;
-        contributing = await getContributing(owner, repo, baseSha);
-      } catch {
-        contributing = null;
-        treeSha = pr.headSha;
+        const { pr, files } = await loadPrBundle(octokit, owner, repo, number);
+
+        let contributing: string | null = null;
+        let treeSha: string | undefined;
+        try {
+          const baseSha = await getBranchSha(owner, repo, pr.baseRef);
+          treeSha = baseSha;
+          contributing = await getContributing(owner, repo, baseSha);
+        } catch {
+          contributing = null;
+          treeSha = pr.headSha;
+        }
+
+        const linkedIssue = await loadLinkedIssue(owner, repo, pr);
+
+        const result = await reviewPr({
+          pr,
+          files,
+          contributing,
+          linkedIssue,
+          pastedDiff: false,
+          owner,
+          repo,
+          prNumber: number,
+          treeSha,
+        });
+
+        // Score-card comment only — no GitHub review line comments.
+        const body = formatReviewMarkdown({
+          ...result,
+          line_comments: [],
+        });
+
+        await postComment(octokit, owner, repo, number, body);
+        console.log(`[webhook] posted review on ${owner}/${repo}#${number}`);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        console.error(`[webhook] review failed:`, message);
+        try {
+          await postComment(
+            octokit,
+            owner,
+            repo,
+            number,
+            [
+              "FirstPR hit an error while reviewing this PR.",
+              "",
+              `\`\`\`\n${message.slice(0, 500)}\n\`\`\``,
+            ].join("\n"),
+          );
+        } catch (postErr) {
+          console.error("[webhook] could not post error comment:", postErr);
+        }
       }
-
-      const linkedIssue = await loadLinkedIssue(owner, repo, pr);
-
-      const result = await reviewPr({
-        pr,
-        files,
-        contributing,
-        linkedIssue,
-        pastedDiff: false,
-        owner,
-        repo,
-        prNumber: number,
-        treeSha,
-      });
-
-      // Score-card comment only — no GitHub review line comments.
-      const body = formatReviewMarkdown({
-        ...result,
-        line_comments: [],
-      });
-
-      await octokit.rest.issues.createComment({
-        owner,
-        repo,
-        issue_number: number,
-        body,
-      });
     },
   );
 
   app.webhooks.onError((error) => {
-    console.error("[webhook]", error.message);
+    console.error("[webhook] handler error:", error);
   });
 }
 
@@ -213,9 +296,22 @@ export function getGitHubApp(): App<{ Octokit: typeof Octokit }> {
     );
   }
 
+  // Vercel / .env often store PEMs as one line with \n, or wrap in quotes.
+  const normalizedKey = privateKey
+    .replace(/^["']|["']$/g, "")
+    .replace(/\\n/g, "\n")
+    .replace(/\r\n/g, "\n")
+    .trim();
+
+  if (!normalizedKey.includes("PRIVATE KEY")) {
+    console.warn(
+      "[webhook] GITHUB_APP_PRIVATE_KEY does not look like a PEM (missing PRIVATE KEY header)",
+    );
+  }
+
   appInstance = new App({
     appId,
-    privateKey: privateKey.replace(/\\n/g, "\n"),
+    privateKey: normalizedKey,
     webhooks: { secret },
     Octokit,
   });

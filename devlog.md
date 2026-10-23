@@ -198,7 +198,8 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - `lib/github-app.ts` handlers; `lib/webhook-format.ts` explain markdown
 - `app/api/github/webhook/route.ts`: verify, 202, `after(verifyAndReceive)`
 - Bots ignored; no PR line comments (issues.createComment only)
+- Fix: PR `/firstpr explain` now posts tip; explain/review errors post a comment; PEM normalize
 
 ## Next
-- Wire App webhook to `/api/github/webhook`; test NekoDroid #5
+- Push + Vercel redeploy; test on issue #5 (not a PR)
 - Commit when asked
