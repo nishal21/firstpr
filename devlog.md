@@ -135,11 +135,10 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - `lib/prompts/explain.ts`, `lib/limits-notice.ts`, schema describe, `issue-explain` hide-when-empty
 - Box only when `formatLimitsNotice` returns text
 
-## 2026-10-24 — Content languages
-- `content-lang.ts`, `LangToggle`, `lang-provider`, `site-header`, layout fonts, explain/hint/review wiring
-- Quick EN/ML/HI + 15 more in select; script font classes in globals.css
-- Checked: #4 Malayalam summary + English paths; tsc clean
+## 2026-10-24 — UI i18n replace
+- `lib/i18n.ts`, `language-provider.tsx`, globe `LangToggle`, site header/footer/hero
+- Wired Match/Explain/Review/ScoreCard/Hints/FlowSteps to `useT()`
+- AI content lang no longer driven by UI toggle; tsc clean
 
 ## Next
-- Redeploy Vercel
-- Optional: demo PR A for #4
+- Redeploy Vercel; visual smoke on phone/laptop navbar

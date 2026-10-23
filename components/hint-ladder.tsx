@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { Lock, Send } from "lucide-react";
+import { useT } from "@/components/language-provider";
 import { Spinner } from "@/components/spinner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import type { I18nKey } from "@/lib/i18n";
 
 type HintLevel = 1 | 2 | 3;
 
@@ -43,13 +45,11 @@ type ChatMessage =
       check_yourself: string | null;
     };
 
-const STEPS: { level: HintLevel; label: string }[] = [
-  { level: 1, label: "Where to look" },
-  { level: 2, label: "What to change" },
-  { level: 3, label: "Pseudocode" },
+const STEP_KEYS: { level: HintLevel; labelKey: I18nKey }[] = [
+  { level: 1, labelKey: "hint.where" },
+  { level: 2, labelKey: "hint.what" },
+  { level: 3, labelKey: "hint.pseudo" },
 ];
-
-const REFUSE_CHIP = "Just write the fix for me";
 
 function lineChip(path: string, start: number, end: number): string {
   const lines = start === end ? `L${start}` : `L${start}–L${end}`;
@@ -75,14 +75,21 @@ function PointsChips({ points }: { points: HintPoint[] }) {
   );
 }
 
-function HintCard({ stored }: { stored: StoredHint }) {
-  const label = STEPS.find((s) => s.level === stored.level)?.label ?? "";
+function HintCard({
+  stored,
+  t,
+}: {
+  stored: StoredHint;
+  t: (key: I18nKey, params?: Record<string, string | number>) => string;
+}) {
+  const labelKey =
+    STEP_KEYS.find((s) => s.level === stored.level)?.labelKey ?? "hint.where";
   const { payload, points } = stored;
 
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
       <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-        Level {stored.level}: {label}
+        {t("hint.level", { n: stored.level, label: t(labelKey) })}
       </p>
       <p className="mt-2 text-sm leading-relaxed text-slate-800">{payload.hint}</p>
 
@@ -100,7 +107,9 @@ function HintCard({ stored }: { stored: StoredHint }) {
 
       {payload.check_yourself ? (
         <p className="mt-3 text-sm text-slate-600">
-          <span className="font-medium text-slate-800">Check yourself: </span>
+          <span className="font-medium text-slate-800">
+            {t("hint.checkYourself")}{" "}
+          </span>
           {payload.check_yourself}
         </p>
       ) : null}
@@ -112,13 +121,14 @@ export function HintLadder({
   owner,
   repo,
   number,
-  lang,
 }: {
   owner: string;
   repo: string;
   number: number;
   lang?: string | null;
 }) {
+  const t = useT();
+  const refuseChip = t("hint.refuseChip");
   /** Filled only by "Show next hint" (Hints route, no chat overwrite). */
   const [hints, setHints] = useState<Partial<Record<HintLevel, StoredHint>>>(
     {},
@@ -133,7 +143,7 @@ export function HintLadder({
   const [chatPending, setChatPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const previousHints = STEPS.filter((s) => hints[s.level])
+  const previousHints = STEP_KEYS.filter((s) => hints[s.level])
     .map((s) => hints[s.level]!.payload.hint)
     .filter(Boolean);
 
@@ -155,7 +165,6 @@ export function HintLadder({
         level: opts.level,
         userMessage: opts.userMessage,
         previousHints,
-        lang: lang ?? undefined,
       }),
     });
     const json = (await res.json()) as {
@@ -165,7 +174,7 @@ export function HintLadder({
       error?: string;
     };
     if (!res.ok || !json.hint) {
-      setError(json.error || "Request failed");
+      setError(json.error || t("hint.requestFailed"));
       return null;
     }
     return {
@@ -198,7 +207,7 @@ export function HintLadder({
       }));
       setUnlocked(target);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Hint failed");
+      setError(err instanceof Error ? err.message : t("hint.failed"));
     } finally {
       setHintPending(false);
     }
@@ -235,25 +244,23 @@ export function HintLadder({
         },
       ]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Ask failed");
+      setError(err instanceof Error ? err.message : t("hint.askFailed"));
     } finally {
       setChatPending(false);
     }
   }
 
-  const unlockedHints = STEPS.filter(
+  const unlockedHints = STEP_KEYS.filter(
     (s) => unlocked >= s.level && hints[s.level],
   ).map((s) => hints[s.level]!);
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-5">
-      <h2 className="text-sm font-semibold text-slate-900">Hints</h2>
-      <p className="mt-1 text-sm text-slate-500">
-        Three steps. FirstPR never writes the fix for you.
-      </p>
+      <h2 className="text-sm font-semibold text-slate-900">{t("hint.title")}</h2>
+      <p className="mt-1 text-sm text-slate-500">{t("hint.subtitle")}</p>
 
       <ol className="mt-5 space-y-0">
-        {STEPS.map((step, i) => {
+        {STEP_KEYS.map((step, i) => {
           const isUnlocked = unlocked >= step.level;
           return (
             <li key={step.level} className="flex gap-3">
@@ -268,7 +275,7 @@ export function HintLadder({
                 >
                   {step.level}
                 </span>
-                {i < STEPS.length - 1 ? (
+                {i < STEP_KEYS.length - 1 ? (
                   <div
                     className={[
                       "my-1 w-px flex-1 min-h-6",
@@ -285,7 +292,7 @@ export function HintLadder({
                     isUnlocked ? "text-slate-900" : "text-slate-400",
                   ].join(" ")}
                 >
-                  {step.label}
+                  {t(step.labelKey)}
                 </p>
               </div>
             </li>
@@ -303,32 +310,30 @@ export function HintLadder({
           {hintPending ? (
             <>
               <Spinner className="text-white" />
-              Thinking…
+              {t("hint.loading")}
             </>
           ) : (
-            "Show next hint"
+            t("hint.showNext")
           )}
         </Button>
         {unlocked >= 3 ? (
-          <span className="text-xs text-slate-400">All hints unlocked</span>
+          <span className="text-xs text-slate-400">{t("hint.allUnlocked")}</span>
         ) : null}
       </div>
 
       {unlockedHints.length > 0 ? (
         <div className="mt-5 space-y-3">
           {unlockedHints.map((stored) => (
-            <HintCard key={stored.level} stored={stored} />
+            <HintCard key={stored.level} stored={stored} t={t} />
           ))}
         </div>
       ) : (
-        <p className="mt-5 text-sm text-slate-500">
-          Press &quot;Show next hint&quot; to unlock where to look.
-        </p>
+        <p className="mt-5 text-sm text-slate-500">{t("hint.pressNext")}</p>
       )}
 
       <div className="mt-8 space-y-2 border-t border-slate-100 pt-6">
         <label htmlFor="ask-firstpr" className="text-sm font-medium text-slate-900">
-          Ask FirstPR
+          {t("hint.askTitle")}
         </label>
         <div className="flex gap-2">
           <Input
@@ -338,7 +343,7 @@ export function HintLadder({
             onKeyDown={(e) => {
               if (e.key === "Enter") void sendChat(ask);
             }}
-            placeholder="Ask a question about the issue…"
+            placeholder={t("hint.askPlaceholder")}
             disabled={chatPending}
             className="rounded-xl border-slate-200 focus-visible:border-blue-600 focus-visible:ring-blue-600/30"
           />
@@ -348,7 +353,7 @@ export function HintLadder({
             size="icon"
             disabled={chatPending || !ask.trim()}
             onClick={() => void sendChat(ask)}
-            aria-label="Send"
+            aria-label={t("hint.send")}
             className="rounded-xl border-slate-200 focus-visible:ring-blue-600/40"
           >
             {chatPending ? (
@@ -361,10 +366,10 @@ export function HintLadder({
         <button
           type="button"
           disabled={chatPending}
-          onClick={() => void sendChat(REFUSE_CHIP)}
+          onClick={() => void sendChat(refuseChip)}
           className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-700 hover:bg-slate-100 disabled:opacity-50"
         >
-          {REFUSE_CHIP}
+          {refuseChip}
         </button>
       </div>
 
@@ -396,8 +401,7 @@ export function HintLadder({
                       />
                       <div>
                         <p className="text-sm font-bold text-slate-900">
-                          {msg.refusal_message ||
-                            "I won't write the fix for you."}
+                          {msg.refusal_message || t("hint.wontWrite")}
                         </p>
                         <p className="mt-3 text-sm leading-relaxed text-slate-700">
                           {msg.text}
@@ -414,7 +418,7 @@ export function HintLadder({
                 {msg.check_yourself ? (
                   <p className="text-sm text-slate-600">
                     <span className="font-medium text-slate-800">
-                      Check yourself:{" "}
+                      {t("hint.checkYourself")}{" "}
                     </span>
                     {msg.check_yourself}
                   </p>
@@ -423,7 +427,7 @@ export function HintLadder({
             ),
           )}
           {chatPending ? (
-            <p className="text-sm text-slate-400">FirstPR is thinking…</p>
+            <p className="text-sm text-slate-400">{t("hint.thinking")}</p>
           ) : null}
         </div>
       ) : null}

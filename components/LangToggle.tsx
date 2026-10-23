@@ -1,88 +1,84 @@
 "use client";
 
-import { useContentLang } from "@/components/lang-provider";
-import {
-  CONTENT_LANG_OPTIONS,
-  CONTENT_LANG_QUICK,
-  type ContentLang,
-} from "@/lib/content-lang";
+import { useEffect, useRef, useState } from "react";
+import { Check, Globe } from "lucide-react";
+import { useLanguage } from "@/components/language-provider";
+import { UI_LANGS, UI_LANG_NATIVE, type UiLang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
-const QUICK_LABEL: Record<"en" | "ml" | "hi", string> = {
-  en: "EN",
-  ml: "മല",
-  hi: "हिं",
-};
-
 export function LangToggle({ className }: { className?: string }) {
-  const { lang, setLang, ready } = useContentLang();
-  const isQuick = (CONTENT_LANG_QUICK as readonly ContentLang[]).includes(lang);
+  const { lang, setLang, t, ready } = useLanguage();
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onPointerDown(e: MouseEvent) {
+      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  function pick(next: UiLang) {
+    setLang(next);
+    setOpen(false);
+  }
 
   return (
-    <div
-      className={cn(
-        "flex flex-wrap items-center justify-end gap-1.5",
-        className,
-      )}
-    >
-      <div
-        role="group"
-        aria-label="Quick language"
-        className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-0.5 text-xs font-medium text-slate-600"
-      >
-        {CONTENT_LANG_QUICK.map((value) => {
-          const active = ready && lang === value;
-          return (
-            <button
-              key={value}
-              type="button"
-              title={
-                CONTENT_LANG_OPTIONS.find((o) => o.value === value)?.label
-              }
-              aria-pressed={active}
-              disabled={!ready}
-              onClick={() => setLang(value)}
-              className={cn(
-                "rounded-md px-2 py-1 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-blue-600/40",
-                active
-                  ? "bg-white text-slate-900 shadow-sm"
-                  : "hover:text-slate-900",
-              )}
-            >
-              {QUICK_LABEL[value as "en" | "ml" | "hi"]}
-            </button>
-          );
-        })}
-      </div>
-
-      <label className="sr-only" htmlFor="firstpr-lang-more">
-        More languages
-      </label>
-      <select
-        id="firstpr-lang-more"
-        aria-label="More languages"
+    <div ref={rootRef} className={cn("relative shrink-0", className)}>
+      <button
+        type="button"
         disabled={!ready}
-        value={isQuick ? "" : lang}
-        onChange={(e) => {
-          const v = e.target.value as ContentLang | "";
-          if (v) setLang(v);
-        }}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={t("nav.language")}
+        onClick={() => setOpen((v) => !v)}
         className={cn(
-          "h-7 max-w-[9.5rem] rounded-lg border border-slate-200 bg-white px-1.5 text-xs text-slate-700 outline-none focus-visible:ring-2 focus-visible:ring-blue-600/40",
-          !isQuick && "border-blue-200 text-slate-900",
+          "inline-flex h-8 max-w-[9.5rem] items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2 text-sm text-slate-600 outline-none hover:text-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/40 sm:max-w-none",
         )}
       >
-        <option value="" disabled={isQuick}>
-          {isQuick ? "More…" : "More languages"}
-        </option>
-        {CONTENT_LANG_OPTIONS.filter(
-          (o) => !CONTENT_LANG_QUICK.includes(o.value),
-        ).map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
-      </select>
+        <Globe className="size-3.5 shrink-0" aria-hidden />
+        <span className="truncate">{UI_LANG_NATIVE[lang]}</span>
+      </button>
+
+      {open ? (
+        <ul
+          role="listbox"
+          aria-label={t("nav.language")}
+          className="absolute top-full right-0 z-50 mt-1 min-w-[9.5rem] overflow-hidden rounded-md border border-slate-200 bg-white py-1 text-sm shadow-sm"
+        >
+          {UI_LANGS.map((code) => {
+            const selected = code === lang;
+            return (
+              <li key={code} role="option" aria-selected={selected}>
+                <button
+                  type="button"
+                  onClick={() => pick(code)}
+                  className={cn(
+                    "flex w-full items-center justify-between gap-3 px-3 py-1.5 text-left text-slate-700 outline-none hover:bg-slate-50 focus-visible:bg-slate-50",
+                    selected && "text-slate-900",
+                  )}
+                >
+                  <span>{UI_LANG_NATIVE[code]}</span>
+                  {selected ? (
+                    <Check className="size-3.5 shrink-0 text-blue-600" aria-hidden />
+                  ) : (
+                    <span className="size-3.5 shrink-0" aria-hidden />
+                  )}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { DifficultyBadge } from "@/components/difficulty-badge";
+import { useT } from "@/components/language-provider";
 import { Spinner } from "@/components/spinner";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -33,19 +34,20 @@ type MatchResponse = {
   error?: string;
 };
 
-const PROGRESS_STEPS = [
-  "Reading your public repos",
-  "Finding open good first issues",
-  "Skipping ones already taken",
-] as const;
-
 export function MatchForm() {
+  const t = useT();
   const [username, setUsername] = useState("");
   const [repo, setRepo] = useState("nishal21/NekoDroid");
   const [data, setData] = useState<MatchResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [stepIndex, setStepIndex] = useState(0);
+
+  const progressSteps = [
+    t("match.progress.repos"),
+    t("match.progress.issues"),
+    t("match.progress.skip"),
+  ] as const;
 
   useEffect(() => {
     if (!pending) {
@@ -76,22 +78,19 @@ export function MatchForm() {
         const json = (await res.json()) as MatchResponse;
         if (!res.ok) {
           setData(null);
-          setError(json.error || "Match failed");
+          setError(json.error || t("match.failed"));
           return;
         }
         setData(json);
       } catch (err) {
         setData(null);
-        setError(err instanceof Error ? err.message : "Match failed");
+        setError(err instanceof Error ? err.message : t("match.failed"));
       }
     });
   }
 
   const noIssues =
-    data &&
-    !pending &&
-    !data.picked &&
-    data.others.length === 0;
+    data && !pending && !data.picked && data.others.length === 0;
 
   return (
     <div className="flex w-full flex-col gap-6">
@@ -104,11 +103,11 @@ export function MatchForm() {
       >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
           <label className="flex w-full flex-1 flex-col gap-1.5 text-sm text-slate-600">
-            GitHub username
+            {t("match.username")}
             <Input
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="octocat"
+              placeholder={t("match.usernamePlaceholder")}
               required
               autoComplete="username"
               disabled={pending}
@@ -116,11 +115,11 @@ export function MatchForm() {
             />
           </label>
           <label className="flex w-full flex-1 flex-col gap-1.5 text-sm text-slate-600">
-            Repo (optional)
+            {t("match.repo")}
             <Input
               value={repo}
               onChange={(e) => setRepo(e.target.value)}
-              placeholder="NekoDroid or owner/repo"
+              placeholder={t("match.repoPlaceholder")}
               disabled={pending}
               className="h-10 w-full rounded-xl border-slate-200 focus-visible:border-blue-600 focus-visible:ring-blue-600/30"
             />
@@ -133,10 +132,10 @@ export function MatchForm() {
             {pending ? (
               <>
                 <Spinner className="text-white" />
-                Finding…
+                {t("match.finding")}
               </>
             ) : (
-              "Find my first issue"
+              t("match.submit")
             )}
           </Button>
         </div>
@@ -145,7 +144,7 @@ export function MatchForm() {
       {pending ? (
         <div className="flex flex-col gap-6">
           <ol className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-600 shadow-sm">
-            {PROGRESS_STEPS.map((label, i) => (
+            {progressSteps.map((label, i) => (
               <li
                 key={label}
                 className={`flex items-center gap-2 py-1.5 ${
@@ -180,7 +179,7 @@ export function MatchForm() {
             className="mt-3 rounded-xl border-slate-200"
             onClick={runMatch}
           >
-            Retry
+            {t("match.retry")}
           </Button>
         </div>
       ) : null}
@@ -188,12 +187,9 @@ export function MatchForm() {
       {data && !pending ? (
         <div className="flex flex-col gap-6">
           <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
-            <span>You write:</span>
+            <span>{t("match.youWrite")}</span>
             {data.languages.length === 0 ? (
-              <span className="text-slate-500">
-                No public repos yet, so we&apos;ll pick beginner-friendly docs
-                issues.
-              </span>
+              <span className="text-slate-500">{t("match.noPublicRepos")}</span>
             ) : (
               data.languages.map((lang) => (
                 <Badge
@@ -244,12 +240,12 @@ export function MatchForm() {
                   "mt-4 h-10 rounded-xl bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-600/40",
                 )}
               >
-                Explain this issue
+                {t("match.explainIssue")}
               </Link>
             </article>
           ) : noIssues ? (
             <p className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-600 shadow-sm">
-              No open good first issues here. Try{" "}
+              {t("match.noIssuesBefore")}
               <Link
                 href="/"
                 className="font-medium text-blue-600 hover:underline"
@@ -259,15 +255,15 @@ export function MatchForm() {
                 }}
               >
                 nishal21/NekoDroid
-              </Link>{" "}
-              or another repo.
+              </Link>
+              {t("match.noIssuesAfter")}
             </p>
           ) : null}
 
           {data.others.length > 0 ? (
             <div className="flex flex-col gap-3">
               <h2 className="text-sm font-semibold tracking-wide text-slate-500 uppercase">
-                Other fits
+                {t("match.otherFits")}
               </h2>
               {data.others.map((issue) => (
                 <article
@@ -297,7 +293,7 @@ export function MatchForm() {
                     href={`/issue/${issue.owner}/${issue.repo}/${issue.number}`}
                     className="mt-2 inline-block text-sm text-blue-600 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-blue-600/40"
                   >
-                    Explain this issue
+                    {t("match.explainIssue")}
                   </Link>
                 </article>
               ))}
@@ -307,7 +303,7 @@ export function MatchForm() {
           {data.skipped.length > 0 ? (
             <div className="flex flex-col gap-3">
               <h2 className="text-sm font-semibold tracking-wide text-slate-500 uppercase">
-                Already taken
+                {t("match.alreadyTaken")}
               </h2>
               {data.skipped.map((issue) => (
                 <article

@@ -6,7 +6,7 @@ import { Check, ExternalLink } from "lucide-react";
 import { DifficultyBadge } from "@/components/difficulty-badge";
 import { FlowProgress } from "@/components/flow-steps";
 import { HintLadder } from "@/components/hint-ladder";
-import { useContentLang } from "@/components/lang-provider";
+import { useT } from "@/components/language-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -55,12 +55,6 @@ type ExplainApiResponse = {
   code?: string;
 };
 
-const LOADING_STEPS = [
-  "Reading the issue",
-  "Finding the files that matter",
-  "Checking every line reference",
-] as const;
-
 function lineRangeLabel(start: number, end: number): string {
   return start === end ? `L${start}` : `L${start}–L${end}`;
 }
@@ -73,18 +67,21 @@ export function IssueExplain({
   owner: string;
   repo: string;
   number: number;
-  /** @deprecated Prefer LangToggle / useContentLang; kept for page compat. */
   lang?: string | null;
 }) {
-  const { lang: contentLang, ready: langReady } = useContentLang();
+  const t = useT();
   const [data, setData] = useState<ExplainApiResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [stepIndex, setStepIndex] = useState(0);
 
-  useEffect(() => {
-    if (!langReady) return;
+  const loadingSteps = [
+    t("explain.loading.issue"),
+    t("explain.loading.files"),
+    t("explain.loading.lines"),
+  ] as const;
 
+  useEffect(() => {
     let cancelled = false;
     let stepTimer: ReturnType<typeof setInterval> | undefined;
 
@@ -94,31 +91,26 @@ export function IssueExplain({
       setData(null);
       setStepIndex(0);
       stepTimer = setInterval(() => {
-        setStepIndex((i) => Math.min(i + 1, LOADING_STEPS.length - 1));
+        setStepIndex((i) => Math.min(i + 1, loadingSteps.length - 1));
       }, 2200);
 
       try {
         const res = await fetch("/api/explain", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            owner,
-            repo,
-            number,
-            lang: contentLang,
-          }),
+          body: JSON.stringify({ owner, repo, number }),
         });
         const json = (await res.json()) as ExplainApiResponse;
         if (cancelled) return;
         if (!res.ok) {
-          setError(json.error || "Explain failed");
+          setError(json.error || t("explain.failed"));
           setData(null);
           return;
         }
         setData(json);
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Explain failed");
+          setError(err instanceof Error ? err.message : t("explain.failed"));
           setData(null);
         }
       } finally {
@@ -132,14 +124,15 @@ export function IssueExplain({
       cancelled = true;
       if (stepTimer) clearInterval(stepTimer);
     };
-  }, [owner, repo, number, contentLang, langReady]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- UI lang must not refetch AI
+  }, [owner, repo, number]);
 
   if (loading) {
     return (
       <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
         <FlowProgress current="explain" />
         <p className="mb-6 text-sm font-medium text-blue-600">
-          {LOADING_STEPS[stepIndex]}…
+          {loadingSteps[stepIndex]}…
         </p>
         <div className="space-y-6">
           <Skeleton className="h-8 w-2/3 rounded-lg bg-slate-100" />
@@ -160,13 +153,15 @@ export function IssueExplain({
       <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
         <FlowProgress current="explain" />
         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-          <p className="text-sm text-slate-700">{error || "Something went wrong."}</p>
+          <p className="text-sm text-slate-700">
+            {error || t("explain.somethingWrong")}
+          </p>
           <Button
             className="mt-4 rounded-xl border-slate-200"
             variant="outline"
             onClick={() => window.location.reload()}
           >
-            Retry
+            {t("explain.retry")}
           </Button>
         </div>
       </section>
@@ -228,14 +223,16 @@ export function IssueExplain({
       <div className="grid gap-6 md:grid-cols-2">
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-900">
-            What this issue is asking
+            {t("explain.whatAsking")}
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-slate-600">
             {explanation.summary}
           </p>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-slate-900">Why it matters</h2>
+          <h2 className="text-sm font-semibold text-slate-900">
+            {t("explain.whyMatters")}
+          </h2>
           <p className="mt-2 text-sm leading-relaxed text-slate-600">
             {explanation.why_it_matters}
           </p>
@@ -245,7 +242,7 @@ export function IssueExplain({
       {explanation.concepts.length > 0 ? (
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-900">
-            Words you might not know
+            {t("explain.words")}
           </h2>
           <dl className="mt-3 divide-y divide-slate-100">
             {explanation.concepts.map((c) => (
@@ -264,7 +261,7 @@ export function IssueExplain({
       {data.learn && data.learn.length >= 2 ? (
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-900">
-            Learn this first
+            {t("explain.learnFirst")}
           </h2>
           <ul className="mt-3 flex flex-col gap-3">
             {data.learn.map((item) => (
@@ -284,16 +281,19 @@ export function IssueExplain({
               </li>
             ))}
           </ul>
-          <p className="mt-3 text-xs text-slate-400">Search by SerpApi</p>
+          <p className="mt-3 text-xs text-slate-400">
+            {t("explain.searchBySerpapi")}
+          </p>
         </div>
       ) : null}
 
       <div>
-        <h2 className="mb-3 text-sm font-semibold text-slate-900">Where to look</h2>
+        <h2 className="mb-3 text-sm font-semibold text-slate-900">
+          {t("explain.whereLook")}
+        </h2>
         {citations.length === 0 ? (
           <p className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-600">
-            No verified line references yet. Open the issue and explore the repo
-            tree.
+            {t("explain.noCitations")}
           </p>
         ) : (
           <ul className="space-y-3">
@@ -318,13 +318,13 @@ export function IssueExplain({
                     rel="noopener noreferrer"
                     className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-blue-600 hover:bg-slate-50"
                   >
-                    Open on GitHub
+                    {t("explain.openOnGithub")}
                     <ExternalLink className="size-3.5" aria-hidden />
                   </a>
                 </div>
                 <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-emerald-700">
                   <Check className="size-3.5" aria-hidden />
-                  Checked against the real file
+                  {t("explain.checkedFile")}
                 </p>
               </li>
             ))}
@@ -334,7 +334,9 @@ export function IssueExplain({
 
       <div className="grid gap-6 md:grid-cols-2">
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-slate-900">You&apos;re done when</h2>
+          <h2 className="text-sm font-semibold text-slate-900">
+            {t("explain.doneWhen")}
+          </h2>
           {explanation.done_when.length > 0 ? (
             <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-slate-600">
               {explanation.done_when.map((item) => (
@@ -342,12 +344,14 @@ export function IssueExplain({
               ))}
             </ul>
           ) : (
-            <p className="mt-2 text-sm text-slate-500">No checklist items yet.</p>
+            <p className="mt-2 text-sm text-slate-500">
+              {t("explain.noChecklist")}
+            </p>
           )}
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="text-sm font-semibold text-slate-900">
-            How to check your work
+            {t("explain.howCheck")}
           </h2>
           {explanation.how_to_check.length > 0 ? (
             <div className="mt-3 flex flex-wrap gap-2">
@@ -362,31 +366,26 @@ export function IssueExplain({
             </div>
           ) : (
             <p className="mt-2 text-sm text-slate-500">
-              No commands listed in CONTRIBUTING for this change.
+              {t("explain.noCommands")}
             </p>
           )}
         </div>
       </div>
 
-      <HintLadder
-        owner={owner}
-        repo={repo}
-        number={number}
-        lang={contentLang}
-      />
+      <HintLadder owner={owner} repo={repo} number={number} />
 
       <div className="flex flex-wrap items-center gap-4 border-t border-slate-200 pt-6 text-sm">
         <Link
           href="/"
           className="text-blue-600 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-blue-600/40"
         >
-          Find another issue
+          {t("explain.findAnother")}
         </Link>
         <Link
           href="/review"
           className="rounded-xl bg-blue-600 px-4 py-2 font-medium text-white outline-none hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-600/40"
         >
-          Review my PR
+          {t("explain.reviewPr")}
         </Link>
       </div>
     </section>

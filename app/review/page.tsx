@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { FlowProgress } from "@/components/flow-steps";
-import { useContentLang } from "@/components/lang-provider";
+import { useT } from "@/components/language-provider";
 import { ScoreCard } from "@/components/score-card";
 import { Spinner } from "@/components/spinner";
 import { Button } from "@/components/ui/button";
@@ -11,13 +11,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import type { ReviewResult } from "@/lib/review-format";
-
-const LOADING_STEPS = [
-  "Reading your PR",
-  "Reading CONTRIBUTING.md",
-  "Checking against the issue",
-  "Reviewing the diff",
-] as const;
 
 type ReviewApiResponse = ReviewResult & {
   error?: string;
@@ -30,7 +23,7 @@ type ReviewApiResponse = ReviewResult & {
 };
 
 export default function ReviewPage() {
-  const { lang: contentLang } = useContentLang();
+  const t = useT();
   const [tab, setTab] = useState("pr");
   const [prUrl, setPrUrl] = useState(
     "https://github.com/nishal21/NekoDroid/pull/7",
@@ -43,14 +36,21 @@ export default function ReviewPage() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ReviewApiResponse | null>(null);
 
+  const loadingSteps = [
+    t("review.loading.pr"),
+    t("review.loading.contributing"),
+    t("review.loading.issue"),
+    t("review.loading.diff"),
+  ] as const;
+
   useEffect(() => {
     if (!loading) return;
     setStepIndex(0);
-    const t = setInterval(() => {
-      setStepIndex((i) => Math.min(i + 1, LOADING_STEPS.length - 1));
+    const id = setInterval(() => {
+      setStepIndex((i) => Math.min(i + 1, loadingSteps.length - 1));
     }, 2200);
-    return () => clearInterval(t);
-  }, [loading]);
+    return () => clearInterval(id);
+  }, [loading, loadingSteps.length]);
 
   async function run() {
     if (loading) return;
@@ -63,14 +63,13 @@ export default function ReviewPage() {
     try {
       const body =
         tab === "pr"
-          ? { prUrl: prUrl.trim(), lang: contentLang }
+          ? { prUrl: prUrl.trim() }
           : {
               diff: diff.trim(),
               repo: repo.trim() || undefined,
               issueNumber: issueNumber.trim()
                 ? Number(issueNumber.trim())
                 : undefined,
-              lang: contentLang,
             };
 
       const res = await fetch("/api/review", {
@@ -80,12 +79,12 @@ export default function ReviewPage() {
       });
       const json = (await res.json()) as ReviewApiResponse;
       if (!res.ok) {
-        setError(json.error || "Review failed");
+        setError(json.error || t("review.failed"));
         return;
       }
       setResult(json);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Review failed");
+      setError(err instanceof Error ? err.message : t("review.failed"));
     } finally {
       setLoading(false);
     }
@@ -96,13 +95,9 @@ export default function ReviewPage() {
       <FlowProgress current="review" />
 
       <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
-        Review my PR
+        {t("review.title")}
       </h1>
-      <p className="mt-2 max-w-2xl text-slate-600">
-        Paste a pull request URL or a diff. FirstPR scores it against the linked
-        issue, CONTRIBUTING.md, and the change itself — without writing your
-        fix.
-      </p>
+      <p className="mt-2 max-w-2xl text-slate-600">{t("review.subtitle")}</p>
 
       <form
         className="mt-8 rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
@@ -111,25 +106,22 @@ export default function ReviewPage() {
           void run();
         }}
       >
-        <Tabs
-          value={tab}
-          onValueChange={(v) => setTab(String(v))}
-        >
+        <Tabs value={tab} onValueChange={(v) => setTab(String(v))}>
           <TabsList variant="line" className="mb-4 w-full max-w-full sm:w-auto">
             <TabsTrigger value="pr" className="flex-1 sm:flex-none">
-              PR link
+              {t("review.tabPr")}
             </TabsTrigger>
             <TabsTrigger value="diff" className="flex-1 sm:flex-none">
-              Paste a diff
+              {t("review.tabDiff")}
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="pr" className="space-y-3">
             <label className="block text-sm font-medium text-slate-700">
-              Pull request URL
+              {t("review.prUrl")}
               <Input
                 className="mt-1.5 h-10 w-full rounded-xl border-slate-200 focus-visible:border-blue-600 focus-visible:ring-blue-600/30"
-                placeholder="https://github.com/owner/repo/pull/123"
+                placeholder={t("review.prUrlPlaceholder")}
                 value={prUrl}
                 onChange={(e) => setPrUrl(e.target.value)}
                 disabled={loading}
@@ -139,10 +131,10 @@ export default function ReviewPage() {
 
           <TabsContent value="diff" className="space-y-3">
             <label className="block text-sm font-medium text-slate-700">
-              Unified diff
+              {t("review.diff")}
               <Textarea
                 className="mt-1.5 min-h-40 w-full rounded-xl border-slate-200 font-mono text-xs focus-visible:border-blue-600 focus-visible:ring-blue-600/30"
-                placeholder="diff --git a/…"
+                placeholder={t("review.diffPlaceholder")}
                 value={diff}
                 onChange={(e) => setDiff(e.target.value)}
                 disabled={loading}
@@ -150,20 +142,20 @@ export default function ReviewPage() {
             </label>
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="block text-sm font-medium text-slate-700">
-                Repo (optional)
+                {t("review.repo")}
                 <Input
                   className="mt-1.5 h-10 w-full rounded-xl border-slate-200 focus-visible:border-blue-600 focus-visible:ring-blue-600/30"
-                  placeholder="owner/repo"
+                  placeholder={t("review.repoPlaceholder")}
                   value={repo}
                   onChange={(e) => setRepo(e.target.value)}
                   disabled={loading}
                 />
               </label>
               <label className="block text-sm font-medium text-slate-700">
-                Issue number (optional)
+                {t("review.issueNumber")}
                 <Input
                   className="mt-1.5 h-10 w-full rounded-xl border-slate-200 focus-visible:border-blue-600 focus-visible:ring-blue-600/30"
-                  placeholder="4"
+                  placeholder={t("review.issuePlaceholder")}
                   value={issueNumber}
                   onChange={(e) => setIssueNumber(e.target.value)}
                   disabled={loading}
@@ -183,10 +175,10 @@ export default function ReviewPage() {
           {loading ? (
             <>
               <Spinner className="text-white" />
-              Running…
+              {t("review.running")}
             </>
           ) : (
-            "Run maintainer-ready check"
+            t("review.submit")
           )}
         </Button>
       </form>
@@ -195,10 +187,10 @@ export default function ReviewPage() {
         <div className="mt-10 space-y-6">
           <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
             <p className="text-sm font-medium text-blue-600">
-              {LOADING_STEPS[stepIndex]}…
+              {loadingSteps[stepIndex]}…
             </p>
             <ul className="mt-3 space-y-2">
-              {LOADING_STEPS.map((step, i) => (
+              {loadingSteps.map((step, i) => (
                 <li
                   key={step}
                   className={`text-sm ${
@@ -237,7 +229,7 @@ export default function ReviewPage() {
             className="mt-3 rounded-xl border-slate-200"
             onClick={() => void run()}
           >
-            Retry
+            {t("review.retry")}
           </Button>
         </div>
       ) : null}
@@ -246,7 +238,7 @@ export default function ReviewPage() {
         <div className="mt-10">
           {result.pr?.htmlUrl ? (
             <p className="mb-4 text-sm text-slate-500">
-              Reviewing{" "}
+              {t("review.reviewing")}{" "}
               <a
                 href={result.pr.htmlUrl}
                 className="text-blue-600 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-blue-600/40"

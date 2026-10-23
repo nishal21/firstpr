@@ -1,27 +1,34 @@
+"use client";
+
 import Link from "next/link";
+import { useT } from "@/components/language-provider";
 import { cn } from "@/lib/utils";
 
 export type FlowStep = "match" | "explain" | "review";
-
-const STEPS: { id: FlowStep; label: string; href: string }[] = [
-  { id: "match", label: "Match", href: "/" },
-  { id: "explain", label: "Explain", href: "/issue/nishal21/NekoDroid/4" },
-  { id: "review", label: "Review", href: "/review" },
-];
 
 /**
  * Top progress for issue + review pages. Current step in blue-600.
  */
 export function FlowProgress({ current }: { current: FlowStep }) {
-  const currentIndex = STEPS.findIndex((s) => s.id === current);
+  const t = useT();
+  const steps: { id: FlowStep; label: string; href: string }[] = [
+    { id: "match", label: t("flow.match"), href: "/" },
+    {
+      id: "explain",
+      label: t("flow.explain"),
+      href: "/issue/nishal21/NekoDroid/4",
+    },
+    { id: "review", label: t("flow.review"), href: "/review" },
+  ];
+  const currentIndex = steps.findIndex((s) => s.id === current);
 
   return (
     <nav
-      aria-label="FirstPR progress"
+      aria-label={t("nav.progress")}
       className="mb-8 overflow-x-auto border-b border-slate-200 pb-4"
     >
       <ol className="flex min-w-0 flex-wrap items-center gap-1 text-sm sm:gap-2">
-        {STEPS.map((step, i) => {
+        {steps.map((step, i) => {
           const isCurrent = step.id === current;
           const isPast = i < currentIndex;
           return (
@@ -56,19 +63,11 @@ export function FlowProgress({ current }: { current: FlowStep }) {
 
 /** Landing strip: three steps with one line each. */
 export function LandingSteps() {
-  const copy: { title: string; line: string }[] = [
-    {
-      title: "Match",
-      line: "Enter a GitHub username. We pick an open good first issue nobody claimed.",
-    },
-    {
-      title: "Explain",
-      line: "Plain English, real files and lines — hints in three levels, never the fix.",
-    },
-    {
-      title: "Review",
-      line: "Paste your PR or diff. We score it against the issue and CONTRIBUTING.md.",
-    },
+  const t = useT();
+  const copy = [
+    { title: t("steps.match.title"), line: t("steps.match.line") },
+    { title: t("steps.explain.title"), line: t("steps.explain.line") },
+    { title: t("steps.review.title"), line: t("steps.review.line") },
   ];
 
   return (
@@ -79,7 +78,7 @@ export function LandingSteps() {
           className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
         >
           <p className="text-xs font-semibold tracking-wide text-blue-600 uppercase">
-            Step {i + 1}
+            {t("steps.step", { n: i + 1 })}
           </p>
           <h2 className="mt-1 text-lg font-semibold text-slate-900">
             {step.title}

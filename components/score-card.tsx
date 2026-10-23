@@ -2,15 +2,17 @@
 
 import { Check, Circle, Copy, ExternalLink, Minus, X } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useT } from "@/components/language-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import type { I18nKey } from "@/lib/i18n";
 import {
   formatReviewMarkdown,
   type ReviewChecklistItem,
   type ReviewLineComment,
   type ReviewResult,
 } from "@/lib/review-format";
-import { verdictLabel, type Verdict } from "@/lib/score";
+import type { Verdict } from "@/lib/score";
 
 function verdictClass(v: Verdict): string {
   if (v === "ready") return "bg-emerald-50 text-emerald-800 border-emerald-200";
@@ -18,7 +20,13 @@ function verdictClass(v: Verdict): string {
   return "bg-red-50 text-red-800 border-red-200";
 }
 
-function ScoreRing({ score }: { score: number }) {
+function ScoreRing({
+  score,
+  outOfLabel,
+}: {
+  score: number;
+  outOfLabel: string;
+}) {
   const r = 54;
   const c = 2 * Math.PI * r;
   const pct = Math.min(100, Math.max(0, score)) / 100;
@@ -54,13 +62,19 @@ function ScoreRing({ score }: { score: number }) {
         <span className="text-3xl font-semibold tabular-nums text-slate-900">
           {score}
         </span>
-        <span className="text-xs text-slate-500">out of 100</span>
+        <span className="text-xs text-slate-500">{outOfLabel}</span>
       </div>
     </div>
   );
 }
 
-function StatusIcon({ status }: { status: ReviewChecklistItem["status"] }) {
+function StatusIcon({
+  status,
+  naTitle,
+}: {
+  status: ReviewChecklistItem["status"];
+  naTitle: string;
+}) {
   if (status === "pass") {
     return (
       <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
@@ -79,7 +93,7 @@ function StatusIcon({ status }: { status: ReviewChecklistItem["status"] }) {
     return (
       <span
         className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-400"
-        title="Not applicable"
+        title={naTitle}
       >
         <Minus className="h-3.5 w-3.5" strokeWidth={2.5} />
       </span>
@@ -92,6 +106,20 @@ function StatusIcon({ status }: { status: ReviewChecklistItem["status"] }) {
   );
 }
 
+function verdictKey(v: Verdict): I18nKey {
+  if (v === "ready") return "verdict.ready";
+  if (v === "almost") return "verdict.almost";
+  return "verdict.needs";
+}
+
+function severityKey(
+  severity: ReviewLineComment["severity"],
+): I18nKey {
+  if (severity === "blocker") return "score.blocker";
+  if (severity === "suggestion") return "score.suggestion";
+  return "score.nit";
+}
+
 function severityBadge(severity: ReviewLineComment["severity"]) {
   if (severity === "blocker")
     return "border-red-200 bg-red-50 text-red-800";
@@ -101,6 +129,7 @@ function severityBadge(severity: ReviewLineComment["severity"]) {
 }
 
 export function ScoreCard({ result }: { result: ReviewResult }) {
+  const t = useT();
   const [copied, setCopied] = useState(false);
   const markdown = useMemo(() => formatReviewMarkdown(result), [result]);
 
@@ -128,13 +157,13 @@ export function ScoreCard({ result }: { result: ReviewResult }) {
     <div className="space-y-8">
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
         <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-start sm:text-left">
-          <ScoreRing score={result.score} />
+          <ScoreRing score={result.score} outOfLabel={t("score.outOf")} />
           <div className="flex-1 space-y-3">
             <Badge
               variant="outline"
               className={`rounded-lg border px-2.5 py-1 text-sm font-medium ${verdictClass(result.verdict)}`}
             >
-              {verdictLabel(result.verdict)}
+              {t(verdictKey(result.verdict))}
             </Badge>
             <p className="text-base text-slate-700">{result.summary}</p>
             <Button
@@ -145,7 +174,7 @@ export function ScoreCard({ result }: { result: ReviewResult }) {
               onClick={copyMarkdown}
             >
               <Copy className="h-3.5 w-3.5" />
-              {copied ? "Copied" : "Copy as PR comment"}
+              {copied ? t("score.copied") : t("score.copy")}
             </Button>
           </div>
         </div>
@@ -153,7 +182,7 @@ export function ScoreCard({ result }: { result: ReviewResult }) {
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold tracking-tight text-slate-900">
-          Checklist
+          {t("score.checklist")}
         </h2>
         <ul className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white">
           {result.checklist.map((item) => (
@@ -161,7 +190,10 @@ export function ScoreCard({ result }: { result: ReviewResult }) {
               key={`${item.source}-${item.id}`}
               className="flex gap-3 px-4 py-3.5"
             >
-              <StatusIcon status={item.status} />
+              <StatusIcon
+                status={item.status}
+                naTitle={t("score.notApplicable")}
+              />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span
@@ -173,11 +205,11 @@ export function ScoreCard({ result }: { result: ReviewResult }) {
                   </span>
                   {item.status === "na" ? (
                     <span className="rounded border border-slate-200 bg-slate-50 px-1.5 py-px text-[10px] font-medium uppercase tracking-wide text-slate-400">
-                      Not applicable
+                      {t("score.notApplicable")}
                     </span>
                   ) : (
                     <span className="rounded border border-slate-200 bg-slate-50 px-1.5 py-px text-[10px] font-medium uppercase tracking-wide text-slate-500">
-                      {item.source === "ai" ? "AI" : "Rule"}
+                      {item.source === "ai" ? t("score.ai") : t("score.rule")}
                     </span>
                   )}
                 </div>
@@ -196,7 +228,7 @@ export function ScoreCard({ result }: { result: ReviewResult }) {
       {byFile.length > 0 ? (
         <section className="space-y-3">
           <h2 className="text-sm font-semibold tracking-tight text-slate-900">
-            Line comments
+            {t("score.lineComments")}
           </h2>
           <div className="space-y-4">
             {byFile.map(([path, comments]) => (
@@ -216,7 +248,7 @@ export function ScoreCard({ result }: { result: ReviewResult }) {
                           variant="outline"
                           className={`rounded-md text-[10px] uppercase ${severityBadge(c.severity)}`}
                         >
-                          {c.severity}
+                          {t(severityKey(c.severity))}
                         </Badge>
                         {c.filesChangedUrl ? (
                           <a
@@ -225,7 +257,7 @@ export function ScoreCard({ result }: { result: ReviewResult }) {
                             rel="noreferrer"
                             className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline"
                           >
-                            Files changed
+                            {t("score.filesChanged")}
                             <ExternalLink className="h-3 w-3" />
                           </a>
                         ) : null}
@@ -243,7 +275,7 @@ export function ScoreCard({ result }: { result: ReviewResult }) {
       {result.questions_a_maintainer_would_ask.length > 0 ? (
         <section className="space-y-3">
           <h2 className="text-sm font-semibold tracking-tight text-slate-900">
-            Questions a maintainer would ask
+            {t("score.questions")}
           </h2>
           <ul className="list-disc space-y-2 rounded-xl border border-slate-200 bg-white px-8 py-4 text-sm text-slate-700">
             {result.questions_a_maintainer_would_ask.map((q) => (

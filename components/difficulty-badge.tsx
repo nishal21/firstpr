@@ -1,4 +1,8 @@
+"use client";
+
+import { useT } from "@/components/language-provider";
 import { Badge } from "@/components/ui/badge";
+import { difficultyBadgeKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export function DifficultyBadge({
@@ -8,6 +12,9 @@ export function DifficultyBadge({
   label: string;
   className?: string;
 }) {
+  const t = useT();
+  const key = difficultyBadgeKey(label);
+  const text = key ? t(key) : label;
   const isStretch = label.toLowerCase() === "stretch";
   return (
     <Badge
@@ -20,7 +27,7 @@ export function DifficultyBadge({
         className,
       )}
     >
-      {label}
+      {text}
     </Badge>
   );
 }
