@@ -98,6 +98,12 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - `/review` full UI; script `scripts/verify-review.ts`
 - Checked: NekoDroid #7 → 57/almost, 9 checklist rows with Rule/AI + fix lines
 
+## 2026-10-23 — Review bugs (tests / badge / CONTRIBUTING)
+- Inline-test detection in `lib/checks.ts`
+- `verdictFromChecklist` + `summaryForVerdict` + badge labels Needs changes / Almost ready / Ready to merge
+- Required `contributing_rules` on schema + retry/fallback in `lib/review.ts`
+- Checked #7: tests pass, Almost ready, CONTRIBUTING real result
+
 ## Next
 - Redeploy Vercel
 - Optional: open demo PR A for stage path

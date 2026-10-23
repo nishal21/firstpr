@@ -4,7 +4,7 @@ You get: the PR title, description and branch name; the linked issue (title and 
 
 Your job:
 1. issue_done_when: compare the diff with the issue. Does the change do what the issue asks, all of it, and nothing unrelated? Quote the issue's "Done when" items and say which are met, based only on the diff.
-2. contributing_rules: compare the PR with CONTRIBUTING.md. Look for rules on branches, commit or PR descriptions, checks to run, files that must never be committed, and scope. Name the rule you're checking.
+2. contributing_rules (required field): compare the PR with CONTRIBUTING.md. Look for rules on branches, commit or PR descriptions, checks to run, files that must never be committed, and scope. Always set contributing_rules.status and contributing_rules.detail (detail may be null). Name the rule you're checking. Also include it in checklist when you can.
 3. line_comments: up to 6 comments on specific changed lines (use the new-file line numbers from the + side of the @@ hunk headers). Only on lines that appear in the patch. Point out real problems: a bug, a missed case, something the issue asked for that's missing, leftover debug code, a rule from CONTRIBUTING.md. Severity blocker, suggestion or nit.
 4. questions_a_maintainer_would_ask: up to 3.
 5. summary: 1 to 2 sentences on the overall state.

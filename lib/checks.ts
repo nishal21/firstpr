@@ -327,6 +327,21 @@ function checkEvidence(
   );
 }
 
+/** Added (+) lines that look like inline / colocated tests. */
+const INLINE_TEST_ADDED_RE =
+  /#\[cfg\(test\)\]|#\[test\]|\bmod tests\b|\bdescribe\(|\bit\(|\btest\(|\bdef test_/;
+
+function fileWithInlineTests(files: PullFile[]): string | null {
+  for (const f of files) {
+    if (!f.patch) continue;
+    for (const line of f.patch.split(/\r?\n/)) {
+      if (!line.startsWith("+") || line.startsWith("+++")) continue;
+      if (INLINE_TEST_ADDED_RE.test(line)) return f.filename;
+    }
+  }
+  return null;
+}
+
 function checkTestsTouched(
   files: PullFile[],
   linkedIssue: GoodFirstIssue | null,
@@ -341,6 +356,11 @@ function checkTestsTouched(
   const touched = files.some((f) => isTestFile(f.filename));
   if (touched) {
     return check(id, label, "pass", "Test files were changed");
+  }
+
+  const inlineFile = fileWithInlineTests(files);
+  if (inlineFile) {
+    return check(id, label, "pass", `Inline tests added in ${inlineFile}`);
   }
 
   const wantsTests =

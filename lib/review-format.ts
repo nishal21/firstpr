@@ -1,5 +1,5 @@
 import type { CheckResult, CheckStatus } from "@/lib/checks";
-import type { Verdict } from "@/lib/score";
+import { verdictLabel, type Verdict } from "@/lib/score";
 
 export type ChecklistSource = "rule" | "ai";
 
@@ -33,15 +33,10 @@ export type ReviewResult = {
 
 /** Markdown for “Copy as PR comment”. */
 export function formatReviewMarkdown(result: ReviewResult): string {
-  const verdictLabel =
-    result.verdict === "ready"
-      ? "Ready to merge"
-      : result.verdict === "almost"
-        ? "Almost there"
-        : "Not yet";
+  const badge = verdictLabel(result.verdict);
 
   const lines: string[] = [
-    `## FirstPR maintainer-ready check: ${result.score}/100 — ${verdictLabel}`,
+    `## FirstPR maintainer-ready check: ${result.score}/100 — ${badge}`,
     "",
     result.summary,
     "",

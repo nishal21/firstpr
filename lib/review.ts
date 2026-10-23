@@ -12,7 +12,11 @@ import type {
   ReviewResult,
 } from "@/lib/review-format";
 import { reviewSchema, type ReviewOutput } from "@/lib/schemas";
-import { scoreChecks } from "@/lib/score";
+import {
+  scoreChecks,
+  summaryForVerdict,
+  verdictFromChecklist,
+} from "@/lib/score";
 
 export type {
   ChecklistSource,
@@ -24,6 +28,9 @@ export { formatReviewMarkdown } from "@/lib/review-format";
 
 const CONTRIBUTING_MAX = 6000;
 const PATCHES_MAX_TOTAL = 30_000;
+
+const CONTRIBUTING_FALLBACK_DETAIL =
+  "Couldn't check CONTRIBUTING.md, review it by hand";
 
 export type ReviewPrArgs = {
   pr: PullRequestInfo | null;
@@ -127,6 +134,19 @@ function mergeAiStatus(
   return status;
 }
 
+function hasContributingRules(
+  raw: ReviewOutput,
+): raw is ReviewOutput & {
+  contributing_rules: { status: CheckStatus; detail: string | null };
+} {
+  return (
+    raw.contributing_rules != null &&
+    (raw.contributing_rules.status === "pass" ||
+      raw.contributing_rules.status === "warn" ||
+      raw.contributing_rules.status === "fail")
+  );
+}
+
 function filterLineComments(
   comments: ReviewOutput["line_comments"],
   files: PullFile[],
@@ -162,6 +182,17 @@ function filterLineComments(
   return out.slice(0, 6);
 }
 
+async function callReviewModel(user: string): Promise<ReviewOutput> {
+  return generateJson({
+    task: "review",
+    system: REVIEW_SYSTEM,
+    user,
+    schema: reviewSchema,
+    schemaName: "review",
+    effort: "medium",
+  });
+}
+
 /**
  * Run deterministic checks, then AI review; merge checklist; score in code.
  */
@@ -191,21 +222,10 @@ export async function reviewPr(args: ReviewPrArgs): Promise<ReviewResult> {
     lang: args.lang,
   });
 
-  const raw = await generateJson({
-    task: "review",
-    system: REVIEW_SYSTEM,
-    user,
-    schema: reviewSchema,
-    schemaName: "review",
-    effort: "medium",
-  });
-
-  // Ensure exactly the two AI ids (schema requires length 2; trim if API allowed more).
-  const aiItems = raw.checklist
-    .filter(
-      (c) => c.id === "issue_done_when" || c.id === "contributing_rules",
-    )
-    .slice(0, 2);
+  let raw = await callReviewModel(user);
+  if (!hasContributingRules(raw)) {
+    raw = await callReviewModel(user);
+  }
 
   const linked = checks.find((c) => c.id === "linked_issue");
   const branch = checks.find((c) => c.id === "branch_name");
@@ -222,60 +242,79 @@ export async function reviewPr(args: ReviewPrArgs): Promise<ReviewResult> {
     })),
   ];
 
+  // issue_done_when from checklist array
+  const issueItem = raw.checklist.find((c) => c.id === "issue_done_when");
   let issueDoneWhenStatus: CheckStatus = "warn";
-  let aiContributingStatus: CheckStatus = "warn";
-
-  for (const item of aiItems) {
-    let status = item.status as CheckStatus;
-    if (item.id === "issue_done_when") {
-      status = mergeAiStatus(status, [linked?.status ?? "warn"]);
-      issueDoneWhenStatus = status;
-    } else if (item.id === "contributing_rules") {
-      status = mergeAiStatus(status, [
-        branch?.status ?? "pass",
-        forbidden?.status ?? "pass",
-      ]);
-      aiContributingStatus = status;
-    }
-
+  if (issueItem) {
+    const status = mergeAiStatus(issueItem.status, [
+      linked?.status ?? "warn",
+    ]);
+    issueDoneWhenStatus = status;
     checklist.push({
-      id: item.id,
-      label: item.label,
+      id: "issue_done_when",
+      label: issueItem.label || "Issue Done when",
       status,
-      evidence: item.evidence,
-      fix: status === "pass" ? null : item.fix,
+      evidence: issueItem.evidence,
+      fix: status === "pass" ? null : issueItem.fix,
       source: "ai",
     });
-  }
-
-  // If model omitted an AI row, still score with warn defaults via scoreChecks opts.
-  if (!aiItems.some((i) => i.id === "issue_done_when")) {
+  } else {
     checklist.push({
       id: "issue_done_when",
       label: "Issue Done when",
       status: "warn",
-      evidence: "AI did not return this checklist item",
-      fix: "Re-run the review after the model responds fully.",
+      evidence: "Model did not return this item; re-check the issue Done when list by hand.",
+      fix: "Compare the diff to the issue’s Done when items yourself.",
       source: "ai",
     });
-    issueDoneWhenStatus = "warn";
   }
-  if (!aiItems.some((i) => i.id === "contributing_rules")) {
+
+  // contributing_rules from required top-level field (fallback after retry)
+  let aiContributingStatus: CheckStatus = "warn";
+  if (hasContributingRules(raw)) {
+    const status = mergeAiStatus(raw.contributing_rules.status, [
+      branch?.status ?? "pass",
+      forbidden?.status ?? "pass",
+    ]);
+    aiContributingStatus = status;
+    const detail = raw.contributing_rules.detail?.trim() || null;
+    const fromChecklist = raw.checklist.find(
+      (c) => c.id === "contributing_rules",
+    );
+    checklist.push({
+      id: "contributing_rules",
+      label: "CONTRIBUTING rules",
+      status,
+      evidence:
+        detail ||
+        fromChecklist?.evidence ||
+        "Checked against CONTRIBUTING.md",
+      fix:
+        status === "pass"
+          ? null
+          : fromChecklist?.fix ||
+            "Follow the named CONTRIBUTING.md rule in the evidence.",
+      source: "ai",
+    });
+  } else {
+    aiContributingStatus = "warn";
     checklist.push({
       id: "contributing_rules",
       label: "CONTRIBUTING rules",
       status: "warn",
-      evidence: "AI did not return this checklist item",
-      fix: "Re-run the review after the model responds fully.",
+      evidence: CONTRIBUTING_FALLBACK_DETAIL,
+      fix: "Open CONTRIBUTING.md and check branch, description, and check commands yourself.",
       source: "ai",
     });
-    aiContributingStatus = "warn";
   }
 
-  const { score, verdict } = scoreChecks(checks, {
+  const { score } = scoreChecks(checks, {
     issueDoneWhenStatus,
     aiContributingStatus,
   });
+
+  const verdict = verdictFromChecklist(checklist);
+  const summary = summaryForVerdict(verdict, checklist, raw.summary);
 
   const line_comments = filterLineComments(
     raw.line_comments,
@@ -286,7 +325,7 @@ export async function reviewPr(args: ReviewPrArgs): Promise<ReviewResult> {
   );
 
   return {
-    summary: raw.summary,
+    summary,
     checklist,
     line_comments,
     questions_a_maintainer_would_ask: raw.questions_a_maintainer_would_ask.slice(

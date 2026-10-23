@@ -4,6 +4,7 @@ export type Verdict = "ready" | "almost" | "not_yet";
 
 export type ScoreResult = {
   score: number;
+  /** Prefer verdictFromChecklist for the badge; this is score-band only. */
   verdict: Verdict;
 };
 
@@ -27,9 +28,53 @@ function byId(checks: CheckResult[], id: string): CheckResult | undefined {
   return checks.find((c) => c.id === id);
 }
 
+export function verdictLabel(v: Verdict): string {
+  if (v === "ready") return "Ready to merge";
+  if (v === "almost") return "Almost ready";
+  return "Needs changes";
+}
+
+/**
+ * Badge follows the checklist: any fail → Needs changes; any warn → Almost ready;
+ * all pass → Ready to merge.
+ */
+export function verdictFromChecklist(
+  items: { status: CheckStatus }[],
+): Verdict {
+  if (items.some((i) => i.status === "fail")) return "not_yet";
+  if (items.some((i) => i.status === "warn")) return "almost";
+  return "ready";
+}
+
+/**
+ * One-line summary that matches the badge (checklist-driven).
+ */
+export function summaryForVerdict(
+  verdict: Verdict,
+  items: { label: string; status: CheckStatus }[],
+  aiSummary: string,
+): string {
+  const fails = items.filter((i) => i.status === "fail").map((i) => i.label);
+  const warns = items.filter((i) => i.status === "warn").map((i) => i.label);
+  const ai = aiSummary.trim();
+
+  if (verdict === "ready") {
+    return ai || "Ready to merge — every checklist item passed.";
+  }
+  if (verdict === "almost") {
+    const focus = warns.length > 0 ? warns.join(", ") : "a few items";
+    const head = `Almost ready — ${focus} still need attention.`;
+    return ai ? `${head} ${ai}` : head;
+  }
+  const focus = fails.length > 0 ? fails.join(", ") : "checklist items";
+  const head = `Needs changes — fix ${focus}.`;
+  return ai ? `${head} ${ai}` : head;
+}
+
 /**
  * Turn checklist statuses into a 0–100 score.
  * Until AI review exists, issue_done_when and the AI contributing item are warn.
+ * Verdict from score bands is legacy; UI uses verdictFromChecklist.
  */
 export function scoreChecks(
   checks: CheckResult[],

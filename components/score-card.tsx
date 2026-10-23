@@ -10,13 +10,8 @@ import {
   type ReviewLineComment,
   type ReviewResult,
 } from "@/lib/review-format";
-import type { Verdict } from "@/lib/score";
+import { verdictLabel, type Verdict } from "@/lib/score";
 
-function verdictLabel(v: Verdict): string {
-  if (v === "ready") return "Ready to merge";
-  if (v === "almost") return "Almost there";
-  return "Not yet";
-}
 
 function verdictClass(v: Verdict): string {
   if (v === "ready") return "bg-emerald-50 text-emerald-800 border-emerald-200";

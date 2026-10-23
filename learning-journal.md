@@ -94,6 +94,12 @@
 - `/review` UI: PR link | paste diff tabs, loading steps, ScoreCard ring + Rule/AI tags + line comments.
 - Verified PR #7: score 57 almost, 9 checklist rows (7 Rule + 2 AI), fixes on non-pass.
 
+## 2026-10-23 — Review bugfixes
+- `tests_touched`: also pass on added lines with `#[cfg(test)]` / `#[test]` / `mod tests` / `describe(` / `it(` / `test(` / `def test_` → “Inline tests added in &lt;file&gt;”.
+- Badge = checklist (any fail → Needs changes; any warn → Almost ready; all pass → Ready to merge); summary via `summaryForVerdict`.
+- `contributing_rules: { status, detail }` required on `reviewSchema`; retry once; else warn + hand-review text.
+- Verified #7: tests green (apk.rs), badge Almost ready, CONTRIBUTING real warn.
+
 ## Next for another agent
 1. Redeploy Vercel; optional GitHub App comment on PR open (BUILD-PLAN later).
 2. Demo PR A (`fix/log-panel-no-kernel` Fixes #4) if #7 is not the stage demo.

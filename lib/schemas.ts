@@ -89,7 +89,10 @@ export const hintSchema = z.object({
 
 export type HintOutput = z.infer<typeof hintSchema>;
 
-/** Review schema — Product system prompts (BUILD-PLAN §4), word for word. */
+/**
+ * Review schema — BUILD-PLAN §4 base, plus required contributing_rules
+ * (status + nullable detail) so structured outputs always include it.
+ */
 export const reviewSchema = z.object({
   summary: z.string(),
   checklist: z
@@ -105,7 +108,16 @@ export const reviewSchema = z.object({
           .describe("what to do next, in words; null when pass"),
       }),
     )
-    .length(2),
+    .min(1)
+    .max(2),
+  /** Required: CONTRIBUTING.md judgment (never omit). */
+  contributing_rules: z.object({
+    status: z.enum(["pass", "warn", "fail"]),
+    detail: z
+      .string()
+      .nullable()
+      .describe("what in CONTRIBUTING.md or the PR shows this; null if nothing to say"),
+  }),
   line_comments: z
     .array(
       z.object({
