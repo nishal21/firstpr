@@ -114,6 +114,11 @@
 - Score = rule + AI weights; any AI fail caps at 60 (floor 55 when rules clean).
 - Footer: “Scored by FirstPR from rule checks and AI review of the diff.”
 
+## 2026-10-23 — UI polish (no lib/API)
+- Landing: hero tint+dots, trust line, 3-step strip, Match card; max-w-5xl / py-12 / gap-6 / blue-600 / slate / rounded-xl shadow-sm.
+- `FlowProgress` on issue + review; spinners + skeletons while loading; empty Match copy.
+- Mobile: full-width inputs, wrapping chips/nav; Enter submits forms; focus rings blue.
+
 ## Next for another agent
 1. Redeploy Vercel; optional GitHub App comment on PR open (BUILD-PLAN later).
 2. Demo PR A (`fix/log-panel-no-kernel` Fixes #4) if #7 is not the stage demo.

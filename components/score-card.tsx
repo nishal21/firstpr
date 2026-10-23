@@ -126,7 +126,7 @@ export function ScoreCard({ result }: { result: ReviewResult }) {
 
   return (
     <div className="space-y-8">
-      <div className="rounded-xl border border-slate-200 bg-white p-6 sm:p-8">
+      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
         <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-start sm:text-left">
           <ScoreRing score={result.score} />
           <div className="flex-1 space-y-3">

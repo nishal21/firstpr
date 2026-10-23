@@ -128,3 +128,22 @@
     @apply font-sans;
   }
 }
+
+/* Hero: very light blue radial tint + faint dot grid (landing only). */
+.hero-tint {
+  background:
+    radial-gradient(
+      120% 80% at 50% -10%,
+      rgb(239 246 255) 0%,
+      rgb(255 255 255) 55%
+    );
+}
+
+.hero-dots {
+  background-image: radial-gradient(
+    circle,
+    rgb(148 163 184 / 0.28) 1px,
+    transparent 1px
+  );
+  background-size: 18px 18px;
+}

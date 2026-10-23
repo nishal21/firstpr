@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { FlowProgress } from "@/components/flow-steps";
 import { ScoreCard } from "@/components/score-card";
+import { Spinner } from "@/components/spinner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import type { ReviewResult } from "@/lib/review-format";
@@ -48,6 +51,9 @@ export default function ReviewPage() {
   }, [loading]);
 
   async function run() {
+    if (loading) return;
+    if (tab === "pr" ? !prUrl.trim() : !diff.trim()) return;
+
     setLoading(true);
     setError(null);
     setResult(null);
@@ -83,28 +89,43 @@ export default function ReviewPage() {
   }
 
   return (
-    <section className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
+    <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
+      <FlowProgress current="review" />
+
       <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
         Review my PR
       </h1>
-      <p className="mt-2 text-slate-600">
-        Paste a pull request URL or a diff. FirstPR scores it against the
-        linked issue, CONTRIBUTING.md, and the change itself — without writing
-        your fix.
+      <p className="mt-2 max-w-2xl text-slate-600">
+        Paste a pull request URL or a diff. FirstPR scores it against the linked
+        issue, CONTRIBUTING.md, and the change itself — without writing your
+        fix.
       </p>
 
-      <div className="mt-8 rounded-xl border border-slate-200 bg-white p-5 sm:p-6">
-        <Tabs value={tab} onValueChange={setTab}>
-          <TabsList variant="line" className="mb-4 w-full sm:w-auto">
-            <TabsTrigger value="pr">PR link</TabsTrigger>
-            <TabsTrigger value="diff">Paste a diff</TabsTrigger>
+      <form
+        className="mt-8 rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void run();
+        }}
+      >
+        <Tabs
+          value={tab}
+          onValueChange={(v) => setTab(String(v))}
+        >
+          <TabsList variant="line" className="mb-4 w-full max-w-full sm:w-auto">
+            <TabsTrigger value="pr" className="flex-1 sm:flex-none">
+              PR link
+            </TabsTrigger>
+            <TabsTrigger value="diff" className="flex-1 sm:flex-none">
+              Paste a diff
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="pr" className="space-y-3">
             <label className="block text-sm font-medium text-slate-700">
               Pull request URL
               <Input
-                className="mt-1.5 rounded-lg"
+                className="mt-1.5 h-10 w-full rounded-xl border-slate-200 focus-visible:border-blue-600 focus-visible:ring-blue-600/30"
                 placeholder="https://github.com/owner/repo/pull/123"
                 value={prUrl}
                 onChange={(e) => setPrUrl(e.target.value)}
@@ -117,7 +138,7 @@ export default function ReviewPage() {
             <label className="block text-sm font-medium text-slate-700">
               Unified diff
               <Textarea
-                className="mt-1.5 min-h-40 rounded-lg font-mono text-xs"
+                className="mt-1.5 min-h-40 w-full rounded-xl border-slate-200 font-mono text-xs focus-visible:border-blue-600 focus-visible:ring-blue-600/30"
                 placeholder="diff --git a/…"
                 value={diff}
                 onChange={(e) => setDiff(e.target.value)}
@@ -128,7 +149,7 @@ export default function ReviewPage() {
               <label className="block text-sm font-medium text-slate-700">
                 Repo (optional)
                 <Input
-                  className="mt-1.5 rounded-lg"
+                  className="mt-1.5 h-10 w-full rounded-xl border-slate-200 focus-visible:border-blue-600 focus-visible:ring-blue-600/30"
                   placeholder="owner/repo"
                   value={repo}
                   onChange={(e) => setRepo(e.target.value)}
@@ -138,7 +159,7 @@ export default function ReviewPage() {
               <label className="block text-sm font-medium text-slate-700">
                 Issue number (optional)
                 <Input
-                  className="mt-1.5 rounded-lg"
+                  className="mt-1.5 h-10 w-full rounded-xl border-slate-200 focus-visible:border-blue-600 focus-visible:ring-blue-600/30"
                   placeholder="4"
                   value={issueNumber}
                   onChange={(e) => setIssueNumber(e.target.value)}
@@ -150,48 +171,68 @@ export default function ReviewPage() {
         </Tabs>
 
         <Button
-          type="button"
-          className="mt-5 w-full rounded-lg bg-blue-600 hover:bg-blue-700 sm:w-auto"
-          onClick={run}
+          type="submit"
+          className="mt-5 h-10 w-full rounded-xl bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-600/40 sm:w-auto"
           disabled={
-            loading ||
-            (tab === "pr" ? !prUrl.trim() : !diff.trim())
+            loading || (tab === "pr" ? !prUrl.trim() : !diff.trim())
           }
         >
-          {loading ? "Running…" : "Run maintainer-ready check"}
+          {loading ? (
+            <>
+              <Spinner className="text-white" />
+              Running…
+            </>
+          ) : (
+            "Run maintainer-ready check"
+          )}
         </Button>
-      </div>
+      </form>
 
       {loading ? (
-        <div className="mt-10 space-y-3 rounded-xl border border-slate-200 bg-white p-6">
-          <p className="text-sm font-medium text-slate-900">
-            {LOADING_STEPS[stepIndex]}
-          </p>
-          <ul className="space-y-2">
-            {LOADING_STEPS.map((step, i) => (
-              <li
-                key={step}
-                className={`text-sm ${
-                  i <= stepIndex ? "text-slate-800" : "text-slate-400"
-                }`}
-              >
-                {i < stepIndex ? "✓ " : i === stepIndex ? "→ " : "  "}
-                {step}
-              </li>
-            ))}
-          </ul>
+        <div className="mt-10 space-y-6">
+          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <p className="text-sm font-medium text-blue-600">
+              {LOADING_STEPS[stepIndex]}…
+            </p>
+            <ul className="mt-3 space-y-2">
+              {LOADING_STEPS.map((step, i) => (
+                <li
+                  key={step}
+                  className={`text-sm ${
+                    i <= stepIndex ? "text-slate-800" : "text-slate-400"
+                  }`}
+                >
+                  {i < stepIndex ? "✓ " : i === stepIndex ? "→ " : "  "}
+                  {step}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="flex flex-col items-center gap-4 rounded-xl border border-slate-200 bg-white p-8 shadow-sm sm:flex-row sm:items-start">
+            <Skeleton className="size-36 shrink-0 rounded-full bg-slate-100" />
+            <div className="w-full space-y-3">
+              <Skeleton className="h-6 w-32 rounded-lg bg-slate-100" />
+              <Skeleton className="h-4 w-full rounded-lg bg-slate-100" />
+              <Skeleton className="h-4 w-5/6 rounded-lg bg-slate-100" />
+            </div>
+          </div>
+          <div className="space-y-2 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <Skeleton className="h-12 w-full rounded-lg bg-slate-100" />
+            <Skeleton className="h-12 w-full rounded-lg bg-slate-100" />
+            <Skeleton className="h-12 w-full rounded-lg bg-slate-100" />
+          </div>
         </div>
       ) : null}
 
       {error ? (
-        <div className="mt-8 rounded-xl border border-red-200 bg-red-50 p-5">
+        <div className="mt-8 rounded-xl border border-red-200 bg-red-50 p-5 shadow-sm">
           <p className="text-sm text-red-800">{error}</p>
           <Button
             type="button"
             variant="outline"
             size="sm"
-            className="mt-3 rounded-lg"
-            onClick={run}
+            className="mt-3 rounded-xl border-slate-200"
+            onClick={() => void run()}
           >
             Retry
           </Button>
@@ -205,7 +246,7 @@ export default function ReviewPage() {
               Reviewing{" "}
               <a
                 href={result.pr.htmlUrl}
-                className="text-blue-600 hover:underline"
+                className="text-blue-600 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-blue-600/40"
                 target="_blank"
                 rel="noreferrer"
               >

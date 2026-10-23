@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Lock, Send } from "lucide-react";
+import { Spinner } from "@/components/spinner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -297,9 +298,16 @@ export function HintLadder({
           type="button"
           onClick={() => void unlockNextHint()}
           disabled={hintPending || unlocked >= 3}
-          className="bg-blue-600 text-white hover:bg-blue-700"
+          className="rounded-xl bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-600/40"
         >
-          {hintPending ? "Thinking…" : "Show next hint"}
+          {hintPending ? (
+            <>
+              <Spinner className="text-white" />
+              Thinking…
+            </>
+          ) : (
+            "Show next hint"
+          )}
         </Button>
         {unlocked >= 3 ? (
           <span className="text-xs text-slate-400">All hints unlocked</span>
@@ -332,7 +340,7 @@ export function HintLadder({
             }}
             placeholder="Ask a question about the issue…"
             disabled={chatPending}
-            className="rounded-xl border-slate-200"
+            className="rounded-xl border-slate-200 focus-visible:border-blue-600 focus-visible:ring-blue-600/30"
           />
           <Button
             type="button"
@@ -341,8 +349,13 @@ export function HintLadder({
             disabled={chatPending || !ask.trim()}
             onClick={() => void sendChat(ask)}
             aria-label="Send"
+            className="rounded-xl border-slate-200 focus-visible:ring-blue-600/40"
           >
-            <Send className="size-4" />
+            {chatPending ? (
+              <Spinner />
+            ) : (
+              <Send className="size-4" />
+            )}
           </Button>
         </div>
         <button

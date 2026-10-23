@@ -2,9 +2,11 @@
 
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
+import { Spinner } from "@/components/spinner";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 type IssueCard = {
@@ -81,17 +83,23 @@ export function MatchForm() {
     });
   }
 
+  const noIssues =
+    data &&
+    !pending &&
+    !data.picked &&
+    data.others.length === 0;
+
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 pb-16 sm:px-6">
+    <div className="flex w-full flex-col gap-6">
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          runMatch();
+          if (!pending && username.trim()) runMatch();
         }}
-        className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm"
+        className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
       >
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-          <label className="flex flex-1 flex-col gap-1 text-sm text-slate-600">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
+          <label className="flex w-full flex-1 flex-col gap-1.5 text-sm text-slate-600">
             GitHub username
             <Input
               value={username}
@@ -99,51 +107,75 @@ export function MatchForm() {
               placeholder="octocat"
               required
               autoComplete="username"
+              disabled={pending}
+              className="h-10 w-full rounded-xl border-slate-200 focus-visible:border-blue-600 focus-visible:ring-blue-600/30"
             />
           </label>
-          <label className="flex flex-1 flex-col gap-1 text-sm text-slate-600">
+          <label className="flex w-full flex-1 flex-col gap-1.5 text-sm text-slate-600">
             Repo (optional)
             <Input
               value={repo}
               onChange={(e) => setRepo(e.target.value)}
               placeholder="nishal21/NekoDroid"
+              disabled={pending}
+              className="h-10 w-full rounded-xl border-slate-200 focus-visible:border-blue-600 focus-visible:ring-blue-600/30"
             />
           </label>
           <Button
             type="submit"
             disabled={pending || !username.trim()}
-            className="bg-blue-600 hover:bg-blue-700 sm:mb-0.5"
+            className="h-10 w-full rounded-xl bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-600/40 sm:w-auto sm:shrink-0"
           >
-            {pending ? "Finding…" : "Find my first issue"}
+            {pending ? (
+              <>
+                <Spinner className="text-white" />
+                Finding…
+              </>
+            ) : (
+              "Find my first issue"
+            )}
           </Button>
         </div>
       </form>
 
       {pending ? (
-        <ol className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-600">
-          {PROGRESS_STEPS.map((label, i) => (
-            <li
-              key={label}
-              className={`flex items-center gap-2 py-1.5 ${
-                i <= stepIndex ? "text-slate-900" : "text-slate-400"
-              }`}
-            >
-              <span
-                className={`size-1.5 rounded-full ${
-                  i <= stepIndex ? "bg-blue-600" : "bg-slate-300"
+        <div className="flex flex-col gap-6">
+          <ol className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-600 shadow-sm">
+            {PROGRESS_STEPS.map((label, i) => (
+              <li
+                key={label}
+                className={`flex items-center gap-2 py-1.5 ${
+                  i <= stepIndex ? "text-slate-900" : "text-slate-400"
                 }`}
-              />
-              {label}
-              {i === stepIndex ? "…" : null}
-            </li>
-          ))}
-        </ol>
+              >
+                <span
+                  className={`size-1.5 shrink-0 rounded-full ${
+                    i <= stepIndex ? "bg-blue-600" : "bg-slate-300"
+                  }`}
+                />
+                {label}
+                {i === stepIndex ? "…" : null}
+              </li>
+            ))}
+          </ol>
+          <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <Skeleton className="h-6 w-2/3 rounded-lg bg-slate-100" />
+            <Skeleton className="h-4 w-full rounded-lg bg-slate-100" />
+            <Skeleton className="h-4 w-5/6 rounded-lg bg-slate-100" />
+            <Skeleton className="mt-2 h-10 w-40 rounded-xl bg-slate-100" />
+          </div>
+        </div>
       ) : null}
 
       {error ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-700 shadow-sm">
           <p>{error}</p>
-          <Button type="button" variant="outline" className="mt-3" onClick={runMatch}>
+          <Button
+            type="button"
+            variant="outline"
+            className="mt-3 rounded-xl border-slate-200"
+            onClick={runMatch}
+          >
             Retry
           </Button>
         </div>
@@ -154,10 +186,17 @@ export function MatchForm() {
           <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600">
             <span>You write:</span>
             {data.languages.length === 0 ? (
-              <span className="text-slate-400">No public languages yet</span>
+              <span className="text-slate-500">
+                No public repos yet, so we&apos;ll pick beginner-friendly docs
+                issues.
+              </span>
             ) : (
               data.languages.map((lang) => (
-                <Badge key={lang} variant="secondary">
+                <Badge
+                  key={lang}
+                  variant="secondary"
+                  className="rounded-md border border-slate-200"
+                >
                   {lang}
                 </Badge>
               ))
@@ -165,18 +204,22 @@ export function MatchForm() {
           </div>
 
           {data.picked ? (
-            <article className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
               <div className="mb-2 flex flex-wrap items-center gap-2">
                 <a
                   href={data.picked.htmlUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-xl font-semibold text-blue-600 hover:underline"
+                  className="text-lg font-semibold text-blue-600 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-blue-600/40 sm:text-xl"
                 >
                   #{data.picked.number} {data.picked.title}
                 </a>
                 {data.picked.labels.map((label) => (
-                  <Badge key={label} variant="secondary">
+                  <Badge
+                    key={label}
+                    variant="secondary"
+                    className="rounded-md border border-slate-200"
+                  >
                     {label}
                   </Badge>
                 ))}
@@ -186,39 +229,50 @@ export function MatchForm() {
                 href={`/issue/${data.picked.owner}/${data.picked.repo}/${data.picked.number}`}
                 className={cn(
                   buttonVariants(),
-                  "mt-4 bg-blue-600 text-white hover:bg-blue-700",
+                  "mt-4 h-10 rounded-xl bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-600/40",
                 )}
               >
                 Explain this issue
               </Link>
             </article>
-          ) : (
-            <p className="text-sm text-slate-500">
-              No open unassigned good first issues matched.
+          ) : noIssues ? (
+            <p className="rounded-xl border border-slate-200 bg-white p-5 text-sm text-slate-600 shadow-sm">
+              No open good first issues here. Try{" "}
+              <Link
+                href="/"
+                className="font-medium text-blue-600 hover:underline"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setRepo("nishal21/NekoDroid");
+                }}
+              >
+                nishal21/NekoDroid
+              </Link>{" "}
+              or another repo.
             </p>
-          )}
+          ) : null}
 
           {data.others.length > 0 ? (
             <div className="flex flex-col gap-3">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+              <h2 className="text-sm font-semibold tracking-wide text-slate-500 uppercase">
                 Other fits
               </h2>
               {data.others.map((issue) => (
                 <article
                   key={`${issue.owner}/${issue.repo}#${issue.number}`}
-                  className="rounded-xl border border-slate-200 bg-white p-4"
+                  className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
                 >
                   <div className="mb-1 flex flex-wrap items-center gap-2">
                     <a
                       href={issue.htmlUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="font-medium text-blue-600 hover:underline"
+                      className="font-medium text-blue-600 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-blue-600/40"
                     >
                       #{issue.number} {issue.title}
                     </a>
                     {issue.labels.map((label) => (
-                      <Badge key={label} variant="outline">
+                      <Badge key={label} variant="outline" className="rounded-md">
                         {label}
                       </Badge>
                     ))}
@@ -226,7 +280,7 @@ export function MatchForm() {
                   <p className="text-sm text-slate-500">{issue.fitReason}</p>
                   <Link
                     href={`/issue/${issue.owner}/${issue.repo}/${issue.number}`}
-                    className="mt-2 inline-block text-sm text-blue-600 hover:underline"
+                    className="mt-2 inline-block text-sm text-blue-600 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-blue-600/40"
                   >
                     Explain this issue
                   </Link>
@@ -237,13 +291,13 @@ export function MatchForm() {
 
           {data.skipped.length > 0 ? (
             <div className="flex flex-col gap-3">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+              <h2 className="text-sm font-semibold tracking-wide text-slate-500 uppercase">
                 Already taken
               </h2>
               {data.skipped.map((issue) => (
                 <article
                   key={`skip-${issue.owner}/${issue.repo}#${issue.number}`}
-                  className="rounded-xl border border-slate-200 bg-slate-50 p-4 opacity-70"
+                  className="rounded-xl border border-slate-200 bg-slate-50 p-4 opacity-80"
                 >
                   <p className="font-medium text-slate-500">
                     #{issue.number} {issue.title}

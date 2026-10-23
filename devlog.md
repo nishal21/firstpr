@@ -117,6 +117,10 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - `buildReviewUserPrompt` pastedDiff mode; CONTRIBUTING fail soft-clamp; `AI_FAIL_SCORE_CAP=60`
 - Footer updated; verified pasted + issue fail → score 55
 
+## 2026-10-23 — UI polish
+- `flow-steps.tsx`, `spinner.tsx`; page/match/issue/review/hint/layout/globals
+- No lib or API changes
+
 ## Next
 - Redeploy Vercel
 - Optional: open demo PR A for stage path

@@ -24,23 +24,32 @@ export default function RootLayout({
   return (
     <html lang="en" className={cn("h-full antialiased", inter.variable)}>
       <body className="flex min-h-full flex-col bg-white font-sans text-slate-900">
-        <header className="border-b border-slate-200">
-          <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:px-6">
-            <Link href="/" className="flex items-center gap-2 font-semibold text-slate-900">
+        <header className="border-b border-slate-200 bg-white">
+          <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4 sm:px-6">
+            <Link
+              href="/"
+              className="flex shrink-0 items-center gap-2 font-semibold text-slate-900 outline-none focus-visible:ring-2 focus-visible:ring-blue-600/40"
+            >
               <span className="size-2 rounded-full bg-blue-600" aria-hidden />
               FirstPR
             </Link>
-            <nav className="flex items-center gap-6 text-sm text-slate-600">
-              <Link href="/" className="hover:text-blue-600">
+            <nav className="flex flex-wrap items-center justify-end gap-x-4 gap-y-1 text-sm text-slate-600 sm:gap-x-6">
+              <Link
+                href="/"
+                className="outline-none hover:text-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/40"
+              >
                 Find an issue
               </Link>
               <Link
                 href="/issue/nishal21/NekoDroid/4"
-                className="hover:text-blue-600"
+                className="outline-none hover:text-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/40"
               >
                 Explain
               </Link>
-              <Link href="/review" className="hover:text-blue-600">
+              <Link
+                href="/review"
+                className="outline-none hover:text-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/40"
+              >
                 Review my PR
               </Link>
             </nav>
