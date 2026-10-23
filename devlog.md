@@ -104,6 +104,11 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - Required `contributing_rules` on schema + retry/fallback in `lib/review.ts`
 - Checked #7: tests pass, Almost ready, CONTRIBUTING real result
 
+## 2026-10-23 — Check evidence polish
+- `expectedCheckCommands` / `inferCheckCommands` / tree `repoPaths` in review
+- Footer text updated in `lib/review-format.ts`
+- Checked: pytest dropped without Python markers; #7 expects cargo + npm only
+
 ## Next
 - Redeploy Vercel
 - Optional: open demo PR A for stage path

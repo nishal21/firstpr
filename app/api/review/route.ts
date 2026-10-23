@@ -89,11 +89,14 @@ async function reviewFromPrUrl(prUrl: string, lang: string | null) {
   ]);
 
   let contributing: string | null = null;
+  let treeSha: string | undefined;
   try {
     const baseSha = await getBranchSha(owner, repo, pr.baseRef);
+    treeSha = baseSha;
     contributing = await getContributing(owner, repo, baseSha);
   } catch {
     contributing = null;
+    treeSha = pr.headSha;
   }
 
   const linkedIssue = await loadFirstLinkedIssue(owner, repo, pr);
@@ -108,6 +111,7 @@ async function reviewFromPrUrl(prUrl: string, lang: string | null) {
     repo,
     prNumber: number,
     lang,
+    treeSha,
   });
 
   return {
@@ -153,6 +157,7 @@ async function reviewFromDiff(opts: {
   let contributing: string | null = null;
   let linkedIssue: GoodFirstIssue | null = null;
   let pr: PullRequestInfo | null = null;
+  let treeSha: string | undefined;
 
   if (opts.repo) {
     const parsed = parseRepo(opts.repo);
@@ -160,6 +165,7 @@ async function reviewFromDiff(opts: {
     repoName = parsed.repo;
     try {
       const repoInfo = await getRepo(owner, repoName);
+      treeSha = repoInfo.headSha;
       contributing = await getContributing(owner, repoName, repoInfo.headSha);
     } catch {
       contributing = null;
@@ -182,6 +188,7 @@ async function reviewFromDiff(opts: {
     owner: owner || undefined,
     repo: repoName || undefined,
     lang: opts.lang,
+    treeSha,
   });
 
   return {

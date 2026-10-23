@@ -3,7 +3,12 @@ import {
   type CheckResult,
   type CheckStatus,
 } from "@/lib/checks";
-import type { GoodFirstIssue, PullFile, PullRequestInfo } from "@/lib/github";
+import {
+  getTree,
+  type GoodFirstIssue,
+  type PullFile,
+  type PullRequestInfo,
+} from "@/lib/github";
 import { generateJson } from "@/lib/llm";
 import { REVIEW_SYSTEM, buildReviewUserPrompt } from "@/lib/prompts/review";
 import type {
@@ -42,6 +47,10 @@ export type ReviewPrArgs = {
   repo?: string;
   prNumber?: number;
   lang?: string | null;
+  /** Repo tree paths for check-command filtering; fetched if omitted. */
+  repoPaths?: string[];
+  /** Commit SHA used to load the tree when repoPaths is omitted. */
+  treeSha?: string;
 };
 
 /** New-file line numbers covered by any @@ hunk in a unified diff patch. */
@@ -196,14 +205,28 @@ async function callReviewModel(user: string): Promise<ReviewOutput> {
 /**
  * Run deterministic checks, then AI review; merge checklist; score in code.
  */
+async function loadRepoPaths(args: ReviewPrArgs): Promise<string[]> {
+  if (args.repoPaths && args.repoPaths.length > 0) return args.repoPaths;
+  if (!args.owner || !args.repo) return args.files.map((f) => f.filename);
+  const sha = args.treeSha ?? args.pr?.headSha;
+  if (!sha) return args.files.map((f) => f.filename);
+  try {
+    return await getTree(args.owner, args.repo, sha);
+  } catch {
+    return args.files.map((f) => f.filename);
+  }
+}
+
 export async function reviewPr(args: ReviewPrArgs): Promise<ReviewResult> {
   const pastedDiff = Boolean(args.pastedDiff);
+  const repoPaths = await loadRepoPaths(args);
   const checks = runChecks({
     pr: args.pr,
     files: args.files,
     contributing: args.contributing,
     linkedIssue: args.linkedIssue,
     pastedDiff,
+    repoPaths,
   });
 
   const contributing = (args.contributing ?? "").slice(0, CONTRIBUTING_MAX);

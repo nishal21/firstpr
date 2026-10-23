@@ -73,7 +73,7 @@ export function formatReviewMarkdown(result: ReviewResult): string {
   lines.push("", `_${result.encouragement}_`);
   lines.push(
     "",
-    "_Scored by [FirstPR](https://firstpr-coral.vercel.app/) — no model score used._",
+    "_Scored by FirstPR. Score comes from rule checks; AI items are advisory._",
   );
   return lines.join("\n");
 }

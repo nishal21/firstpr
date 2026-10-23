@@ -16,6 +16,11 @@ export type RunChecksArgs = {
   linkedIssue: GoodFirstIssue | null;
   /** When true, PR-only checks become warn ("Pasted diff, no PR details"). */
   pastedDiff?: boolean;
+  /**
+   * Paths from the repo tree (or known root markers). Used to filter / infer
+   * check commands so we never ask for a tool the repo does not use.
+   */
+  repoPaths?: string[];
 };
 
 const PASTED = "Pasted diff, no PR details";
@@ -31,7 +36,9 @@ const KNOWN_CHECK_COMMANDS = [
   "yarn test",
   "pytest",
   "go test",
-];
+] as const;
+
+type RepoTool = "cargo" | "npm" | "pnpm" | "yarn" | "pytest" | "go";
 
 const BRANCH_PREFIX_RE =
   /\b(fix|docs|doc|test|tests|feature|feat|chore|refactor|bugfix)\/(?:<[^>]+>|[\w.-]+)?/gi;
@@ -43,6 +50,68 @@ function check(
   evidence: string,
 ): CheckResult {
   return { id, label, status, evidence };
+}
+
+function hasPath(paths: string[], pattern: RegExp): boolean {
+  return paths.some((p) => pattern.test(p.replace(/\\/g, "/")));
+}
+
+/** Which package/test tools the tree (or PR paths) suggest are in use. */
+export function detectRepoTools(repoPaths: string[]): Set<RepoTool> {
+  const tools = new Set<RepoTool>();
+  if (hasPath(repoPaths, /(^|\/)Cargo\.toml$/)) tools.add("cargo");
+  if (hasPath(repoPaths, /(^|\/)package\.json$/)) tools.add("npm");
+  if (
+    hasPath(repoPaths, /(^|\/)pnpm-lock\.yaml$/) ||
+    hasPath(repoPaths, /(^|\/)pnpm-workspace\.yaml$/)
+  ) {
+    tools.add("pnpm");
+  }
+  if (hasPath(repoPaths, /(^|\/)yarn\.lock$/)) tools.add("yarn");
+  if (
+    hasPath(repoPaths, /(^|\/)pyproject\.toml$/) ||
+    hasPath(repoPaths, /(^|\/)requirements\.txt$/) ||
+    hasPath(repoPaths, /(^|\/)setup\.py$/) ||
+    hasPath(repoPaths, /(^|\/)Pipfile$/)
+  ) {
+    tools.add("pytest");
+  }
+  if (hasPath(repoPaths, /(^|\/)go\.mod$/)) tools.add("go");
+  return tools;
+}
+
+function toolForCommand(cmd: string): RepoTool | null {
+  const c = cmd.toLowerCase();
+  if (c.startsWith("cargo ")) return "cargo";
+  if (c.startsWith("pnpm ")) return "pnpm";
+  if (c.startsWith("yarn ")) return "yarn";
+  if (c.startsWith("npm ")) return "npm";
+  if (c === "pytest" || c.startsWith("pytest ")) return "pytest";
+  if (c.startsWith("go ")) return "go";
+  return null;
+}
+
+function commandAllowedForRepo(cmd: string, tools: Set<RepoTool>): boolean {
+  if (tools.size === 0) return true; // no markers → don't strip CONTRIBUTING cmds
+  const tool = toolForCommand(cmd);
+  if (!tool) return false;
+  if (tool === "npm") return tools.has("npm") || tools.has("pnpm") || tools.has("yarn");
+  if (tool === "pnpm") return tools.has("pnpm") || tools.has("npm");
+  if (tool === "yarn") return tools.has("yarn") || tools.has("npm");
+  return tools.has(tool);
+}
+
+/** Fallback when CONTRIBUTING has no usable check commands. */
+export function inferCheckCommands(repoPaths: string[]): string[] {
+  const tools = detectRepoTools(repoPaths);
+  const cmds: string[] = [];
+  if (tools.has("cargo")) cmds.push("cargo test");
+  if (tools.has("npm") || tools.has("pnpm") || tools.has("yarn")) {
+    cmds.push("npm run build");
+  }
+  if (tools.has("pytest")) cmds.push("pytest");
+  if (tools.has("go")) cmds.push("go test");
+  return cmds;
 }
 
 function extractCodeBlockCommands(md: string): string[] {
@@ -57,14 +126,42 @@ function extractCodeBlockCommands(md: string): string[] {
           found.add(cmd);
         }
       }
-      // Also catch bare "cargo test --lib" style as cargo test
+      // Preserve exact npm script when present (e.g. build:wasm)
+      const npmRun = trimmed.match(/^npm\s+run\s+([\w:-]+)/i);
+      if (npmRun) {
+        const script = npmRun[1].toLowerCase();
+        if (script === "build" || script === "build:wasm" || script === "test") {
+          found.add(`npm run ${npmRun[1]}`);
+        }
+      }
       if (/^cargo\s+test\b/i.test(trimmed)) found.add("cargo test");
-      if (/^npm\s+run\s+build\b/i.test(trimmed)) found.add("npm run build");
+      if (/^cargo\s+clippy\b/i.test(trimmed)) found.add("cargo clippy");
       if (/^npm\s+test\b/i.test(trimmed)) found.add("npm test");
       if (/^pytest\b/i.test(trimmed)) found.add("pytest");
+      if (/^go\s+test\b/i.test(trimmed)) found.add("go test");
+      if (/^pnpm\s+test\b/i.test(trimmed)) found.add("pnpm test");
+      if (/^yarn\s+test\b/i.test(trimmed)) found.add("yarn test");
     }
   }
   return [...found];
+}
+
+/**
+ * Expected check commands: CONTRIBUTING.md only, filtered to tools the repo
+ * uses; if none, infer from marker files (Cargo.toml → cargo test, etc.).
+ */
+export function expectedCheckCommands(
+  contributing: string | null,
+  repoPaths: string[] = [],
+): string[] {
+  const tools = detectRepoTools(repoPaths);
+  const fromMd = contributing ? extractCodeBlockCommands(contributing) : [];
+  const filtered = fromMd.filter((cmd) => commandAllowedForRepo(cmd, tools));
+
+  if (filtered.length > 0) return filtered;
+  if (fromMd.length > 0 && tools.size === 0) return fromMd;
+
+  return inferCheckCommands(repoPaths);
 }
 
 function extractBranchPrefixes(md: string): string[] {
@@ -287,14 +384,13 @@ function checkEvidence(
   pr: PullRequestInfo | null,
   contributing: string | null,
   pastedDiff: boolean,
+  repoPaths: string[] = [],
 ): CheckResult {
   const id = "check_evidence";
   const label = "Check evidence";
   if (pastedDiff || !pr) return check(id, label, "warn", PASTED);
 
-  const commands = contributing
-    ? extractCodeBlockCommands(contributing)
-    : [];
+  const commands = expectedCheckCommands(contributing, repoPaths);
   if (commands.length === 0) {
     return check(
       id,
@@ -306,10 +402,29 @@ function checkEvidence(
 
   const body = (pr.body ?? "").toLowerCase();
   const mentionsCmd = commands.some((c) => body.includes(c.toLowerCase()));
-  const looksLikeOutput =
-    /test result:|tests?\s+passed|passed\b|✓|✔|cargo test|npm run build|build succeeded|all tests/i.test(
-      pr.body ?? "",
-    );
+
+  // Only treat as output evidence if it matches a tool we actually expect.
+  const expectCargo = commands.some((c) => c.startsWith("cargo "));
+  const expectNpm = commands.some(
+    (c) => c.startsWith("npm ") || c.startsWith("pnpm ") || c.startsWith("yarn "),
+  );
+  const expectPytest = commands.some((c) => c.startsWith("pytest"));
+  const expectGo = commands.some((c) => c.startsWith("go "));
+  const outputParts: string[] = [
+    "test result:",
+    "tests?\\s+passed",
+    "build succeeded",
+    "all tests",
+    "✓",
+    "✔",
+  ];
+  if (expectCargo) outputParts.push("cargo test", "cargo clippy");
+  if (expectNpm) outputParts.push("npm run build", "npm test", "built in");
+  if (expectPytest) outputParts.push("pytest", "passed in");
+  if (expectGo) outputParts.push("go test", "\\bPASS\\b");
+  const looksLikeOutput = new RegExp(outputParts.join("|"), "i").test(
+    pr.body ?? "",
+  );
 
   if (mentionsCmd || looksLikeOutput) {
     return check(
@@ -467,12 +582,17 @@ function checkForbiddenFiles(
 export function runChecks(args: RunChecksArgs): CheckResult[] {
   const pastedDiff = Boolean(args.pastedDiff);
   const { pr, files, contributing, linkedIssue } = args;
+  // Prefer full tree; fall back to changed-file paths for marker detection.
+  const repoPaths =
+    args.repoPaths && args.repoPaths.length > 0
+      ? args.repoPaths
+      : files.map((f) => f.filename);
 
   return [
     checkLinkedIssue(pr, linkedIssue, pastedDiff),
     checkBranchName(pr, contributing, pastedDiff),
     checkDescription(pr, pastedDiff),
-    checkEvidence(pr, contributing, pastedDiff),
+    checkEvidence(pr, contributing, pastedDiff, repoPaths),
     checkTestsTouched(files, linkedIssue),
     checkScope(pr, files, linkedIssue, pastedDiff),
     checkForbiddenFiles(files, contributing),

@@ -100,6 +100,10 @@
 - `contributing_rules: { status, detail }` required on `reviewSchema`; retry once; else warn + hand-review text.
 - Verified #7: tests green (apk.rs), badge Almost ready, CONTRIBUTING real warn.
 
+## 2026-10-23 — Check evidence + PR comment footer
+- `expectedCheckCommands`: CONTRIBUTING cmds filtered by repo markers (`Cargo.toml`/`package.json`/…); else infer (`cargo test` / `npm run build`).
+- Copy-as-comment footer: “Scored by FirstPR. Score comes from rule checks; AI items are advisory.”
+
 ## Next for another agent
 1. Redeploy Vercel; optional GitHub App comment on PR open (BUILD-PLAN later).
 2. Demo PR A (`fix/log-panel-no-kernel` Fixes #4) if #7 is not the stage demo.
