@@ -9,7 +9,7 @@ import { useT } from "@/components/language-provider";
 
 const InkRidges = dynamic(() => import("@/components/ui/ink-ridges"), { ssr: false });
 const SUN_WIDE: [number, number] = [0.84, 0.46];
-const SUN_NARROW: [number, number] = [0.8, 0.27];
+const SUN_NARROW: [number, number] = [0.82, 0.37];
 const NARROW_QUERY = "(max-width: 639px)";
 
 function subscribeNarrow(onChange: () => void) {
