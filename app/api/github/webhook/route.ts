@@ -1,7 +1,7 @@
 import { after, NextResponse } from "next/server";
 import { getGitHubApp } from "@/lib/github-app";
 
-// runtime "nodejs" omitted: incompatible with nextConfig.cacheComponents (same as other APIs).
+export const runtime = "nodejs";
 export const maxDuration = 60;
 
 export async function POST(req: Request) {

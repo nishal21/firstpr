@@ -1,9 +1,6 @@
 import { IssueExplain } from "@/components/issue-explain";
 import { InvalidIssueMessage } from "@/components/invalid-issue-message";
 
-/** Interactive explain page: allow blocking under cacheComponents. */
-export const instant = false;
-
 type PageProps = {
   params: Promise<{
     owner: string;

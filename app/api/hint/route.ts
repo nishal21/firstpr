@@ -6,6 +6,7 @@ import { GitHubError } from "@/lib/github";
 import { ASKED_FOR_CODE_RE, getHint, type HintLevel } from "@/lib/hints";
 import { LlmError } from "@/lib/llm";
 
+export const runtime = "nodejs";
 export const maxDuration = 60;
 
 type HintBody = {

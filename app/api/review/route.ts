@@ -19,6 +19,7 @@ import {
 import { LlmError } from "@/lib/llm";
 import { reviewPr } from "@/lib/review";
 
+export const runtime = "nodejs";
 export const maxDuration = 60;
 
 type ReviewBody = {

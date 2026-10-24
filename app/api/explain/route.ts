@@ -6,6 +6,7 @@ import { explainIssueCached } from "@/lib/explain";
 import { GitHubError } from "@/lib/github";
 import { LlmError } from "@/lib/llm";
 
+export const runtime = "nodejs";
 export const maxDuration = 60;
 
 type ExplainBody = {

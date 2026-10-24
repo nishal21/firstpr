@@ -11,13 +11,20 @@ import {
 import { LlmError, ping } from "@/lib/llm";
 import { pickFiles } from "@/lib/pickFiles";
 
-// Node is the default for route handlers; `runtime` is incompatible with cacheComponents.
+export const runtime = "nodejs";
 export const maxDuration = 60;
 
+function isProduction(): boolean {
+  return (
+    process.env.NODE_ENV === "production" ||
+    process.env.VERCEL_ENV === "production"
+  );
+}
+
 export async function GET() {
-  if (process.env.NODE_ENV === "production") {
+  if (isProduction()) {
     return NextResponse.json(
-      { error: "Debug route is disabled in production", code: "not_found" },
+      { error: "Not found", code: "not_found" },
       { status: 404 },
     );
   }

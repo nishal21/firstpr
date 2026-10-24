@@ -12,6 +12,26 @@ export const ml: Record<I18nKey, string> = {
   "footer.built":
     "AIBoomi Startup Weekend Kochi-യിൽ DuoMatter നിർമ്മിച്ചത്",
   "footer.tagline": "Match. Explain. Review. നിങ്ങൾ എഴുതുക.",
+  "footer.botTitle": "FirstPRbot",
+  "footer.botAbout":
+    "റിപ്പോയിൽ GitHub App ഇൻസ്റ്റാൾ ചെയ്യുക. ഒരു issue-ൽ /firstpr explain കമന്റ് ചെയ്താൽ ലളിതമായ വിശദീകരണം കിട്ടും. PR തുറക്കുകയോ അപ്ഡേറ്റ് ചെയ്യുകയോ ചെയ്താൽ score card വരും. FirstPRbot നിങ്ങളുടെ fix എഴുതില്ല.",
+  "footer.botLink": "GitHub-ൽ FirstPRbot കാണുക",
+  "bot.heading": "GitHub-ൽ ഉപയോഗിക്കുക",
+  "bot.body":
+    "FirstPRbot Match → Explain → Review issue/PR കമന്റുകളിലേക്ക് കൊണ്ടുവരുന്നു. ഇൻസ്റ്റാൾ ചെയ്ത് ഒരു good first issue-ൽ /firstpr explain കമന്റ് ചെയ്യുക — അല്ലെങ്കിൽ ഒരു PR തുറന്ന് GitHub വിടാതെ score card നേടുക.",
+  "bot.cta": "FirstPRbot-നെക്കുറിച്ച്",
+
+  "error.notFound.code": "404",
+  "error.notFound.title": "പേജ് കണ്ടെത്തിയില്ല",
+  "error.notFound.body":
+    "ഈ ലിങ്ക് FirstPR പേജുമായി പൊരുത്തപ്പെടുന്നില്ല. ഹോമിലേക്ക് പോയി Match, Explain, അല്ലെങ്കിൽ Review തിരഞ്ഞെടുക്കുക.",
+  "error.notFound.home": "ഹോം",
+  "error.crash.eyebrow": "എന്തോ തെറ്റി",
+  "error.crash.title": "പ്രശ്നം ഉണ്ടായി",
+  "error.crash.body":
+    "ഒരു നിമിഷം കഴിഞ്ഞ് വീണ്ടും ശ്രമിക്കുക. നിങ്ങളുടെ ജോലി GitHub-ൽ തന്നെയുണ്ട്. FirstPR ഈ പേജ് ലോഡ് ചെയ്യാനായില്ല.",
+  "error.crash.retry": "വീണ്ടും ശ്രമിക്കുക",
+  "error.crash.home": "ഹോം",
 
   "hero.eyebrow": "FirstPR നിങ്ങളുടെ കോഡ് എഴുതില്ല.",
   "hero.title": "നിങ്ങളുടെ ആദ്യ PR, നിങ്ങൾ എഴുതിയത്, merge ചെയ്യാൻ തയ്യാർ.",
@@ -165,6 +185,26 @@ export const hi: Record<I18nKey, string> = {
   "footer.built":
     "AIBoomi Startup Weekend Kochi में DuoMatter द्वारा बनाया गया",
   "footer.tagline": "Match. Explain. Review. आप लिखते हैं।",
+  "footer.botTitle": "FirstPRbot",
+  "footer.botAbout":
+    "रेपो पर GitHub App इंस्टॉल करें। किसी issue पर /firstpr explain कमेंट करें — सादा विवरण मिलेगा। PR खोलें या अपडेट करें तो score card आएगा। FirstPRbot आपका fix नहीं लिखता।",
+  "footer.botLink": "GitHub पर FirstPRbot देखें",
+  "bot.heading": "GitHub पर इस्तेमाल करें",
+  "bot.body":
+    "FirstPRbot Match → Explain → Review को issue और PR कमेंट्स में लाता है। इंस्टॉल करें, फिर good first issue पर /firstpr explain लिखें — या PR खोलकर बिना GitHub छोड़े score card पाएँ।",
+  "bot.cta": "FirstPRbot के बारे में",
+
+  "error.notFound.code": "404",
+  "error.notFound.title": "पेज नहीं मिला",
+  "error.notFound.body":
+    "यह लिंक FirstPR पेज से मेल नहीं खाता। होम पर जाकर Match, Explain, या Review चुनें।",
+  "error.notFound.home": "होम",
+  "error.crash.eyebrow": "कुछ गलत हो गया",
+  "error.crash.title": "समस्या आई",
+  "error.crash.body":
+    "थोड़ी देर बाद फिर कोशिश करें। आपका काम GitHub पर ही है। FirstPR यह पेज लोड नहीं कर सका।",
+  "error.crash.retry": "फिर कोशिश करें",
+  "error.crash.home": "होम",
 
   "hero.eyebrow": "FirstPR आपका कोड नहीं लिखता।",
   "hero.title": "आपका पहला PR, आपके लिखे हुए, merge के लिए तैयार।",

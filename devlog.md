@@ -197,9 +197,23 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - `npm i @octokit/app`; env vars in `.env.example` + `lib/env.ts`
 - `lib/github-app.ts` handlers; `lib/webhook-format.ts` explain markdown
 - `app/api/github/webhook/route.ts`: verify, 202, `after(verifyAndReceive)`
-- Bots ignored; no PR line comments (issues.createComment only)
-- Fix: PR `/firstpr explain` now posts tip; explain/review errors post a comment; PEM normalize
+- Working on NekoDroid after full PEM on Vercel
+
+## 2026-10-24 — About FirstPRbot
+- `components/home-bot-section.tsx` on home; footer link to github.com/apps/firstprbot
+- README: product + bot install/usage
+
+## 2026-10-24 — Vercel readiness
+- next.config: cacheComponents false (needed for API `runtime = "nodejs"`)
+- All API routes: runtime nodejs + maxDuration 60; added `/api/health`
+- debug 404 in production; client bundle has no secret imports
+- `npm run build` exit 0
+
+## 2026-10-24 — LICENSE / README / AI_IMPACT
+- MIT LICENSE; handbook README; AI impact ≤200 words
+
+## 2026-10-24 — Error pages
+- `app/not-found.tsx`, `app/error.tsx`, `app/global-error.tsx`; i18n error.* keys
 
 ## Next
-- Push + Vercel redeploy; test on issue #5 (not a PR)
-- Commit when asked
+- Fill placeholders; deploy; commit when asked

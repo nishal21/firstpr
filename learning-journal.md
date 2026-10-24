@@ -201,8 +201,27 @@
 - `@octokit/app` + `POST /api/github/webhook` (202 + `after()`, verify → 401)
 - `/firstpr explain` on issues → explain + L1 hint comment; PR open/sync → score card comment
 - Env: `GITHUB_APP_ID`, `GITHUB_APP_PRIVATE_KEY`, `GITHUB_WEBHOOK_SECRET`
-- Done when: comment on NekoDroid #5 gets a reply ~1 min
+- Live: NekoDroid #4 got FirstPRbot reply (PEM must be full key on Vercel with `\n`)
+
+## 2026-10-24 — FirstPRbot about on site
+- Home `HomeBotSection` + footer blurb/link → https://github.com/apps/firstprbot
+- i18n bot.* / footer.bot*; README rewritten for product + bot
+
+## 2026-10-24 — Vercel readiness
+- `cacheComponents`/`partialPrefetching` off so every `app/api` can `runtime = "nodejs"` + `maxDuration = 60`
+- `GET /api/health` → `{ ok, demoMode, hasOpenAI, hasGitHub, rate }` (booleans only for secrets)
+- `/api/debug` → 404 when `NODE_ENV` or `VERCEL_ENV` is production
+- No client component imports `@/lib/env` or secrets; `npm run build` exit 0
+
+## 2026-10-24 — Handbook docs
+- `LICENSE` MIT 2026 Nishal K and Anan Shaji
+- `README.md` AIBoomi 15 sections; `AI_IMPACT.md` ≤200 words
+- Facts only from repo + user brief; placeholders for video/deck/contacts
+
+## 2026-10-24 — 404 / error pages
+- Brand `not-found.tsx`, `error.tsx` (i18n); `global-error.tsx` root crash UI
+- Invalid issue number uses same 404-style layout
 
 ## Next for another agent
-1. Install App on NekoDroid; set webhook URL + secrets; test `/firstpr explain` on #5
+1. Fill demo video, deck, contact placeholders; deploy
 2. Commit when asked; attribution off

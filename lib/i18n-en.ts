@@ -9,6 +9,27 @@ export const en = {
 
   "footer.built": "Built at AIBoomi Startup Weekend Kochi by DuoMatter",
   "footer.tagline": "Match. Explain. Review. You write the fix.",
+  "footer.botTitle": "FirstPRbot",
+  "footer.botAbout":
+    "Install the GitHub App on a repo. Comment /firstpr explain on an issue for a plain-English guide. Open or update a PR and it posts a maintainer-ready score card. FirstPRbot never writes your fix.",
+  "footer.botLink": "View FirstPRbot on GitHub",
+
+  "bot.heading": "Use it on GitHub",
+  "bot.body":
+    "FirstPRbot brings Match → Explain → Review into issue and PR comments. Install it, then comment /firstpr explain on a good first issue — or open a PR and get a score card without leaving GitHub.",
+  "bot.cta": "About FirstPRbot",
+
+  "error.notFound.code": "404",
+  "error.notFound.title": "Page not found",
+  "error.notFound.body":
+    "That link does not match a FirstPR page. Go home and pick Match, Explain, or Review.",
+  "error.notFound.home": "Home",
+  "error.crash.eyebrow": "Something went wrong",
+  "error.crash.title": "We hit a snag",
+  "error.crash.body":
+    "Try again in a moment. Your work is still on GitHub. FirstPR failed to load this page.",
+  "error.crash.retry": "Retry",
+  "error.crash.home": "Home",
 
   "hero.eyebrow": "FirstPR never writes your code.",
   "hero.title": "Your first PR, written by you, ready to merge.",

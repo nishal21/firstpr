@@ -5,6 +5,7 @@ import { errorJson, jsonWithSource, withDemoFixture } from "@/lib/demo";
 import { GitHubError } from "@/lib/github";
 import { matchIssues } from "@/lib/match";
 
+export const runtime = "nodejs";
 export const maxDuration = 60;
 
 /** GitHub username: 1–39 chars, alphanumeric or single hyphens, no leading/trailing hyphen. */

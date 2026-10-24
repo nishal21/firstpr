@@ -19,6 +19,14 @@ export const es = fill({
   "footer.built":
     "Hecho en AIBoomi Startup Weekend Kochi por DuoMatter",
   "footer.tagline": "Match. Explain. Review. Tú escribes el fix.",
+  "footer.botTitle": "FirstPRbot",
+  "footer.botAbout":
+    "Instala la GitHub App en un repo. Comenta /firstpr explain en un issue para una guía en lenguaje claro. Abre o actualiza un PR y publica una score card. FirstPRbot nunca escribe tu fix.",
+  "footer.botLink": "Ver FirstPRbot en GitHub",
+  "bot.heading": "Úsalo en GitHub",
+  "bot.body":
+    "FirstPRbot lleva Match → Explain → Review a los comentarios de issues y PRs. Instálalo y comenta /firstpr explain en un good first issue — o abre un PR y recibe la score card sin salir de GitHub.",
+  "bot.cta": "Sobre FirstPRbot",
   "hero.eyebrow": "FirstPR nunca escribe tu código.",
   "hero.title": "Tu primer PR, escrito por ti, listo para merge.",
   "hero.subtitle":
@@ -136,6 +144,14 @@ export const fr = fill({
   "footer.built":
     "Créé à AIBoomi Startup Weekend Kochi par DuoMatter",
   "footer.tagline": "Match. Explain. Review. Tu écris le correctif.",
+  "footer.botTitle": "FirstPRbot",
+  "footer.botAbout":
+    "Installe la GitHub App sur un dépôt. Commente /firstpr explain sur un issue pour un guide clair. Ouvre ou mets à jour un PR pour une score card. FirstPRbot n'écrit jamais ton correctif.",
+  "footer.botLink": "Voir FirstPRbot sur GitHub",
+  "bot.heading": "Utilise-le sur GitHub",
+  "bot.body":
+    "FirstPRbot apporte Match → Explain → Review dans les commentaires d'issues et de PRs. Installe-le, puis commente /firstpr explain sur un good first issue — ou ouvre un PR pour la score card sans quitter GitHub.",
+  "bot.cta": "À propos de FirstPRbot",
   "hero.eyebrow": "FirstPR n'écrit jamais ton code.",
   "hero.title": "Ton premier PR, écrit par toi, prêt à merge.",
   "hero.subtitle":
@@ -245,6 +261,14 @@ export const de = fill({
   "footer.built":
     "Gebaut bei AIBoomi Startup Weekend Kochi von DuoMatter",
   "footer.tagline": "Match. Explain. Review. Du schreibst den Fix.",
+  "footer.botTitle": "FirstPRbot",
+  "footer.botAbout":
+    "Installiere die GitHub App im Repo. Kommentiere /firstpr explain an einem Issue für eine klare Anleitung. Öffne oder aktualisiere einen PR für eine Score-Card. FirstPRbot schreibt nie deinen Fix.",
+  "footer.botLink": "FirstPRbot auf GitHub ansehen",
+  "bot.heading": "Auf GitHub nutzen",
+  "bot.body":
+    "FirstPRbot bringt Match → Explain → Review in Issue- und PR-Kommentare. Installieren, dann /firstpr explain an einem good first issue — oder einen PR öffnen und die Score-Card ohne GitHub zu verlassen bekommen.",
+  "bot.cta": "Über FirstPRbot",
   "hero.eyebrow": "FirstPR schreibt nie deinen Code.",
   "hero.title": "Dein erster PR, von dir geschrieben, bereit zum Merge.",
   "hero.subtitle":
@@ -342,6 +366,14 @@ export const pt = fill({
   "nav.menuOpen": "Abrir menu",
   "nav.menuClose": "Fechar menu",
   "footer.tagline": "Match. Explain. Review. Você escreve o fix.",
+  "footer.botTitle": "FirstPRbot",
+  "footer.botAbout":
+    "Instale o GitHub App no repo. Comente /firstpr explain num issue para um guia claro. Abra ou atualize um PR para uma score card. FirstPRbot nunca escreve seu fix.",
+  "footer.botLink": "Ver FirstPRbot no GitHub",
+  "bot.heading": "Use no GitHub",
+  "bot.body":
+    "FirstPRbot traz Match → Explain → Review para comentários de issues e PRs. Instale e comente /firstpr explain num good first issue — ou abra um PR e receba a score card sem sair do GitHub.",
+  "bot.cta": "Sobre o FirstPRbot",
   "hero.eyebrow": "FirstPR nunca escreve seu código.",
   "hero.title": "Seu primeiro PR, escrito por você, pronto para merge.",
   "hero.subtitle":
@@ -398,6 +430,14 @@ export const zh = fill({
   "nav.menuOpen": "打开菜单",
   "nav.menuClose": "关闭菜单",
   "footer.tagline": "Match. Explain. Review. 修复由你来写。",
+  "footer.botTitle": "FirstPRbot",
+  "footer.botAbout":
+    "在仓库安装 GitHub App。在 issue 上评论 /firstpr explain 获取简明说明。打开或更新 PR 会收到 score card。FirstPRbot 从不替你写修复。",
+  "footer.botLink": "在 GitHub 查看 FirstPRbot",
+  "bot.heading": "在 GitHub 上使用",
+  "bot.body":
+    "FirstPRbot 把 Match → Explain → Review 带到 issue 与 PR 评论里。安装后在 good first issue 上评论 /firstpr explain，或打开 PR 即可在不离开 GitHub 的情况下拿到 score card。",
+  "bot.cta": "关于 FirstPRbot",
   "hero.eyebrow": "FirstPR 从不替你写代码。",
   "hero.title": "你的第一个 PR，由你自己写好，准备 merge。",
   "hero.subtitle":
@@ -454,6 +494,14 @@ export const ja = fill({
   "nav.menuOpen": "メニューを開く",
   "nav.menuClose": "メニューを閉じる",
   "footer.tagline": "Match. Explain. Review. 修正はあなたが書く。",
+  "footer.botTitle": "FirstPRbot",
+  "footer.botAbout":
+    "リポジトリに GitHub App をインストール。issue に /firstpr explain とコメントすると平易なガイドが届きます。PR を開くか更新すると score card が投稿されます。FirstPRbot は修正を書きません。",
+  "footer.botLink": "GitHub で FirstPRbot を見る",
+  "bot.heading": "GitHub で使う",
+  "bot.body":
+    "FirstPRbot は Match → Explain → Review を issue / PR コメントに届けます。インストールして good first issue に /firstpr explain と書くか、PR を開けば GitHub から離れずに score card を受け取れます。",
+  "bot.cta": "FirstPRbot について",
   "hero.eyebrow": "FirstPR はコードを書きません。",
   "hero.title": "最初の PR。あなたが書いて、merge できる状態に。",
   "hero.subtitle":
@@ -510,6 +558,14 @@ export const ko = fill({
   "nav.menuOpen": "메뉴 열기",
   "nav.menuClose": "메뉴 닫기",
   "footer.tagline": "Match. Explain. Review. 수정은 당신이 작성합니다.",
+  "footer.botTitle": "FirstPRbot",
+  "footer.botAbout":
+    "저장소에 GitHub App을 설치하세요. issue에 /firstpr explain을 댓글하면 쉬운 안내를 받습니다. PR을 열거나 업데이트하면 score card가 올라갑니다. FirstPRbot은 수정을 대신 쓰지 않습니다.",
+  "footer.botLink": "GitHub에서 FirstPRbot 보기",
+  "bot.heading": "GitHub에서 쓰기",
+  "bot.body":
+    "FirstPRbot은 Match → Explain → Review를 issue·PR 댓글로 가져옵니다. 설치한 뒤 good first issue에 /firstpr explain을 쓰거나 PR을 열면 GitHub을 떠나지 않고 score card를 받을 수 있습니다.",
+  "bot.cta": "FirstPRbot 소개",
   "hero.eyebrow": "FirstPR는 코드를 대신 쓰지 않습니다.",
   "hero.title": "첫 PR, 직접 쓰고, merge 준비 완료.",
   "hero.subtitle":
@@ -563,6 +619,14 @@ export const ar = fill({
   "nav.menuOpen": "فتح القائمة",
   "nav.menuClose": "إغلاق القائمة",
   "footer.tagline": "Match. Explain. Review. أنت تكتب الإصلاح.",
+  "footer.botTitle": "FirstPRbot",
+  "footer.botAbout":
+    "ثبّت GitHub App على المستودع. علّق بـ /firstpr explain على issue لشرح واضح. افتح أو حدّث PR لتحصل على score card. FirstPRbot لا يكتب الإصلاح أبدًا.",
+  "footer.botLink": "عرض FirstPRbot على GitHub",
+  "bot.heading": "استخدمه على GitHub",
+  "bot.body":
+    "يجلب FirstPRbot مسار Match → Explain → Review إلى تعليقات issues وPRs. ثبّته ثم علّق /firstpr explain على good first issue — أو افتح PR واحصل على score card دون مغادرة GitHub.",
+  "bot.cta": "عن FirstPRbot",
   "hero.eyebrow": "FirstPR لا يكتب شفرتك أبدًا.",
   "hero.title": "أول PR لك، تكتبه أنت، جاهز للـ merge.",
   "hero.subtitle":
@@ -610,6 +674,14 @@ export const ru = fill({
   "nav.menuOpen": "Открыть меню",
   "nav.menuClose": "Закрыть меню",
   "footer.tagline": "Match. Explain. Review. Исправление пишете вы.",
+  "footer.botTitle": "FirstPRbot",
+  "footer.botAbout":
+    "Установите GitHub App в репозиторий. Напишите /firstpr explain в issue — получите понятное объяснение. Откройте или обновите PR — придёт score card. FirstPRbot никогда не пишет ваш fix.",
+  "footer.botLink": "FirstPRbot на GitHub",
+  "bot.heading": "Используйте на GitHub",
+  "bot.body":
+    "FirstPRbot переносит Match → Explain → Review в комментарии к issues и PR. Установите и напишите /firstpr explain на good first issue — или откройте PR и получите score card, не уходя с GitHub.",
+  "bot.cta": "О FirstPRbot",
   "hero.eyebrow": "FirstPR никогда не пишет твой код.",
   "hero.title": "Твой первый PR — ты пишешь, он готов к merge.",
   "hero.subtitle":
@@ -657,6 +729,14 @@ export const ta = fill({
   "nav.menuOpen": "மெனுவைத் திற",
   "nav.menuClose": "மெனுவை மூடு",
   "footer.tagline": "Match. Explain. Review. நீங்கள் எழுதுகிறீர்கள்.",
+  "footer.botTitle": "FirstPRbot",
+  "footer.botAbout":
+    "ரெப்போவில் GitHub App நிறுவுங்கள். ஒரு issue-இல் /firstpr explain கமெண்ட் செய்தால் எளிய விளக்கம் கிடைக்கும். PR திறந்தாலோ புதுப்பித்தாலோ score card வரும். FirstPRbot உங்கள் fix-ஐ எழுதாது.",
+  "footer.botLink": "GitHub-இல் FirstPRbot பார்க்க",
+  "bot.heading": "GitHub-இல் பயன்படுத்துங்கள்",
+  "bot.body":
+    "FirstPRbot Match → Explain → Review-ஐ issue/PR கமெண்ட்களுக்கு கொண்டு வருகிறது. நிறுவி good first issue-இல் /firstpr explain எழுதுங்கள் — அல்லது PR திறந்து GitHub விடாமல் score card பெறுங்கள்.",
+  "bot.cta": "FirstPRbot பற்றி",
   "hero.eyebrow": "FirstPR உங்கள் கோடை எழுதாது.",
   "hero.title": "உங்கள் முதல் PR, நீங்கள் எழுதியது, merge செய்ய தயார்.",
   "hero.subtitle":
@@ -704,6 +784,14 @@ export const bn = fill({
   "nav.menuOpen": "মেনু খুলুন",
   "nav.menuClose": "মেনু বন্ধ করুন",
   "footer.tagline": "Match. Explain. Review. আপনি লেখেন।",
+  "footer.botTitle": "FirstPRbot",
+  "footer.botAbout":
+    "রেপোতে GitHub App ইনস্টল করুন। কোনো issue-এ /firstpr explain কমেন্ট করলে সহজ ব্যাখ্যা পাবেন। PR খুললে বা আপডেট করলে score card আসবে। FirstPRbot আপনার fix লেখে না।",
+  "footer.botLink": "GitHub-এ FirstPRbot দেখুন",
+  "bot.heading": "GitHub-এ ব্যবহার করুন",
+  "bot.body":
+    "FirstPRbot Match → Explain → Review issue ও PR কমেন্টে নিয়ে আসে। ইনস্টল করে good first issue-এ /firstpr explain লিখুন — অথবা PR খুলে GitHub না ছেড়ে score card পান।",
+  "bot.cta": "FirstPRbot সম্বন্ধে",
   "hero.eyebrow": "FirstPR আপনার কোড লেখে না।",
   "hero.title": "আপনার প্রথম PR, আপনি লিখেছেন, merge-এর জন্য প্রস্তুত।",
   "hero.subtitle":
@@ -751,6 +839,14 @@ export const id = fill({
   "nav.menuOpen": "Buka menu",
   "nav.menuClose": "Tutup menu",
   "footer.tagline": "Match. Explain. Review. Anda yang menulis perbaikannya.",
+  "footer.botTitle": "FirstPRbot",
+  "footer.botAbout":
+    "Pasang GitHub App di repo. Komentari /firstpr explain pada issue untuk panduan jelas. Buka atau perbarui PR untuk score card. FirstPRbot tidak pernah menulis perbaikan Anda.",
+  "footer.botLink": "Lihat FirstPRbot di GitHub",
+  "bot.heading": "Pakai di GitHub",
+  "bot.body":
+    "FirstPRbot membawa Match → Explain → Review ke komentar issue dan PR. Pasang, lalu komentari /firstpr explain pada good first issue — atau buka PR dan dapatkan score card tanpa meninggalkan GitHub.",
+  "bot.cta": "Tentang FirstPRbot",
   "hero.eyebrow": "FirstPR tidak pernah menulis kode Anda.",
   "hero.title": "PR pertama Anda, ditulis Anda, siap di-merge.",
   "hero.subtitle":

@@ -72,6 +72,21 @@ export function SiteFooter() {
           </nav>
         </div>
 
+        <div className="flex flex-col gap-2 border-t border-white/10 pt-6">
+          <p className="text-sm font-medium text-slate-200">
+            {t("footer.botTitle")}
+          </p>
+          <p className="max-w-2xl text-sm text-slate-400">{t("footer.botAbout")}</p>
+          <a
+            href="https://github.com/apps/firstprbot"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex min-h-11 w-fit items-center text-sm text-primary outline-none hover:underline focus-visible:ring-2 focus-visible:ring-primary/50"
+          >
+            {t("footer.botLink")}
+          </a>
+        </div>
+
         <p className="text-sm text-slate-400">{t("footer.built")}</p>
       </div>
     </footer>

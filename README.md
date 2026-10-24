@@ -1,36 +1,117 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FirstPR
 
-## Getting Started
+Helps open-source beginners make their first PR themselves and get it merged.
 
-First, run the development server:
+## Demo
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- Live: [https://firstpr-coral.vercel.app](https://firstpr-coral.vercel.app)
+- Demo video: _[add link]_
+- Deck: _[add link]_
+
+## Problem statement
+
+Beginners often do not know which issue to take, which files matter, or how to check a PR before a maintainer sees it. Maintainers get incomplete or off-scope first PRs. FirstPR guides the contributor through that path without writing the fix for them.
+
+## Users and context
+
+- Beginners making a first open-source contribution
+- Maintainers who receive those PRs
+
+## Solution overview
+
+Three steps:
+
+1. **Match** — enter a GitHub username (optional repo). FirstPR picks an open good first issue with no assignee.
+2. **Explain** — plain-language summary, real files and line links, hints in three levels. FirstPR refuses to write the fix.
+3. **Review** — paste a PR URL or diff. FirstPR scores it against the issue, CONTRIBUTING.md, and the change.
+
+```mermaid
+flowchart LR
+  A[Match: pick issue] --> B[Explain: where to look]
+  B --> C[You write the fix]
+  C --> D[Review: score the PR]
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+FirstPRbot (optional GitHub App) can run Explain and Review from issue and PR comments: [github.com/apps/firstprbot](https://github.com/apps/firstprbot).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Tech stack
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Next.js 16, TypeScript, Tailwind, shadcn/ui
+- OpenAI Responses API (model from env, default `gpt-6-luna`)
+- Optional Neysa open-model endpoint for file picking
+- GitHub REST API via Octokit
+- Vercel
 
-## Learn More
+## Setup and run
 
-To learn more about Next.js, take a look at the following resources:
+Needs Node 20.9+.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+git clone <this-repo>
+cd firstpr
+npm install
+cp .env.example .env.local
+# fill OPENAI_API_KEY, GITHUB_TOKEN, and any optional keys
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Open [http://localhost:3000](http://localhost:3000).
 
-## Deploy on Vercel
+Offline-style demo (uses committed fixtures under `data/demo/`):
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+DEMO_MODE=on npm run dev
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`DEMO_MODE=auto` (default) uses live APIs and falls back to fixtures on rate limit or timeout. `DEMO_MODE=off` is live only.
+
+## Models and data
+
+| Task | Model / path |
+| --- | --- |
+| Explain, hints, difficulty, most JSON | `OPENAI_MODEL` (default `gpt-6-luna`) via Responses API |
+| Review | `OPENAI_REVIEW_MODEL` (default `gpt-6-luna`) |
+| File picking (optional) | Neysa Gemma then Qwen, then OpenAI `first_pass` fallback |
+
+At request time FirstPR reads public GitHub data through the API. Nothing is stored in a database. The only persisted sample payloads are committed demo fixtures derived from the public MIT-licensed repo [nishal21/NekoDroid](https://github.com/nishal21/NekoDroid).
+
+## Evaluation and guardrails
+
+- Line citations are checked against the real file and dropped if wrong
+- The PR score is computed in code from a checklist, not by asking the model for a number
+- Deterministic rule checks cannot be overridden by the AI
+- Hints refuse code-for-me requests and filter code-like output
+- When confidence is low, Explain can include an "unsure" note
+
+## Known limitations and risks
+
+- The AI can still misread an issue
+- Only public repos
+- Search and GitHub calls are limited by rate limits
+- Malayalam and Hindi UI output quality was not formally checked
+- Most end-to-end testing used one demo repo (NekoDroid)
+
+## Assumptions and trade-offs
+
+- No database and no login
+- No streaming responses
+- In-memory cache plus recorded demo fixtures for reliability during demos
+
+## Prior work and attribution
+
+Everything in this repo was built during AIBoomi Startup Weekend Kochi (Oct 23–24, 2026). The demo repo nishal21/NekoDroid and its starter issues existed before the event and were declared at kickoff. Built on create-next-app and shadcn/ui.
+
+## How we used AI to build it
+
+We wrote the code with AI coding help in Cursor. We reviewed, tested, and debugged everything ourselves.
+
+## Team
+
+| Name       | Role                       | Contact     |
+| ---------- | -------------------------- | ----------- |
+| Nishal K   | Product, engineering, demo | _@nishal21_ |
+| Anan Shaji | Research, pitch, business  | _@zenxrth_  |
+
+## License
+
+MIT. See [LICENSE](./LICENSE).

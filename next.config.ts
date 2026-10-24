@@ -5,8 +5,10 @@ const nextConfig: NextConfig = {
   experimental: {
     agentFeedback: true,
   },
-  cacheComponents: true,
-  partialPrefetching: true,
+  // Off so app/api can export `runtime = "nodejs"` (required for Vercel Node APIs).
+  // partialPrefetching requires cacheComponents, so both stay off.
+  cacheComponents: false,
+  partialPrefetching: false,
   turbopack: {
     rules: {
       "*.css": {
