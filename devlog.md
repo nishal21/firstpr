@@ -227,5 +227,11 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - Removed Match › Explain › Review under header on issue/review
 - Keep site header nav; home still has LandingSteps cards
 
+## 2026-10-24 — Animated hero/footer + site-wide polish
+- framer-motion LazyMotion: `words-pull-up.tsx` + FadeUp on hero
+- Footer navy + `ink-ridges.tsx` (dynamic, ssr:false); `useNarrow` for phone moon/horizon
+- Shared `arrow-pill.tsx`, `page-intro.tsx`; match/explain/review/score/hints/bot/mobile menu aligned
+- User confirmed looks good; tsc clean; 390px no overflow; leftover lint is older unrelated
+
 ## Next
 - Paste video/deck URLs; deploy; commit when asked

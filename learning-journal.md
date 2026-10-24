@@ -235,7 +235,12 @@
 - Deleted `FlowProgress` from explain + review pages (duplicated header)
 - Header: Find an issue / Explain / Review my PR stays
 
+## 2026-10-24 — UI polish locked
+- Hero pull-up + ink footer + arrow pills + PageIntro across flow pages
+- Mobile: useNarrow shader props; no horizontal overflow at 390
+- User: “everything is good” — no further UI changes needed this pass
+
 ## Next for another agent
 1. Paste demo video + deck URLs into README Demo section
 2. Deploy webhook; test `/firstpr review` on a NekoDroid PR
-3. Commit when asked
+3. Commit when asked (uncommitted: site-footer moon tweak if still dirty)
