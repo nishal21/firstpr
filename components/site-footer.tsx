@@ -12,6 +12,9 @@ const NAV_LINKS = [
   { href: "/review", key: "nav.review" as const },
 ];
 
+const SOURCE_URL = "https://github.com/nishal21/firstpr";
+const BOT_URL = "https://github.com/apps/firstprbot";
+
 function linkActive(pathname: string, href: string): boolean {
   if (href === "/") return pathname === "/";
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -77,14 +80,24 @@ export function SiteFooter() {
             {t("footer.botTitle")}
           </p>
           <p className="max-w-2xl text-sm text-slate-400">{t("footer.botAbout")}</p>
-          <a
-            href="https://github.com/apps/firstprbot"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex min-h-11 w-fit items-center text-sm text-primary outline-none hover:underline focus-visible:ring-2 focus-visible:ring-primary/50"
-          >
-            {t("footer.botLink")}
-          </a>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <a
+              href={BOT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-11 w-fit items-center text-sm text-primary outline-none hover:underline focus-visible:ring-2 focus-visible:ring-primary/50"
+            >
+              {t("footer.botLink")}
+            </a>
+            <a
+              href={SOURCE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-11 w-fit items-center text-sm text-primary outline-none hover:underline focus-visible:ring-2 focus-visible:ring-primary/50"
+            >
+              {t("footer.sourceLink")}
+            </a>
+          </div>
         </div>
 
         <p className="text-sm text-slate-400">{t("footer.built")}</p>

@@ -219,5 +219,9 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - README users/limitations/contacts; `/firstpr review` webhook; score title mentor-ready
 - Waiting on real demo video + deck URLs
 
+## 2026-10-24 — Open-source source link
+- README Demo → https://github.com/nishal21/firstpr (MIT)
+- Footer `footer.sourceLink` + link next to FirstPRbot
+
 ## Next
 - Paste video/deck URLs; deploy; commit when asked

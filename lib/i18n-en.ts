@@ -13,6 +13,7 @@ export const en = {
   "footer.botAbout":
     "Install the GitHub App on a repo. On an issue: /firstpr explain. On a PR: /firstpr review for a mentor-ready score card (also posts when a PR opens or updates). FirstPRbot never writes your fix.",
   "footer.botLink": "View FirstPRbot on GitHub",
+  "footer.sourceLink": "Source code on GitHub",
 
   "bot.heading": "Use it on GitHub",
   "bot.body":

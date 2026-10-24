@@ -23,6 +23,7 @@ export const es = fill({
   "footer.botAbout":
     "Instala la GitHub App en un repo. Comenta /firstpr explain en un issue para una guía en lenguaje claro. Abre o actualiza un PR y publica una score card. FirstPRbot nunca escribe tu fix.",
   "footer.botLink": "Ver FirstPRbot en GitHub",
+  "footer.sourceLink": "Código fuente en GitHub",
   "bot.heading": "Úsalo en GitHub",
   "bot.body":
     "FirstPRbot lleva Match → Explain → Review a los comentarios de issues y PRs. Instálalo y comenta /firstpr explain en un good first issue — o abre un PR y recibe la score card sin salir de GitHub.",
@@ -148,6 +149,7 @@ export const fr = fill({
   "footer.botAbout":
     "Installe la GitHub App sur un dépôt. Commente /firstpr explain sur un issue pour un guide clair. Ouvre ou mets à jour un PR pour une score card. FirstPRbot n'écrit jamais ton correctif.",
   "footer.botLink": "Voir FirstPRbot sur GitHub",
+  "footer.sourceLink": "Code source sur GitHub",
   "bot.heading": "Utilise-le sur GitHub",
   "bot.body":
     "FirstPRbot apporte Match → Explain → Review dans les commentaires d'issues et de PRs. Installe-le, puis commente /firstpr explain sur un good first issue — ou ouvre un PR pour la score card sans quitter GitHub.",
@@ -265,6 +267,7 @@ export const de = fill({
   "footer.botAbout":
     "Installiere die GitHub App im Repo. Kommentiere /firstpr explain an einem Issue für eine klare Anleitung. Öffne oder aktualisiere einen PR für eine Score-Card. FirstPRbot schreibt nie deinen Fix.",
   "footer.botLink": "FirstPRbot auf GitHub ansehen",
+  "footer.sourceLink": "Quellcode auf GitHub",
   "bot.heading": "Auf GitHub nutzen",
   "bot.body":
     "FirstPRbot bringt Match → Explain → Review in Issue- und PR-Kommentare. Installieren, dann /firstpr explain an einem good first issue — oder einen PR öffnen und die Score-Card ohne GitHub zu verlassen bekommen.",
@@ -370,6 +373,7 @@ export const pt = fill({
   "footer.botAbout":
     "Instale o GitHub App no repo. Comente /firstpr explain num issue para um guia claro. Abra ou atualize um PR para uma score card. FirstPRbot nunca escreve seu fix.",
   "footer.botLink": "Ver FirstPRbot no GitHub",
+  "footer.sourceLink": "Código-fonte no GitHub",
   "bot.heading": "Use no GitHub",
   "bot.body":
     "FirstPRbot traz Match → Explain → Review para comentários de issues e PRs. Instale e comente /firstpr explain num good first issue — ou abra um PR e receba a score card sem sair do GitHub.",
@@ -434,6 +438,7 @@ export const zh = fill({
   "footer.botAbout":
     "在仓库安装 GitHub App。在 issue 上评论 /firstpr explain 获取简明说明。打开或更新 PR 会收到 score card。FirstPRbot 从不替你写修复。",
   "footer.botLink": "在 GitHub 查看 FirstPRbot",
+  "footer.sourceLink": "GitHub 上的源码",
   "bot.heading": "在 GitHub 上使用",
   "bot.body":
     "FirstPRbot 把 Match → Explain → Review 带到 issue 与 PR 评论里。安装后在 good first issue 上评论 /firstpr explain，或打开 PR 即可在不离开 GitHub 的情况下拿到 score card。",
@@ -498,6 +503,7 @@ export const ja = fill({
   "footer.botAbout":
     "リポジトリに GitHub App をインストール。issue に /firstpr explain とコメントすると平易なガイドが届きます。PR を開くか更新すると score card が投稿されます。FirstPRbot は修正を書きません。",
   "footer.botLink": "GitHub で FirstPRbot を見る",
+  "footer.sourceLink": "GitHub のソースコード",
   "bot.heading": "GitHub で使う",
   "bot.body":
     "FirstPRbot は Match → Explain → Review を issue / PR コメントに届けます。インストールして good first issue に /firstpr explain と書くか、PR を開けば GitHub から離れずに score card を受け取れます。",
@@ -562,6 +568,7 @@ export const ko = fill({
   "footer.botAbout":
     "저장소에 GitHub App을 설치하세요. issue에 /firstpr explain을 댓글하면 쉬운 안내를 받습니다. PR을 열거나 업데이트하면 score card가 올라갑니다. FirstPRbot은 수정을 대신 쓰지 않습니다.",
   "footer.botLink": "GitHub에서 FirstPRbot 보기",
+  "footer.sourceLink": "GitHub 소스 코드",
   "bot.heading": "GitHub에서 쓰기",
   "bot.body":
     "FirstPRbot은 Match → Explain → Review를 issue·PR 댓글로 가져옵니다. 설치한 뒤 good first issue에 /firstpr explain을 쓰거나 PR을 열면 GitHub을 떠나지 않고 score card를 받을 수 있습니다.",
@@ -623,6 +630,7 @@ export const ar = fill({
   "footer.botAbout":
     "ثبّت GitHub App على المستودع. علّق بـ /firstpr explain على issue لشرح واضح. افتح أو حدّث PR لتحصل على score card. FirstPRbot لا يكتب الإصلاح أبدًا.",
   "footer.botLink": "عرض FirstPRbot على GitHub",
+  "footer.sourceLink": "الكود المصدري على GitHub",
   "bot.heading": "استخدمه على GitHub",
   "bot.body":
     "يجلب FirstPRbot مسار Match → Explain → Review إلى تعليقات issues وPRs. ثبّته ثم علّق /firstpr explain على good first issue — أو افتح PR واحصل على score card دون مغادرة GitHub.",
@@ -678,6 +686,7 @@ export const ru = fill({
   "footer.botAbout":
     "Установите GitHub App в репозиторий. Напишите /firstpr explain в issue — получите понятное объяснение. Откройте или обновите PR — придёт score card. FirstPRbot никогда не пишет ваш fix.",
   "footer.botLink": "FirstPRbot на GitHub",
+  "footer.sourceLink": "Исходный код на GitHub",
   "bot.heading": "Используйте на GitHub",
   "bot.body":
     "FirstPRbot переносит Match → Explain → Review в комментарии к issues и PR. Установите и напишите /firstpr explain на good first issue — или откройте PR и получите score card, не уходя с GitHub.",
@@ -733,6 +742,7 @@ export const ta = fill({
   "footer.botAbout":
     "ரெப்போவில் GitHub App நிறுவுங்கள். ஒரு issue-இல் /firstpr explain கமெண்ட் செய்தால் எளிய விளக்கம் கிடைக்கும். PR திறந்தாலோ புதுப்பித்தாலோ score card வரும். FirstPRbot உங்கள் fix-ஐ எழுதாது.",
   "footer.botLink": "GitHub-இல் FirstPRbot பார்க்க",
+  "footer.sourceLink": "GitHub-இல் மூலக் குறியீடு",
   "bot.heading": "GitHub-இல் பயன்படுத்துங்கள்",
   "bot.body":
     "FirstPRbot Match → Explain → Review-ஐ issue/PR கமெண்ட்களுக்கு கொண்டு வருகிறது. நிறுவி good first issue-இல் /firstpr explain எழுதுங்கள் — அல்லது PR திறந்து GitHub விடாமல் score card பெறுங்கள்.",
@@ -788,6 +798,7 @@ export const bn = fill({
   "footer.botAbout":
     "রেপোতে GitHub App ইনস্টল করুন। কোনো issue-এ /firstpr explain কমেন্ট করলে সহজ ব্যাখ্যা পাবেন। PR খুললে বা আপডেট করলে score card আসবে। FirstPRbot আপনার fix লেখে না।",
   "footer.botLink": "GitHub-এ FirstPRbot দেখুন",
+  "footer.sourceLink": "GitHub-এ সোর্স কোড",
   "bot.heading": "GitHub-এ ব্যবহার করুন",
   "bot.body":
     "FirstPRbot Match → Explain → Review issue ও PR কমেন্টে নিয়ে আসে। ইনস্টল করে good first issue-এ /firstpr explain লিখুন — অথবা PR খুলে GitHub না ছেড়ে score card পান।",
@@ -843,6 +854,7 @@ export const id = fill({
   "footer.botAbout":
     "Pasang GitHub App di repo. Komentari /firstpr explain pada issue untuk panduan jelas. Buka atau perbarui PR untuk score card. FirstPRbot tidak pernah menulis perbaikan Anda.",
   "footer.botLink": "Lihat FirstPRbot di GitHub",
+  "footer.sourceLink": "Kode sumber di GitHub",
   "bot.heading": "Pakai di GitHub",
   "bot.body":
     "FirstPRbot membawa Match → Explain → Review ke komentar issue dan PR. Pasang, lalu komentari /firstpr explain pada good first issue — atau buka PR dan dapatkan score card tanpa meninggalkan GitHub.",

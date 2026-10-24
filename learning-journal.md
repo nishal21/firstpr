@@ -227,6 +227,10 @@
 - Bot: `/firstpr review` on PRs → mentor-ready score card; auto on open/sync
 - Need real demo video + deck URLs in README (not invented)
 
+## 2026-10-24 — Source on GitHub
+- Linked MIT repo in README Demo + site footer (`nishal21/firstpr`)
+- i18n `footer.sourceLink` (en + packs)
+
 ## Next for another agent
 1. Paste demo video + deck URLs into README Demo section
 2. Deploy webhook; test `/firstpr review` on a NekoDroid PR

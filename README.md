@@ -5,6 +5,7 @@ Helps open-source beginners make their first PR themselves and get it merged.
 ## Demo
 
 - Live: [https://firstpr-coral.vercel.app](https://firstpr-coral.vercel.app)
+- Source: [github.com/nishal21/firstpr](https://github.com/nishal21/firstpr) (MIT)
 - Demo video: <!-- paste YouTube or Loom URL -->
 - Deck: <!-- paste Google Slides or PDF URL -->
 
