@@ -2,106 +2,146 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { ArrowRight } from "lucide-react";
 import { useT } from "@/components/language-provider";
-import { cn } from "@/lib/utils";
-
-const NAV_LINKS = [
-  { href: "/", key: "nav.findIssue" as const },
-  { href: "/issue/nishal21/NekoDroid/4", key: "nav.explain" as const },
-  { href: "/review", key: "nav.review" as const },
-];
+import InkRidges from "@/components/ui/ink-ridges";
 
 const SOURCE_URL = "https://github.com/nishal21/firstpr";
+const LICENSE_URL = "https://github.com/nishal21/firstpr/blob/main/LICENSE";
 const BOT_URL = "https://github.com/apps/firstprbot";
 
-function linkActive(pathname: string, href: string): boolean {
-  if (href === "/") return pathname === "/";
-  return pathname === href || pathname.startsWith(`${href}/`);
+type FooterLink = { href: string; label: string; external?: boolean };
+
+const linkClass =
+  "inline-flex min-h-11 items-center text-sm text-slate-300 outline-none transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-primary/50 md:min-h-9";
+
+function FooterColumn({ title, links }: { title: string; links: FooterLink[] }) {
+  return (
+    <div className="min-w-0">
+      <p className="text-xs font-semibold tracking-[0.14em] text-slate-500 uppercase">
+        {title}
+      </p>
+      <ul className="mt-3 flex flex-col">
+        {links.map((link) => (
+          <li key={link.href}>
+            {link.external ? (
+              <a
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={linkClass}
+              >
+                {link.label}
+              </a>
+            ) : (
+              <Link href={link.href} className={linkClass}>
+                {link.label}
+              </Link>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
 export function SiteFooter() {
   const t = useT();
-  const pathname = usePathname();
+  const product: FooterLink[] = [
+    { href: "/", label: t("nav.findIssue") },
+    { href: "/issue/nishal21/NekoDroid/4", label: t("nav.explain") },
+    { href: "/review", label: t("nav.review") },
+  ];
+  const openSource: FooterLink[] = [
+    { href: SOURCE_URL, label: t("footer.sourceLink"), external: true },
+    { href: BOT_URL, label: t("footer.botLink"), external: true },
+    { href: LICENSE_URL, label: t("footer.license"), external: true },
+  ];
+  const team: FooterLink[] = [
+    { href: "https://github.com/nishal21", label: "Nishal K", external: true },
+    { href: "https://github.com/zenxrth", label: "Anan Shaji", external: true },
+  ];
 
   return (
-    <footer className="relative mt-auto overflow-hidden bg-[#172235] text-slate-100 md:rounded-t-3xl">
-      <div
-        aria-hidden
-        className="footer-glow pointer-events-none absolute inset-0 opacity-40"
-      />
+    <footer className="mt-auto overflow-hidden md:rounded-t-[2rem]">
+      <InkRidges
+        className="bg-[#0f1828] text-slate-100"
+        inkColor="#5b9cff"
+        seed={11}
+        layers={4}
+        horizon={0.4}
+        mist={0.65}
+        drift={0.04}
+        parallax={0.02}
+        paintIn={2800}
+        sunPosition={[0.84, 0.46]}
+        sunSize={0.06}
+        scrollDepth={0}
+        clouds={0.3}
+        glow={0.5}
+        grain={0.25}
+        birds={4}
+        birdsEvery={12}
+      >
+        <div className="mx-auto flex max-w-5xl flex-col px-4 pt-14 sm:px-6 md:pt-20">
+          <div className="grid grid-cols-1 gap-12 md:grid-cols-12 md:gap-8">
+            <div className="flex min-w-0 flex-col gap-5 md:col-span-5">
+              <Link
+                href="/"
+                className="inline-flex w-fit items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+              >
+                <Image
+                  src="/brand/logo-mark-192.png"
+                  alt=""
+                  width={32}
+                  height={32}
+                  className="footer-logo-float size-8"
+                />
+                <Image
+                  src="/brand/wordmark-dark.png"
+                  alt="FirstPR"
+                  width={129}
+                  height={32}
+                  className="h-8 w-auto"
+                />
+              </Link>
+              <p className="max-w-xs text-2xl leading-tight font-semibold tracking-tight text-white">
+                {t("footer.ctaTitle")}
+              </p>
+              <p className="max-w-sm text-sm leading-relaxed text-slate-400">
+                {t("footer.botAbout")}
+              </p>
+              <Link
+                href="/#match"
+                className="group inline-flex min-h-11 w-fit items-center gap-2 rounded-full bg-white py-1 pr-1 pl-5 text-sm font-medium text-[#0f1828] outline-none transition-all hover:gap-3 focus-visible:ring-2 focus-visible:ring-primary/50"
+              >
+                {t("hero.cta")}
+                <span className="flex size-9 items-center justify-center rounded-full bg-primary transition-transform group-hover:scale-110">
+                  <ArrowRight className="size-4 text-white" aria-hidden />
+                </span>
+              </Link>
+            </div>
 
-      <div className="relative z-10 mx-auto flex max-w-5xl flex-col gap-8 px-4 py-10 sm:px-6 md:py-14">
-        <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex min-w-0 flex-col gap-2">
-            <Link
-              href="/"
-              className="inline-flex w-fit items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
-            >
-              <Image
-                src="/brand/logo-mark-192.png"
-                alt=""
-                width={32}
-                height={32}
-                className="footer-logo-float size-8"
-              />
-              <Image
-                src="/brand/wordmark-dark.png"
-                alt="FirstPR"
-                width={129}
-                height={32}
-                className="h-8 w-auto"
-              />
-            </Link>
-            <p className="max-w-sm text-sm text-slate-400">{t("footer.tagline")}</p>
+            <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 md:col-span-7 md:justify-items-end">
+              <FooterColumn title={t("footer.colProduct")} links={product} />
+              <FooterColumn title={t("footer.colOpenSource")} links={openSource} />
+              <FooterColumn title={t("footer.colTeam")} links={team} />
+            </div>
           </div>
 
-          <nav className="flex flex-wrap items-center gap-x-1 gap-y-1 text-sm text-slate-300">
-            {NAV_LINKS.map((link) => {
-              const active = linkActive(pathname, link.href);
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={cn(
-                    "inline-flex min-h-11 items-center px-3 outline-none hover:text-white focus-visible:ring-2 focus-visible:ring-primary/50",
-                    active && "font-medium text-white",
-                  )}
-                >
-                  {t(link.key)}
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
-
-        <div className="flex flex-col gap-2 border-t border-white/10 pt-6">
-          <p className="text-sm font-medium text-slate-200">
-            {t("footer.botTitle")}
+          <p
+            aria-hidden
+            className="pointer-events-none mt-16 text-center text-[23vw] leading-[0.8] font-semibold tracking-[-0.07em] text-white/90 select-none md:mt-20 md:text-[11.5rem]"
+          >
+            FirstPR
           </p>
-          <p className="max-w-2xl text-sm text-slate-400">{t("footer.botAbout")}</p>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-            <a
-              href={BOT_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex min-h-11 w-fit items-center text-sm text-primary outline-none hover:underline focus-visible:ring-2 focus-visible:ring-primary/50"
-            >
-              {t("footer.botLink")}
-            </a>
-            <a
-              href={SOURCE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex min-h-11 w-fit items-center text-sm text-primary outline-none hover:underline focus-visible:ring-2 focus-visible:ring-primary/50"
-            >
-              {t("footer.sourceLink")}
-            </a>
+
+          <div className="mt-28 flex flex-col gap-2 border-t border-white/10 py-6 text-sm text-slate-300 sm:flex-row sm:items-center sm:justify-between md:mt-40">
+            <p>{t("footer.built")}</p>
+            <p className="text-slate-400">{t("footer.tagline")}</p>
           </div>
         </div>
-
-        <p className="text-sm text-slate-400">{t("footer.built")}</p>
-      </div>
+      </InkRidges>
     </footer>
   );
 }

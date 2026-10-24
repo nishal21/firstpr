@@ -177,32 +177,14 @@
   font-family: var(--font-ar), var(--font-sans), sans-serif;
 }
 
-/* Footer: slow brand glow + logo float + gentle scene drift (CSS only). */
-.footer-glow {
-  background: linear-gradient(
-    120deg,
-    rgb(24 126 248 / 0.22) 0%,
-    transparent 40%,
-    rgb(4 49 156 / 0.28) 70%,
-    transparent 100%
-  );
-  background-size: 200% 200%;
-  background-position: 0% 50%;
-}
-
+/* Footer logo float (the ink landscape behind it animates itself). */
 .footer-logo-float {
   will-change: transform;
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  @keyframes footer-glow-drift {
-    0%,
-    100% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
+  html {
+    scroll-behavior: smooth;
   }
 
   @keyframes footer-logo-float {
@@ -213,10 +195,6 @@
     50% {
       transform: translateY(-4px);
     }
-  }
-
-  .footer-glow {
-    animation: footer-glow-drift 16s ease-in-out infinite;
   }
 
   .footer-logo-float {

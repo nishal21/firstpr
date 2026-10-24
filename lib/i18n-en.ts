@@ -14,6 +14,11 @@ export const en = {
     "Install the GitHub App on a repo. On an issue: /firstpr explain. On a PR: /firstpr review for a mentor-ready score card (also posts when a PR opens or updates). FirstPRbot never writes your fix.",
   "footer.botLink": "View FirstPRbot on GitHub",
   "footer.sourceLink": "Source code on GitHub",
+  "footer.ctaTitle": "Your first PR starts here.",
+  "footer.colProduct": "Product",
+  "footer.colOpenSource": "Open source",
+  "footer.colTeam": "Team",
+  "footer.license": "MIT License",
 
   "bot.heading": "Use it on GitHub",
   "bot.body":
