@@ -35,7 +35,7 @@ function ScoreRing({
     score >= 80 ? "#059669" : score >= 55 ? "#d97706" : "#dc2626";
 
   return (
-    <div className="relative mx-auto h-36 w-36 shrink-0">
+    <div className="relative mx-auto size-28 shrink-0 sm:size-36">
       <svg className="h-full w-full -rotate-90" viewBox="0 0 128 128" aria-hidden>
         <circle
           cx="64"
@@ -60,7 +60,7 @@ function ScoreRing({
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-3xl font-semibold tabular-nums text-foreground">
+        <span className="text-2xl font-semibold tracking-tight tabular-nums text-foreground sm:text-3xl">
           {score}
         </span>
         <span className="text-xs text-muted-foreground">{outOfLabel}</span>
@@ -156,7 +156,7 @@ export function ScoreCard({ result }: { result: ReviewResult }) {
 
   return (
     <div className="min-w-0 space-y-8">
-      <div className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-8">
+      <div className="rounded-xl border border-border bg-card p-5 shadow-sm sm:p-8">
         <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-start sm:text-left">
           <ScoreRing score={result.score} outOfLabel={t("score.outOf")} />
           <div className="min-w-0 flex-1 space-y-3">
@@ -172,7 +172,7 @@ export function ScoreCard({ result }: { result: ReviewResult }) {
             <Button
               type="button"
               variant="outline"
-              className="min-h-11 rounded-lg"
+              className="min-h-11 w-full rounded-full px-4 sm:w-auto"
               onClick={copyMarkdown}
             >
               <Copy className="h-3.5 w-3.5" />
@@ -186,11 +186,11 @@ export function ScoreCard({ result }: { result: ReviewResult }) {
         <h2 className="text-sm font-semibold tracking-tight text-foreground">
           {t("score.checklist")}
         </h2>
-        <ul className="divide-y divide-border rounded-xl border border-border bg-card">
+        <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card shadow-sm">
           {result.checklist.map((item) => (
             <li
               key={`${item.source}-${item.id}`}
-              className="flex gap-3 px-4 py-3.5"
+              className="flex gap-3 px-4 py-3.5 transition-colors hover:bg-muted/50 sm:px-5"
             >
               <StatusIcon
                 status={item.status}

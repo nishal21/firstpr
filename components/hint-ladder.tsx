@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Lock, Send } from "lucide-react";
+import { Lightbulb, Lock, Send } from "lucide-react";
 import { useT } from "@/components/language-provider";
 import { SavedResultDot } from "@/components/saved-result-dot";
 import { Spinner } from "@/components/spinner";
+import { ArrowBubble, arrowPillClass } from "@/components/ui/arrow-pill";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { friendlyErrorMessage } from "@/lib/api-errors";
@@ -68,7 +70,7 @@ function PointsChips({ points }: { points: HintPoint[] }) {
           href={p.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex max-w-full min-h-11 items-center overflow-x-auto rounded-md border border-border bg-card px-3 py-2 font-mono text-sm text-primary hover:bg-muted"
+          className="inline-flex max-w-full min-h-11 items-center overflow-x-auto rounded-full border border-border bg-card px-4 py-2 font-mono text-sm text-primary transition-colors hover:border-primary/30 hover:bg-accent"
         >
           <span className="truncate sm:whitespace-normal sm:break-all">
             {lineChip(p.path, p.start_line, p.end_line)}
@@ -270,9 +272,14 @@ export function HintLadder({
   ).map((s) => hints[s.level]!);
 
   return (
-    <div className="relative min-w-0 rounded-xl border border-border bg-card p-5">
+    <div className="relative min-w-0 rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6">
       <SavedResultDot show={fromCache} />
-      <h2 className="text-sm font-semibold text-foreground">{t("hint.title")}</h2>
+      <h2 className="flex items-center gap-2.5 text-base font-semibold text-foreground">
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-accent text-primary">
+          <Lightbulb className="size-4" aria-hidden />
+        </span>
+        {t("hint.title")}
+      </h2>
       <p className="mt-1 text-sm text-muted-foreground">{t("hint.subtitle")}</p>
 
       <ol className="mt-5 space-y-0">
@@ -317,21 +324,21 @@ export function HintLadder({
       </ol>
 
       <div className="mt-2 flex flex-wrap items-center gap-2">
-        <Button
+        <button
           type="button"
           onClick={() => void unlockNextHint()}
           disabled={hintPending || unlocked >= 3}
-          className="min-h-11 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring/40"
+          className={cn(arrowPillClass, "w-full sm:w-auto")}
         >
+          {hintPending ? t("hint.loading") : t("hint.showNext")}
           {hintPending ? (
-            <>
-              <Spinner className="text-primary-foreground" />
-              {t("hint.loading")}
-            </>
+            <span className="flex size-9 items-center justify-center rounded-full bg-white">
+              <Spinner className="text-primary" />
+            </span>
           ) : (
-            t("hint.showNext")
+            <ArrowBubble />
           )}
-        </Button>
+        </button>
         {unlocked >= 3 ? (
           <span className="text-xs text-muted-foreground">
             {t("hint.allUnlocked")}

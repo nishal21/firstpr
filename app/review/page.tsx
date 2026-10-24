@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { GitPullRequestArrow } from "lucide-react";
 import { useT } from "@/components/language-provider";
+import { PageIntro } from "@/components/page-intro";
+import { ArrowBubble, arrowPillClass } from "@/components/ui/arrow-pill";
+import { cn } from "@/lib/utils";
 import { SavedResultDot } from "@/components/saved-result-dot";
 import { ScoreCard } from "@/components/score-card";
 import { Spinner } from "@/components/spinner";
@@ -97,16 +101,20 @@ export default function ReviewPage() {
   }
 
   return (
-    <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
-      <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-        {t("review.title")}
-      </h1>
-      <p className="mt-2 max-w-2xl text-sm text-muted-foreground sm:text-base">
-        {t("review.subtitle")}
-      </p>
-
+    <>
+    <PageIntro
+      eyebrow={
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/15 bg-white/80 px-3 py-1 text-accent-foreground backdrop-blur">
+          <GitPullRequestArrow className="size-4 text-primary" aria-hidden />
+          {t("steps.step", { n: 3 })} · {t("flow.review")}
+        </span>
+      }
+      title={t("review.title")}
+      subtitle={t("review.subtitle")}
+    />
+    <section className="mx-auto max-w-5xl px-4 py-8 sm:px-6 md:py-12">
       <form
-        className="mt-8 min-w-0 rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6"
+        className="min-w-0 rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6"
         onSubmit={(e) => {
           e.preventDefault();
           void run();
@@ -182,22 +190,22 @@ export default function ReviewPage() {
           </TabsContent>
         </Tabs>
 
-        <Button
+        <button
           type="submit"
-          className="mt-5 min-h-11 h-11 w-full rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring/40 sm:w-auto"
+          className={cn(arrowPillClass, "mt-5 w-full sm:w-auto")}
           disabled={
             loading || (tab === "pr" ? !prUrl.trim() : !diff.trim())
           }
         >
+          {loading ? t("review.running") : t("review.submit")}
           {loading ? (
-            <>
-              <Spinner className="text-primary-foreground" />
-              {t("review.running")}
-            </>
+            <span className="flex size-9 items-center justify-center rounded-full bg-white">
+              <Spinner className="text-primary" />
+            </span>
           ) : (
-            t("review.submit")
+            <ArrowBubble />
           )}
-        </Button>
+        </button>
       </form>
 
       {loading ? (
@@ -272,5 +280,6 @@ export default function ReviewPage() {
         </div>
       ) : null}
     </section>
+    </>
   );
 }

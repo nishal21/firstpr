@@ -2,15 +2,41 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Check, ExternalLink } from "lucide-react";
+import {
+  BookOpenText,
+  Check,
+  CircleHelp,
+  ExternalLink,
+  GraduationCap,
+  ListChecks,
+  MapPin,
+  Sparkles,
+  SpellCheck,
+  Terminal,
+  type LucideIcon,
+} from "lucide-react";
 import { DifficultyBadge } from "@/components/difficulty-badge";
 import { HintLadder } from "@/components/hint-ladder";
 import { useT } from "@/components/language-provider";
+import { PageIntro } from "@/components/page-intro";
+import { ArrowBubble, arrowPillClass } from "@/components/ui/arrow-pill";
+import { cn } from "@/lib/utils";
 import { SavedResultDot } from "@/components/saved-result-dot";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { friendlyErrorMessage } from "@/lib/api-errors";
+
+function CardHeading({ icon: Icon, children }: { icon: LucideIcon; children: React.ReactNode }) {
+  return (
+    <h2 className="flex items-center gap-2.5 text-sm font-semibold text-foreground">
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-accent text-primary">
+        <Icon className="size-4" aria-hidden />
+      </span>
+      {children}
+    </h2>
+  );
+}
 
 type ExplainApiResponse = {
   owner: string;
@@ -178,17 +204,17 @@ export function IssueExplain({
   const limitsNotice = explanation.unsure_about?.trim() || null;
 
   return (
-    <section className="relative mx-auto max-w-5xl space-y-8 px-4 py-12 sm:px-6">
-      <SavedResultDot
-        show={fromCache}
-        className="pointer-events-none absolute right-4 top-4 size-1.5 rounded-full bg-muted-foreground/40 sm:right-6"
-      />
-      <header className="min-w-0 space-y-3">
-        <div className="flex min-w-0 flex-wrap items-center gap-2 text-sm text-muted-foreground">
+    <>
+    <PageIntro
+      eyebrow={
+        <>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/15 bg-white/80 px-3 py-1 text-accent-foreground backdrop-blur">
+            <BookOpenText className="size-4 text-primary" aria-hidden />
+            {t("steps.step", { n: 2 })} · {t("flow.explain")}
+          </span>
           <span className="min-w-0 break-words">
             {owner}/{repo}
           </span>
-          <span aria-hidden>·</span>
           <a
             href={issue.htmlUrl}
             target="_blank"
@@ -201,24 +227,29 @@ export function IssueExplain({
           {data.difficultyBadge ? (
             <DifficultyBadge label={data.difficultyBadge} />
           ) : null}
+        </>
+      }
+      title={issue.title}
+    >
+      {issue.labels.length > 0 ? (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {issue.labels.map((label) => (
+            <Badge
+              key={label}
+              variant="secondary"
+              className="rounded-md border border-border bg-white/80 font-normal text-xs text-foreground"
+            >
+              {label}
+            </Badge>
+          ))}
         </div>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground break-words sm:text-3xl">
-          {issue.title}
-        </h1>
-        {issue.labels.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
-            {issue.labels.map((label) => (
-              <Badge
-                key={label}
-                variant="secondary"
-                className="rounded-md border border-border bg-muted font-normal text-xs text-foreground"
-              >
-                {label}
-              </Badge>
-            ))}
-          </div>
-        ) : null}
-      </header>
+      ) : null}
+    </PageIntro>
+    <section className="relative mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6 md:space-y-8 md:py-12">
+      <SavedResultDot
+        show={fromCache}
+        className="pointer-events-none absolute right-4 top-4 size-1.5 rounded-full bg-muted-foreground/40 sm:right-6"
+      />
 
       {limitsNotice ? (
         <div
@@ -231,18 +262,14 @@ export function IssueExplain({
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div className="min-w-0 rounded-xl border border-border bg-card p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-foreground">
-            {t("explain.whatAsking")}
-          </h2>
-          <p className="mt-2 text-sm leading-relaxed text-muted-foreground break-words">
+          <CardHeading icon={CircleHelp}>{t("explain.whatAsking")}</CardHeading>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground break-words">
             {explanation.summary}
           </p>
         </div>
         <div className="min-w-0 rounded-xl border border-border bg-card p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-foreground">
-            {t("explain.whyMatters")}
-          </h2>
-          <p className="mt-2 text-sm leading-relaxed text-muted-foreground break-words">
+          <CardHeading icon={Sparkles}>{t("explain.whyMatters")}</CardHeading>
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground break-words">
             {explanation.why_it_matters}
           </p>
         </div>
@@ -250,9 +277,7 @@ export function IssueExplain({
 
       {explanation.concepts.length > 0 ? (
         <div className="min-w-0 rounded-xl border border-border bg-card p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-foreground">
-            {t("explain.words")}
-          </h2>
+          <CardHeading icon={SpellCheck}>{t("explain.words")}</CardHeading>
           <dl className="mt-3 divide-y divide-border">
             {explanation.concepts.map((c) => (
               <div
@@ -273,9 +298,7 @@ export function IssueExplain({
 
       {data.learn && data.learn.length >= 2 ? (
         <div className="min-w-0 rounded-xl border border-border bg-card p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-foreground">
-            {t("explain.learnFirst")}
-          </h2>
+          <CardHeading icon={GraduationCap}>{t("explain.learnFirst")}</CardHeading>
           <ul className="mt-3 flex flex-col gap-3">
             {data.learn.map((item) => (
               <li key={item.link} className="min-w-0 text-sm">
@@ -305,9 +328,9 @@ export function IssueExplain({
       ) : null}
 
       <div className="min-w-0">
-        <h2 className="mb-3 text-sm font-semibold text-foreground">
-          {t("explain.whereLook")}
-        </h2>
+        <div className="mb-3">
+          <CardHeading icon={MapPin}>{t("explain.whereLook")}</CardHeading>
+        </div>
         {citations.length === 0 ? (
           <p className="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground">
             {t("explain.noCitations")}
@@ -337,7 +360,7 @@ export function IssueExplain({
                     href={c.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm text-primary hover:bg-muted"
+                    className="inline-flex min-h-11 w-full shrink-0 items-center justify-center gap-1.5 rounded-full border border-border px-4 py-2 text-sm font-medium text-primary transition-colors hover:border-primary/30 hover:bg-accent sm:w-auto"
                   >
                     {t("explain.openOnGithub")}
                     <ExternalLink className="size-3.5" aria-hidden />
@@ -355,9 +378,7 @@ export function IssueExplain({
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         <div className="min-w-0 rounded-xl border border-border bg-card p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-foreground">
-            {t("explain.doneWhen")}
-          </h2>
+          <CardHeading icon={ListChecks}>{t("explain.doneWhen")}</CardHeading>
           {explanation.done_when.length > 0 ? (
             <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-muted-foreground">
               {explanation.done_when.map((item) => (
@@ -373,9 +394,7 @@ export function IssueExplain({
           )}
         </div>
         <div className="min-w-0 rounded-xl border border-border bg-card p-5 shadow-sm">
-          <h2 className="text-sm font-semibold text-foreground">
-            {t("explain.howCheck")}
-          </h2>
+          <CardHeading icon={Terminal}>{t("explain.howCheck")}</CardHeading>
           {explanation.how_to_check.length > 0 ? (
             <div className="mt-3 flex flex-wrap gap-2">
               {explanation.how_to_check.map((cmd) => (
@@ -399,20 +418,19 @@ export function IssueExplain({
 
       <HintLadder owner={owner} repo={repo} number={number} />
 
-      <div className="flex min-w-0 flex-wrap items-center gap-4 border-t border-border pt-6 text-sm">
+      <div className="flex min-w-0 flex-col-reverse gap-3 border-t border-border pt-6 text-sm sm:flex-row sm:items-center sm:justify-between">
         <Link
           href="/"
-          className="inline-flex min-h-11 items-center text-primary outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring/40"
+          className="inline-flex min-h-11 items-center justify-center font-medium text-foreground outline-none underline-offset-4 hover:text-primary hover:underline focus-visible:ring-2 focus-visible:ring-ring/40"
         >
           {t("explain.findAnother")}
         </Link>
-        <Link
-          href="/review"
-          className="inline-flex min-h-11 items-center rounded-xl bg-primary px-4 py-2 font-medium text-primary-foreground outline-none hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring/40"
-        >
+        <Link href="/review" className={cn(arrowPillClass, "w-full sm:w-auto")}>
           {t("explain.reviewPr")}
+          <ArrowBubble />
         </Link>
       </div>
     </section>
+    </>
   );
 }

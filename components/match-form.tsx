@@ -7,7 +7,8 @@ import { useT } from "@/components/language-provider";
 import { SavedResultDot } from "@/components/saved-result-dot";
 import { Spinner } from "@/components/spinner";
 import { Badge } from "@/components/ui/badge";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { ArrowBubble, arrowPillClass } from "@/components/ui/arrow-pill";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { friendlyErrorMessage } from "@/lib/api-errors";
@@ -134,20 +135,20 @@ export function MatchForm() {
               className="min-h-11 h-11 w-full rounded-xl border-border focus-visible:border-primary focus-visible:ring-ring/30"
             />
           </label>
-          <Button
+          <button
             type="submit"
             disabled={pending || !username.trim()}
-            className="min-h-11 h-11 w-full shrink-0 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring/40 sm:w-auto"
+            className={cn(arrowPillClass, "w-full shrink-0 sm:w-auto")}
           >
+            {pending ? t("match.finding") : t("match.submit")}
             {pending ? (
-              <>
-                <Spinner className="text-white" />
-                {t("match.finding")}
-              </>
+              <span className="flex size-9 items-center justify-center rounded-full bg-white">
+                <Spinner className="text-primary" />
+              </span>
             ) : (
-              t("match.submit")
+              <ArrowBubble />
             )}
-          </Button>
+          </button>
         </div>
       </form>
 
@@ -216,7 +217,8 @@ export function MatchForm() {
           </div>
 
           {data.picked ? (
-            <article className="relative min-w-0 rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6">
+            <article className="relative min-w-0 overflow-hidden rounded-xl border border-primary/30 bg-card p-5 shadow-md shadow-primary/5 ring-1 ring-primary/10 sm:p-6">
+              <span className="absolute inset-y-0 left-0 w-1 bg-primary" aria-hidden />
               <SavedResultDot show={fromCache} />
               <div className="mb-2 flex min-w-0 flex-wrap items-center gap-2">
                 {data.picked.difficultyBadge ? (
@@ -250,12 +252,10 @@ export function MatchForm() {
               ) : null}
               <Link
                 href={`/issue/${data.picked.owner}/${data.picked.repo}/${data.picked.number}`}
-                className={cn(
-                  buttonVariants(),
-                  "mt-4 inline-flex min-h-11 items-center rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring/40",
-                )}
+                className={cn(arrowPillClass, "mt-5 w-full sm:w-auto")}
               >
                 {t("match.explainIssue")}
+                <ArrowBubble />
               </Link>
             </article>
           ) : noIssues ? (
@@ -283,7 +283,7 @@ export function MatchForm() {
               {data.others.map((issue) => (
                 <article
                   key={`${issue.owner}/${issue.repo}#${issue.number}`}
-                  className="min-w-0 rounded-xl border border-border bg-card p-4 shadow-sm"
+                  className="min-w-0 rounded-xl border border-border bg-card p-4 shadow-sm transition-colors hover:border-primary/30 sm:p-5"
                 >
                   <div className="mb-1 flex min-w-0 flex-wrap items-center gap-2">
                     {issue.difficultyBadge ? (

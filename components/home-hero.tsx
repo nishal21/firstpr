@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { useT } from "@/components/language-provider";
+import { ArrowBubble, arrowPillClass } from "@/components/ui/arrow-pill";
 import { FadeUp, WordsPullUp } from "@/components/ui/words-pull-up";
+import { cn } from "@/lib/utils";
 
 export function HomeHero() {
   const t = useT();
@@ -33,14 +35,9 @@ export function HomeHero() {
               </p>
             </FadeUp>
             <FadeUp delay={0.6} className="flex flex-wrap items-center gap-x-5 gap-y-3">
-              <Link
-                href="#match"
-                className="group inline-flex min-h-11 items-center gap-2 rounded-full bg-primary py-1 pr-1 pl-5 text-sm font-medium text-primary-foreground shadow-sm shadow-primary/20 outline-none transition-all hover:gap-3 hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-ring/40 sm:text-base"
-              >
+              <Link href="#match" className={cn(arrowPillClass, "w-full sm:w-auto")}>
                 {t("hero.cta")}
-                <span className="flex size-9 items-center justify-center rounded-full bg-white transition-transform group-hover:scale-110">
-                  <ArrowRight className="size-4 text-primary" aria-hidden />
-                </span>
+                <ArrowBubble />
               </Link>
               <Link
                 href="/review"

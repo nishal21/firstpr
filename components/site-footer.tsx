@@ -1,10 +1,30 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
+import { useSyncExternalStore } from "react";
 import { ArrowRight } from "lucide-react";
 import { useT } from "@/components/language-provider";
-import InkRidges from "@/components/ui/ink-ridges";
+
+const InkRidges = dynamic(() => import("@/components/ui/ink-ridges"), { ssr: false });
+const SUN_WIDE: [number, number] = [0.84, 0.46];
+const SUN_NARROW: [number, number] = [0.8, 0.27];
+const NARROW_QUERY = "(max-width: 639px)";
+
+function subscribeNarrow(onChange: () => void) {
+  const mq = window.matchMedia(NARROW_QUERY);
+  mq.addEventListener("change", onChange);
+  return () => mq.removeEventListener("change", onChange);
+}
+
+function useNarrow(): boolean {
+  return useSyncExternalStore(
+    subscribeNarrow,
+    () => window.matchMedia(NARROW_QUERY).matches,
+    () => false,
+  );
+}
 
 const SOURCE_URL = "https://github.com/nishal21/firstpr";
 const LICENSE_URL = "https://github.com/nishal21/firstpr/blob/main/LICENSE";
@@ -47,6 +67,7 @@ function FooterColumn({ title, links }: { title: string; links: FooterLink[] }) 
 
 export function SiteFooter() {
   const t = useT();
+  const narrow = useNarrow();
   const product: FooterLink[] = [
     { href: "/", label: t("nav.findIssue") },
     { href: "/issue/nishal21/NekoDroid/4", label: t("nav.explain") },
@@ -63,26 +84,29 @@ export function SiteFooter() {
   ];
 
   return (
-    <footer className="mt-auto overflow-hidden md:rounded-t-[2rem]">
-      <InkRidges
-        className="bg-[#0f1828] text-slate-100"
-        inkColor="#5b9cff"
-        seed={11}
-        layers={4}
-        horizon={0.4}
-        mist={0.65}
-        drift={0.04}
-        parallax={0.02}
-        paintIn={2800}
-        sunPosition={[0.84, 0.46]}
-        sunSize={0.06}
-        scrollDepth={0}
-        clouds={0.3}
-        glow={0.5}
-        grain={0.25}
-        birds={4}
-        birdsEvery={12}
-      >
+    <footer className="relative isolate mt-auto overflow-hidden bg-[#0f1828] text-slate-100 md:rounded-t-[2rem]">
+      <div className="absolute inset-0 -z-10" aria-hidden>
+        <InkRidges
+          className="h-full w-full bg-[#0f1828] text-slate-100"
+          inkColor="#5b9cff"
+          seed={11}
+          layers={4}
+          horizon={narrow ? 0.3 : 0.4}
+          mist={0.65}
+          drift={0.04}
+          parallax={0}
+          paintIn={2800}
+          sunPosition={narrow ? SUN_NARROW : SUN_WIDE}
+          sunSize={narrow ? 0.028 : 0.06}
+          scrollDepth={0}
+          clouds={0.3}
+          glow={0.5}
+          grain={0.25}
+          birds={4}
+          birdsEvery={12}
+          dprCap={1.25}
+        />
+      </div>
         <div className="mx-auto flex max-w-5xl flex-col px-4 pt-14 sm:px-6 md:pt-20">
           <div className="grid grid-cols-1 gap-12 md:grid-cols-12 md:gap-8">
             <div className="flex min-w-0 flex-col gap-5 md:col-span-5">
@@ -113,7 +137,7 @@ export function SiteFooter() {
               </p>
               <Link
                 href="/#match"
-                className="group inline-flex min-h-11 w-fit items-center gap-2 rounded-full bg-white py-1 pr-1 pl-5 text-sm font-medium text-[#0f1828] outline-none transition-all hover:gap-3 focus-visible:ring-2 focus-visible:ring-primary/50"
+                className="group inline-flex min-h-11 w-full items-center justify-between gap-2 sm:w-fit sm:justify-center rounded-full bg-white py-1 pr-1 pl-5 text-sm font-medium text-[#0f1828] outline-none transition-all hover:gap-3 focus-visible:ring-2 focus-visible:ring-primary/50"
               >
                 {t("hero.cta")}
                 <span className="flex size-9 items-center justify-center rounded-full bg-primary transition-transform group-hover:scale-110">
@@ -141,7 +165,6 @@ export function SiteFooter() {
             <p className="text-slate-400">{t("footer.tagline")}</p>
           </div>
         </div>
-      </InkRidges>
     </footer>
   );
 }

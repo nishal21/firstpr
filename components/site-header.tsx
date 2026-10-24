@@ -109,7 +109,7 @@ export function SiteHeader() {
           id={menuId}
           className="border-t border-border bg-background md:hidden"
         >
-          <div className="mx-auto flex max-w-5xl flex-col px-4 py-2 sm:px-6">
+          <div className="mx-auto flex max-w-5xl flex-col gap-1 px-3 py-3 sm:px-5">
             {NAV_LINKS.map((link) => {
               const active = linkActive(pathname, link.href);
               return (
@@ -118,8 +118,8 @@ export function SiteHeader() {
                   href={link.href}
                   onClick={() => setMenuOpen(false)}
                   className={cn(
-                    "flex min-h-11 items-center text-sm text-muted-foreground outline-none hover:text-primary focus-visible:ring-2 focus-visible:ring-ring/40",
-                    active && "font-medium text-primary",
+                    "flex min-h-12 items-center rounded-xl px-3 text-base text-foreground outline-none hover:bg-muted hover:text-primary focus-visible:ring-2 focus-visible:ring-ring/40",
+                    active && "bg-accent font-medium text-primary",
                   )}
                 >
                   {t(link.key)}
