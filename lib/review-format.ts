@@ -36,7 +36,7 @@ export function formatReviewMarkdown(result: ReviewResult): string {
   const badge = verdictLabel(result.verdict);
 
   const lines: string[] = [
-    `## FirstPR maintainer-ready check: ${result.score}/100 — ${badge}`,
+    `## FirstPR mentor-ready check: ${result.score}/100 — ${badge}`,
     "",
     result.summary,
     "",

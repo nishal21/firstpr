@@ -215,5 +215,9 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 ## 2026-10-24 — Error pages
 - `app/not-found.tsx`, `app/error.tsx`, `app/global-error.tsx`; i18n error.* keys
 
+## 2026-10-24 — README pitch fix + PR review command
+- README users/limitations/contacts; `/firstpr review` webhook; score title mentor-ready
+- Waiting on real demo video + deck URLs
+
 ## Next
-- Fill placeholders; deploy; commit when asked
+- Paste video/deck URLs; deploy; commit when asked

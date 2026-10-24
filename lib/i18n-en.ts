@@ -11,12 +11,12 @@ export const en = {
   "footer.tagline": "Match. Explain. Review. You write the fix.",
   "footer.botTitle": "FirstPRbot",
   "footer.botAbout":
-    "Install the GitHub App on a repo. Comment /firstpr explain on an issue for a plain-English guide. Open or update a PR and it posts a maintainer-ready score card. FirstPRbot never writes your fix.",
+    "Install the GitHub App on a repo. On an issue: /firstpr explain. On a PR: /firstpr review for a mentor-ready score card (also posts when a PR opens or updates). FirstPRbot never writes your fix.",
   "footer.botLink": "View FirstPRbot on GitHub",
 
   "bot.heading": "Use it on GitHub",
   "bot.body":
-    "FirstPRbot brings Match → Explain → Review into issue and PR comments. Install it, then comment /firstpr explain on a good first issue — or open a PR and get a score card without leaving GitHub.",
+    "FirstPRbot brings Match → Explain → Review into GitHub comments. Install it, then /firstpr explain on a good first issue, or /firstpr review on a PR for the mentor-ready score card.",
   "bot.cta": "About FirstPRbot",
 
   "error.notFound.code": "404",
@@ -143,7 +143,7 @@ export const en = {
   "review.repoPlaceholder": "owner/repo",
   "review.issueNumber": "Issue number (optional)",
   "review.issuePlaceholder": "4",
-  "review.submit": "Run maintainer-ready check",
+  "review.submit": "Run mentor-ready check",
   "review.running": "Running…",
   "review.retry": "Retry",
   "review.failed": "Review failed",

@@ -222,6 +222,12 @@
 - Brand `not-found.tsx`, `error.tsx` (i18n); `global-error.tsx` root crash UI
 - Invalid issue number uses same 404-style layout
 
+## 2026-10-24 — README + /firstpr review
+- Users: final-year/fresh grads India + maintainers; 15-lang limitation wording; GitHub contacts
+- Bot: `/firstpr review` on PRs → mentor-ready score card; auto on open/sync
+- Need real demo video + deck URLs in README (not invented)
+
 ## Next for another agent
-1. Fill demo video, deck, contact placeholders; deploy
-2. Commit when asked; attribution off
+1. Paste demo video + deck URLs into README Demo section
+2. Deploy webhook; test `/firstpr review` on a NekoDroid PR
+3. Commit when asked

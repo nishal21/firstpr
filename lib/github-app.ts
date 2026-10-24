@@ -115,6 +115,83 @@ async function postComment(
   });
 }
 
+/** Run mentor-ready review and post one score-card comment (no line comments). */
+async function postPrReviewComment(
+  octokit: InstallationOctokit,
+  owner: string,
+  repo: string,
+  number: number,
+  reason: string,
+): Promise<void> {
+  console.log(`[webhook] review PR ${owner}/${repo}#${number} (${reason})`);
+
+  try {
+    const { pr, files } = await loadPrBundle(octokit, owner, repo, number);
+
+    let contributing: string | null = null;
+    let treeSha: string | undefined;
+    try {
+      const baseSha = await getBranchSha(owner, repo, pr.baseRef);
+      treeSha = baseSha;
+      contributing = await getContributing(owner, repo, baseSha);
+    } catch {
+      contributing = null;
+      treeSha = pr.headSha;
+    }
+
+    const linkedIssue = await loadLinkedIssue(owner, repo, pr);
+
+    const result = await reviewPr({
+      pr,
+      files,
+      contributing,
+      linkedIssue,
+      pastedDiff: false,
+      owner,
+      repo,
+      prNumber: number,
+      treeSha,
+    });
+
+    const body = formatReviewMarkdown({
+      ...result,
+      line_comments: [],
+    });
+
+    const site = `https://firstpr-coral.vercel.app/review`;
+    const withFooter = [
+      body,
+      "",
+      "---",
+      `_Triggered by ${reason}. Re-run anytime with_ \`/firstpr review\`.`,
+      `_Full Review UI:_ ${site}`,
+    ].join("\n");
+
+    await postComment(octokit, owner, repo, number, withFooter);
+    console.log(`[webhook] posted review on ${owner}/${repo}#${number}`);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`[webhook] review failed:`, message);
+    try {
+      await postComment(
+        octokit,
+        owner,
+        repo,
+        number,
+        [
+          "FirstPR hit an error while reviewing this PR.",
+          "",
+          `\`\`\`\n${message.slice(0, 500)}\n\`\`\``,
+          "",
+          "Try again with `/firstpr review` on this PR.",
+        ].join("\n"),
+      );
+    } catch (postErr) {
+      console.error("[webhook] could not post error comment:", postErr);
+    }
+  }
+}
+
 function registerHandlers(app: App<{ Octokit: typeof Octokit }>): void {
   if (handlersRegistered) return;
   handlersRegistered = true;
@@ -125,10 +202,11 @@ function registerHandlers(app: App<{ Octokit: typeof Octokit }>): void {
       return;
     }
 
-    const commentBody = payload.comment.body ?? "";
-    const isExplain = commentBody.trimStart().startsWith("/firstpr explain");
-    if (!isExplain) {
-      console.log("[webhook] skip issue_comment: not /firstpr explain");
+    const commentBody = (payload.comment.body ?? "").trimStart();
+    const isExplain = commentBody.startsWith("/firstpr explain");
+    const isReview = commentBody.startsWith("/firstpr review");
+    if (!isExplain && !isReview) {
+      console.log("[webhook] skip issue_comment: not a /firstpr command");
       return;
     }
 
@@ -137,10 +215,40 @@ function registerHandlers(app: App<{ Octokit: typeof Octokit }>): void {
     const number = payload.issue.number;
     const onPr = Boolean(payload.issue.pull_request);
 
-    // Explain only runs on issues. Say so on PRs so it doesn't look dead.
+    if (isReview) {
+      if (!onPr) {
+        await postComment(
+          octokit,
+          owner,
+          repo,
+          number,
+          [
+            "FirstPR **review** runs on **pull requests**, not issues.",
+            "",
+            "On a PR comment:",
+            "```",
+            "/firstpr review",
+            "```",
+            "",
+            "For an issue guide, use `/firstpr explain` instead.",
+          ].join("\n"),
+        );
+        return;
+      }
+      await postPrReviewComment(
+        octokit,
+        owner,
+        repo,
+        number,
+        "`/firstpr review`",
+      );
+      return;
+    }
+
+    // /firstpr explain
     if (onPr) {
       console.log(
-        `[webhook] /firstpr explain on PR ${owner}/${repo}#${number} — tip only`,
+        `[webhook] /firstpr explain on PR ${owner}/${repo}#${number} — tip`,
       );
       await postComment(
         octokit,
@@ -148,14 +256,14 @@ function registerHandlers(app: App<{ Octokit: typeof Octokit }>): void {
         repo,
         number,
         [
-          "FirstPR **explain** only works on **issues**, not pull requests.",
+          "FirstPR **explain** only works on **issues**.",
           "",
-          `Open an issue (e.g. [#5](https://github.com/${owner}/${repo}/issues/5)) and comment:`,
+          "For a mentor-ready score card on this PR, comment:",
           "```",
-          "/firstpr explain",
+          "/firstpr review",
           "```",
           "",
-          "PRs get an automatic score-card comment when opened or updated — no command needed.",
+          `For an issue guide, open an issue and comment \`/firstpr explain\` (example: [#5](https://github.com/${owner}/${repo}/issues/5)).`,
         ].join("\n"),
       );
       return;
@@ -214,65 +322,13 @@ function registerHandlers(app: App<{ Octokit: typeof Octokit }>): void {
       const repo = payload.repository.name;
       const number = payload.pull_request.number;
 
-      console.log(
-        `[webhook] review PR ${owner}/${repo}#${number} (${payload.action})`,
+      await postPrReviewComment(
+        octokit,
+        owner,
+        repo,
+        number,
+        `pull_request.${payload.action}`,
       );
-
-      try {
-        const { pr, files } = await loadPrBundle(octokit, owner, repo, number);
-
-        let contributing: string | null = null;
-        let treeSha: string | undefined;
-        try {
-          const baseSha = await getBranchSha(owner, repo, pr.baseRef);
-          treeSha = baseSha;
-          contributing = await getContributing(owner, repo, baseSha);
-        } catch {
-          contributing = null;
-          treeSha = pr.headSha;
-        }
-
-        const linkedIssue = await loadLinkedIssue(owner, repo, pr);
-
-        const result = await reviewPr({
-          pr,
-          files,
-          contributing,
-          linkedIssue,
-          pastedDiff: false,
-          owner,
-          repo,
-          prNumber: number,
-          treeSha,
-        });
-
-        // Score-card comment only — no GitHub review line comments.
-        const body = formatReviewMarkdown({
-          ...result,
-          line_comments: [],
-        });
-
-        await postComment(octokit, owner, repo, number, body);
-        console.log(`[webhook] posted review on ${owner}/${repo}#${number}`);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        console.error(`[webhook] review failed:`, message);
-        try {
-          await postComment(
-            octokit,
-            owner,
-            repo,
-            number,
-            [
-              "FirstPR hit an error while reviewing this PR.",
-              "",
-              `\`\`\`\n${message.slice(0, 500)}\n\`\`\``,
-            ].join("\n"),
-          );
-        } catch (postErr) {
-          console.error("[webhook] could not post error comment:", postErr);
-        }
-      }
     },
   );
 

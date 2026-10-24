@@ -5,8 +5,8 @@ Helps open-source beginners make their first PR themselves and get it merged.
 ## Demo
 
 - Live: [https://firstpr-coral.vercel.app](https://firstpr-coral.vercel.app)
-- Demo video: _[add link]_
-- Deck: _[add link]_
+- Demo video: <!-- paste YouTube or Loom URL -->
+- Deck: <!-- paste Google Slides or PDF URL -->
 
 ## Problem statement
 
@@ -14,8 +14,8 @@ Beginners often do not know which issue to take, which files matter, or how to c
 
 ## Users and context
 
-- Beginners making a first open-source contribution
-- Maintainers who receive those PRs
+- Final-year students and fresh graduates in India who need real open-source contributions before placements
+- Maintainers who receive those first PRs
 
 ## Solution overview
 
@@ -32,7 +32,16 @@ flowchart LR
   C --> D[Review: score the PR]
 ```
 
-FirstPRbot (optional GitHub App) can run Explain and Review from issue and PR comments: [github.com/apps/firstprbot](https://github.com/apps/firstprbot).
+### FirstPRbot on GitHub
+
+Install [FirstPRbot](https://github.com/apps/firstprbot) on a repo:
+
+| Where | Command | What you get |
+| --- | --- | --- |
+| Issue comment | `/firstpr explain` | Plain-English guide, file permalinks, done-when list, level-1 hint |
+| PR comment | `/firstpr review` | Mentor-ready score card (same checklist as the site) |
+
+Opening or pushing to a PR also posts a score card automatically. FirstPRbot never writes the fix.
 
 ## Tech stack
 
@@ -88,7 +97,7 @@ At request time FirstPR reads public GitHub data through the API. Nothing is sto
 - The AI can still misread an issue
 - Only public repos
 - Search and GitHub calls are limited by rate limits
-- Malayalam and Hindi UI output quality was not formally checked
+- Non-English UI translations were not formally checked
 - Most end-to-end testing used one demo repo (NekoDroid)
 
 ## Assumptions and trade-offs
@@ -107,10 +116,10 @@ We wrote the code with AI coding help in Cursor. We reviewed, tested, and debugg
 
 ## Team
 
-| Name       | Role                       | Contact     |
-| ---------- | -------------------------- | ----------- |
-| Nishal K   | Product, engineering, demo | _@nishal21_ |
-| Anan Shaji | Research, pitch, business  | _@zenxrth_  |
+| Name | Role | Contact |
+| --- | --- | --- |
+| Nishal K | Product, engineering, demo | [@nishal21](https://github.com/nishal21) |
+| Anan Shaji | Research, pitch, business | [@zenxrth](https://github.com/zenxrth) |
 
 ## License
 
