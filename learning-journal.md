@@ -231,6 +231,10 @@
 - Linked MIT repo in README Demo + site footer (`nishal21/firstpr`)
 - i18n `footer.sourceLink` (en + packs)
 
+## 2026-10-24 — One nav only
+- Deleted `FlowProgress` from explain + review pages (duplicated header)
+- Header: Find an issue / Explain / Review my PR stays
+
 ## Next for another agent
 1. Paste demo video + deck URLs into README Demo section
 2. Deploy webhook; test `/firstpr review` on a NekoDroid PR

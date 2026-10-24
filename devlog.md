@@ -223,5 +223,9 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - README Demo → https://github.com/nishal21/firstpr (MIT)
 - Footer `footer.sourceLink` + link next to FirstPRbot
 
+## 2026-10-24 — Drop duplicate flow nav
+- Removed Match › Explain › Review under header on issue/review
+- Keep site header nav; home still has LandingSteps cards
+
 ## Next
 - Paste video/deck URLs; deploy; commit when asked

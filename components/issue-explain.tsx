@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Check, ExternalLink } from "lucide-react";
 import { DifficultyBadge } from "@/components/difficulty-badge";
-import { FlowProgress } from "@/components/flow-steps";
 import { HintLadder } from "@/components/hint-ladder";
 import { useT } from "@/components/language-provider";
 import { SavedResultDot } from "@/components/saved-result-dot";
@@ -139,7 +138,6 @@ export function IssueExplain({
   if (loading) {
     return (
       <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
-        <FlowProgress current="explain" />
         <p className="mb-6 text-sm font-medium text-primary">
           {loadingSteps[stepIndex]}…
         </p>
@@ -160,7 +158,6 @@ export function IssueExplain({
   if (error || !data) {
     return (
       <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
-        <FlowProgress current="explain" />
         <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <p className="text-sm text-foreground break-words">
             {error || t("explain.somethingWrong")}
@@ -186,7 +183,6 @@ export function IssueExplain({
         show={fromCache}
         className="pointer-events-none absolute right-4 top-4 size-1.5 rounded-full bg-muted-foreground/40 sm:right-6"
       />
-      <FlowProgress current="explain" />
       <header className="min-w-0 space-y-3">
         <div className="flex min-w-0 flex-wrap items-center gap-2 text-sm text-muted-foreground">
           <span className="min-w-0 break-words">

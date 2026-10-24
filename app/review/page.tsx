@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FlowProgress } from "@/components/flow-steps";
 import { useT } from "@/components/language-provider";
 import { SavedResultDot } from "@/components/saved-result-dot";
 import { ScoreCard } from "@/components/score-card";
@@ -99,8 +98,6 @@ export default function ReviewPage() {
 
   return (
     <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
-      <FlowProgress current="review" />
-
       <h1 className="text-2xl font-semibold tracking-tight text-foreground">
         {t("review.title")}
       </h1>
