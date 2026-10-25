@@ -240,7 +240,11 @@
 - Mobile: useNarrow shader props; no horizontal overflow at 390
 - User: “everything is good” — no further UI changes needed this pass
 
+## 2026-10-25 — License = PolyForm NC
+- Official PolyForm Noncommercial 1.0.0 (not custom proprietary joke text)
+- Allows personal + other noncommercial; no commercial without separate deal
+- Touched: LICENSE, README, package.json license field, en/ml/hi/world footer strings
+
 ## Next for another agent
-1. Paste demo video + deck URLs into README Demo section
-2. Deploy webhook; test `/firstpr review` on a NekoDroid PR
-3. Commit when asked (uncommitted: site-footer moon tweak if still dirty)
+1. Deploy webhook; test `/firstpr review` on a NekoDroid PR
+2. Commit when asked (license + any leftover footer moon tweak)

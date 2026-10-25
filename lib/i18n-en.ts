@@ -16,9 +16,9 @@ export const en = {
   "footer.sourceLink": "Source code on GitHub",
   "footer.ctaTitle": "Your first PR starts here.",
   "footer.colProduct": "Product",
-  "footer.colOpenSource": "Open source",
+  "footer.colOpenSource": "Source",
   "footer.colTeam": "Team",
-  "footer.license": "MIT License",
+  "footer.license": "PolyForm Noncommercial",
 
   "bot.heading": "Use it on GitHub",
   "bot.body":

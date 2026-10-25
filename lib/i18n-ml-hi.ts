@@ -19,9 +19,9 @@ export const ml: Record<I18nKey, string> = {
   "footer.sourceLink": "GitHub-ൽ സോഴ്‌സ് കോഡ്",
   "footer.ctaTitle": "നിങ്ങളുടെ ആദ്യ PR ഇവിടെ തുടങ്ങുന്നു.",
   "footer.colProduct": "ഉൽപ്പന്നം",
-  "footer.colOpenSource": "ഓപ്പൺ സോഴ്‌സ്",
+  "footer.colOpenSource": "സോഴ്‌സ്",
   "footer.colTeam": "ടീം",
-  "footer.license": "MIT ലൈസൻസ്",
+  "footer.license": "PolyForm Noncommercial",
   "bot.heading": "GitHub-ൽ ഉപയോഗിക്കുക",
   "bot.body":
     "FirstPRbot Match → Explain → Review issue/PR കമന്റുകളിലേക്ക് കൊണ്ടുവരുന്നു. ഇൻസ്റ്റാൾ ചെയ്ത് ഒരു good first issue-ൽ /firstpr explain കമന്റ് ചെയ്യുക — അല്ലെങ്കിൽ ഒരു PR തുറന്ന് GitHub വിടാതെ score card നേടുക.",
@@ -198,9 +198,9 @@ export const hi: Record<I18nKey, string> = {
   "footer.sourceLink": "GitHub पर सोर्स कोड",
   "footer.ctaTitle": "आपका पहला PR यहीं से शुरू होता है।",
   "footer.colProduct": "प्रोडक्ट",
-  "footer.colOpenSource": "ओपन सोर्स",
+  "footer.colOpenSource": "सोर्स",
   "footer.colTeam": "टीम",
-  "footer.license": "MIT लाइसेंस",
+  "footer.license": "PolyForm Noncommercial",
   "bot.heading": "GitHub पर इस्तेमाल करें",
   "bot.body":
     "FirstPRbot Match → Explain → Review को issue और PR कमेंट्स में लाता है। इंस्टॉल करें, फिर good first issue पर /firstpr explain लिखें — या PR खोलकर बिना GitHub छोड़े score card पाएँ।",

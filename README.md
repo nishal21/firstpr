@@ -5,7 +5,7 @@ Helps open-source beginners make their first PR themselves and get it merged.
 ## Demo
 
 - Live: [https://firstpr-coral.vercel.app](https://firstpr-coral.vercel.app)
-- Source: [github.com/nishal21/firstpr](https://github.com/nishal21/firstpr) (MIT)
+- Source: [github.com/nishal21/firstpr](https://github.com/nishal21/firstpr) (PolyForm Noncommercial)
 - Demo video: [Watch on Google Drive](https://drive.google.com/file/d/1j-9jqA8RFFG2Gsl4VTEkIREXvPalED7x/view?usp=sharing)
 - Deck: [PDF](https://drive.google.com/file/d/1qi0Pkamuqph0TfmOJxtF8G-e31sYm7u5/view?usp=sharing) / [Slides](https://docs.google.com/presentation/d/1mICDKYtFaKD-LwO3PneZDioJY5HwuI8x/edit?usp=sharing)
 
@@ -124,4 +124,4 @@ We wrote the code with AI coding help in Cursor. We reviewed, tested, and debugg
 
 ## License
 
-MIT. See [LICENSE](./LICENSE).
+[PolyForm Noncommercial 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0). Personal and other noncommercial use allowed. Commercial use needs a separate license from the authors. See [LICENSE](./LICENSE).
