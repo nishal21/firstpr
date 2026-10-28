@@ -233,9 +233,9 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - Shared `arrow-pill.tsx`, `page-intro.tsx`; match/explain/review/score/hints/bot/mobile menu aligned
 - User confirmed looks good; tsc clean; 390px no overflow; leftover lint is older unrelated
 
-## 2026-10-25 — PolyForm Noncommercial
-- Replaced MIT with PolyForm Noncommercial 1.0.0 (`LICENSE`, package.json, README, footer i18n)
-- Footer col: “Source”; link label: “PolyForm Noncommercial”
+## 2026-10-25 — AGPL-3.0
+- Replaced MIT with AGPL-3.0 (`LICENSE`, package.json, README, footer i18n)
+- Footer col: “Source”; link label: “AGPL-3.0”
 - Noncommercial / personal OK; commercial needs separate grant from authors
 
 ## Next

@@ -28,7 +28,7 @@ export const es = fill({
   "footer.colProduct": "Producto",
   "footer.colOpenSource": "Fuente",
   "footer.colTeam": "Equipo",
-  "footer.license": "PolyForm Noncommercial",
+  "footer.license": "AGPL-3.0",
   "bot.heading": "Úsalo en GitHub",
   "bot.body":
     "FirstPRbot lleva Match → Explain → Review a los comentarios de issues y PRs. Instálalo y comenta /firstpr explain en un good first issue — o abre un PR y recibe la score card sin salir de GitHub.",
@@ -159,7 +159,7 @@ export const fr = fill({
   "footer.colProduct": "Produit",
   "footer.colOpenSource": "Source",
   "footer.colTeam": "Équipe",
-  "footer.license": "PolyForm Noncommercial",
+  "footer.license": "AGPL-3.0",
   "bot.heading": "Utilise-le sur GitHub",
   "bot.body":
     "FirstPRbot apporte Match → Explain → Review dans les commentaires d'issues et de PRs. Installe-le, puis commente /firstpr explain sur un good first issue — ou ouvre un PR pour la score card sans quitter GitHub.",
@@ -282,7 +282,7 @@ export const de = fill({
   "footer.colProduct": "Produkt",
   "footer.colOpenSource": "Quelle",
   "footer.colTeam": "Team",
-  "footer.license": "PolyForm Noncommercial",
+  "footer.license": "AGPL-3.0",
   "bot.heading": "Auf GitHub nutzen",
   "bot.body":
     "FirstPRbot bringt Match → Explain → Review in Issue- und PR-Kommentare. Installieren, dann /firstpr explain an einem good first issue — oder einen PR öffnen und die Score-Card ohne GitHub zu verlassen bekommen.",
@@ -393,7 +393,7 @@ export const pt = fill({
   "footer.colProduct": "Produto",
   "footer.colOpenSource": "Código",
   "footer.colTeam": "Equipe",
-  "footer.license": "PolyForm Noncommercial",
+  "footer.license": "AGPL-3.0",
   "bot.heading": "Use no GitHub",
   "bot.body":
     "FirstPRbot traz Match → Explain → Review para comentários de issues e PRs. Instale e comente /firstpr explain num good first issue — ou abra um PR e receba a score card sem sair do GitHub.",
@@ -463,7 +463,7 @@ export const zh = fill({
   "footer.colProduct": "产品",
   "footer.colOpenSource": "源码",
   "footer.colTeam": "团队",
-  "footer.license": "PolyForm Noncommercial",
+  "footer.license": "AGPL-3.0",
   "bot.heading": "在 GitHub 上使用",
   "bot.body":
     "FirstPRbot 把 Match → Explain → Review 带到 issue 与 PR 评论里。安装后在 good first issue 上评论 /firstpr explain，或打开 PR 即可在不离开 GitHub 的情况下拿到 score card。",
@@ -533,7 +533,7 @@ export const ja = fill({
   "footer.colProduct": "プロダクト",
   "footer.colOpenSource": "ソース",
   "footer.colTeam": "チーム",
-  "footer.license": "PolyForm Noncommercial",
+  "footer.license": "AGPL-3.0",
   "bot.heading": "GitHub で使う",
   "bot.body":
     "FirstPRbot は Match → Explain → Review を issue / PR コメントに届けます。インストールして good first issue に /firstpr explain と書くか、PR を開けば GitHub から離れずに score card を受け取れます。",
@@ -603,7 +603,7 @@ export const ko = fill({
   "footer.colProduct": "제품",
   "footer.colOpenSource": "소스",
   "footer.colTeam": "팀",
-  "footer.license": "PolyForm Noncommercial",
+  "footer.license": "AGPL-3.0",
   "bot.heading": "GitHub에서 쓰기",
   "bot.body":
     "FirstPRbot은 Match → Explain → Review를 issue·PR 댓글로 가져옵니다. 설치한 뒤 good first issue에 /firstpr explain을 쓰거나 PR을 열면 GitHub을 떠나지 않고 score card를 받을 수 있습니다.",
@@ -670,7 +670,7 @@ export const ar = fill({
   "footer.colProduct": "المنتج",
   "footer.colOpenSource": "المصدر",
   "footer.colTeam": "الفريق",
-  "footer.license": "PolyForm Noncommercial",
+  "footer.license": "AGPL-3.0",
   "bot.heading": "استخدمه على GitHub",
   "bot.body":
     "يجلب FirstPRbot مسار Match → Explain → Review إلى تعليقات issues وPRs. ثبّته ثم علّق /firstpr explain على good first issue — أو افتح PR واحصل على score card دون مغادرة GitHub.",
@@ -731,7 +731,7 @@ export const ru = fill({
   "footer.colProduct": "Продукт",
   "footer.colOpenSource": "Source",
   "footer.colTeam": "Команда",
-  "footer.license": "PolyForm Noncommercial",
+  "footer.license": "AGPL-3.0",
   "bot.heading": "Используйте на GitHub",
   "bot.body":
     "FirstPRbot переносит Match → Explain → Review в комментарии к issues и PR. Установите и напишите /firstpr explain на good first issue — или откройте PR и получите score card, не уходя с GitHub.",
@@ -792,7 +792,7 @@ export const ta = fill({
   "footer.colProduct": "தயாரிப்பு",
   "footer.colOpenSource": "மூலம்",
   "footer.colTeam": "குழு",
-  "footer.license": "PolyForm Noncommercial",
+  "footer.license": "AGPL-3.0",
   "bot.heading": "GitHub-இல் பயன்படுத்துங்கள்",
   "bot.body":
     "FirstPRbot Match → Explain → Review-ஐ issue/PR கமெண்ட்களுக்கு கொண்டு வருகிறது. நிறுவி good first issue-இல் /firstpr explain எழுதுங்கள் — அல்லது PR திறந்து GitHub விடாமல் score card பெறுங்கள்.",
@@ -853,7 +853,7 @@ export const bn = fill({
   "footer.colProduct": "প্রোডাক্ট",
   "footer.colOpenSource": "সোর্স",
   "footer.colTeam": "টিম",
-  "footer.license": "PolyForm Noncommercial",
+  "footer.license": "AGPL-3.0",
   "bot.heading": "GitHub-এ ব্যবহার করুন",
   "bot.body":
     "FirstPRbot Match → Explain → Review issue ও PR কমেন্টে নিয়ে আসে। ইনস্টল করে good first issue-এ /firstpr explain লিখুন — অথবা PR খুলে GitHub না ছেড়ে score card পান।",
@@ -914,7 +914,7 @@ export const id = fill({
   "footer.colProduct": "Produk",
   "footer.colOpenSource": "Source",
   "footer.colTeam": "Tim",
-  "footer.license": "PolyForm Noncommercial",
+  "footer.license": "AGPL-3.0",
   "bot.heading": "Pakai di GitHub",
   "bot.body":
     "FirstPRbot membawa Match → Explain → Review ke komentar issue dan PR. Pasang, lalu komentari /firstpr explain pada good first issue — atau buka PR dan dapatkan score card tanpa meninggalkan GitHub.",

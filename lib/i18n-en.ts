@@ -18,7 +18,7 @@ export const en = {
   "footer.colProduct": "Product",
   "footer.colOpenSource": "Source",
   "footer.colTeam": "Team",
-  "footer.license": "PolyForm Noncommercial",
+  "footer.license": "AGPL-3.0",
 
   "bot.heading": "Use it on GitHub",
   "bot.body":
