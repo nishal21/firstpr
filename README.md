@@ -122,6 +122,13 @@ We wrote the code with AI coding help in Cursor. We reviewed, tested, and debugg
 | Nishal K | Product, engineering, demo | [@nishal21](https://github.com/nishal21) |
 | Anan Shaji | Research, pitch, business | [@zenxrth](https://github.com/zenxrth) |
 
+## Sponsors & Community Support
+
+- Sponsored by [Neon](https://neon.com) — Serverless Postgres
+- Security scanning by [Snyk](https://snyk.io)
+- Search powered by [Algolia](https://www.algolia.com)
+- Web extraction powered by [webclaw](https://webclaw.io)
+
 ## License
 
 [PolyForm Noncommercial 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0). Personal and other noncommercial use allowed. Commercial use needs a separate license from the authors. See [LICENSE](./LICENSE).
