@@ -75,6 +75,14 @@ DEMO_MODE=on npm run dev
 
 `DEMO_MODE=auto` (default) uses live APIs and falls back to fixtures on rate limit or timeout. `DEMO_MODE=off` is live only.
 
+### Self-hosting with Postgres (Neon recommended)
+
+By default, FirstPR runs statelessly with an in-memory cache for quick local testing. For self-hosted production deployments on Vercel or Docker (persisting issue explain and review caches across serverless cold starts, FirstPRbot webhook history, and placement-cell cohort analytics), we recommend [Neon Serverless Postgres](https://neon.com):
+
+1. Create a Postgres database on [Neon](https://neon.com).
+2. Add your pooled connection string to .env.local as DATABASE_URL=postgresql://...
+3. FirstPR uses DATABASE_URL when configured so self-hosted instances persist cached analyses across serverless invocations.
+
 ## Models and data
 
 | Task | Model / path |
