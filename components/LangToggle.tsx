@@ -28,15 +28,21 @@ export function LangToggle({
   compact = false,
   buttonClassName,
   variant = "menu",
+  placement = "up",
 }: {
   className?: string;
   compact?: boolean;
   buttonClassName?: string;
   /**
-   * "menu" drops down from the header. "sticker" is the footer picker: it
-   * always opens upward from the trigger, in the footer's sticker style.
+   * "menu" is the plain dropdown. "sticker" is the cream two-column picker
+   * used in the header and footer.
    */
   variant?: "menu" | "sticker";
+  /**
+   * Sticker only. "up" opens above the trigger, start-aligned (footer).
+   * "down" opens below it, end-aligned (header).
+   */
+  placement?: "up" | "down";
 }) {
   const sticker = variant === "sticker";
   const { lang, setLang, t, ready } = useLanguage();
@@ -59,12 +65,21 @@ export function LangToggle({
       const rect = buttonRef.current!.getBoundingClientRect();
       const gap = 4;
       if (sticker) {
-        // Open upward, start-aligned to the trigger, clamped on screen.
         const width = Math.min(320, window.innerWidth - EDGE * 2);
-        const left = Math.min(
-          Math.max(EDGE, rect.left),
-          window.innerWidth - EDGE - width,
-        );
+        const maxLeft = window.innerWidth - EDGE - width;
+        if (placement === "down") {
+          // Open downward, end-aligned to the trigger, clamped on screen.
+          const top = rect.bottom + gap + 2;
+          setPos({
+            top,
+            left: Math.min(Math.max(EDGE, rect.right - width), maxLeft),
+            width,
+            maxHeight: Math.max(160, window.innerHeight - top - EDGE),
+          });
+          return;
+        }
+        // Open upward, start-aligned to the trigger, clamped on screen.
+        const left = Math.min(Math.max(EDGE, rect.left), maxLeft);
         setPos({
           bottom: window.innerHeight - rect.top + gap + 2,
           left,
@@ -98,7 +113,7 @@ export function LangToggle({
       window.removeEventListener("resize", place);
       window.removeEventListener("scroll", place, true);
     };
-  }, [open, sticker]);
+  }, [open, sticker, placement]);
 
   useEffect(() => {
     if (!open) return;
