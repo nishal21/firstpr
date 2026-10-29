@@ -128,21 +128,21 @@ function languageIn(words: string[]): string | undefined {
   return undefined;
 }
 
+function isReservedWord(token: string): boolean {
+  const lower = token.toLowerCase();
+  return Boolean(LANG[lower]) || SKILL.has(lower);
+}
+
 function singleToken(token: string): SearchFlow[] {
   const lower = token.toLowerCase();
   const lang = LANG[lower];
-  const skill = SKILL.has(lower);
-  const out: SearchFlow[] = [];
-  if (lang || skill) {
-    out.push(topicFlow(token, lang));
+  if (isReservedWord(token)) {
+    return [topicFlow(token, lang)];
   }
   if (USERNAME.test(token)) {
-    out.push(userFlow(token));
+    return [userFlow(token), topicFlow(token)];
   }
-  if (out.length === 0) {
-    out.push(topicFlow(token));
-  }
-  return out;
+  return [topicFlow(token, lang)];
 }
 
 /**

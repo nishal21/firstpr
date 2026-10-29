@@ -79,46 +79,52 @@ export function MatchForm({
     };
   }, [pending]);
 
-  const runMatch = useCallback(() => {
-    setError(null);
-    setFromCache(false);
-    startTransition(async () => {
-      try {
-        const res = await fetch("/api/match", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            username: username.trim(),
-            repo: repo.trim(),
-          }),
-        });
-        const json = (await res.json()) as MatchResponse;
-        if (!res.ok) {
+  const runMatch = useCallback(
+    (name?: string, repoValue?: string) => {
+      const user = (name ?? username).trim();
+      const repoName = (repoValue ?? repo).trim();
+      if (!user) return;
+      setError(null);
+      setData(null);
+      setFromCache(false);
+      startTransition(async () => {
+        try {
+          const res = await fetch("/api/match", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              username: user,
+              repo: repoName,
+            }),
+          });
+          const json = (await res.json()) as MatchResponse;
+          if (!res.ok) {
+            setData(null);
+            setFromCache(false);
+            setError(
+              json.code === "user_not_found"
+                ? t("match.noUser", { username: user })
+                : friendlyErrorMessage(json.code, json.error || t("match.failed")),
+            );
+            return;
+          }
+          setFromCache(res.headers.get("x-firstpr-source") === "cache");
+          setData(json);
+        } catch {
           setData(null);
           setFromCache(false);
-          setError(
-            friendlyErrorMessage(json.code, json.error || t("match.failed")),
-          );
-          return;
+          setError(t("match.failed"));
         }
-        setFromCache(res.headers.get("x-firstpr-source") === "cache");
-        setData(json);
-      } catch {
-        setData(null);
-        setFromCache(false);
-        setError(t("match.failed"));
-      }
-    });
-  }, [repo, t, username]);
+      });
+    },
+    [repo, t, username],
+  );
 
   useEffect(() => {
     if (!autoRun || autoRan.current || !username.trim()) return;
-    const id = window.setTimeout(() => {
-      if (autoRan.current) return;
-      autoRan.current = true;
-      runMatch();
-    }, 0);
-    return () => window.clearTimeout(id);
+    autoRan.current = true;
+    document.getElementById("match")?.scrollIntoView({ block: "start" });
+    runMatch();
   }, [autoRun, username, repo, runMatch]);
 
   const noIssues =
@@ -197,13 +203,16 @@ export function MatchForm({
       ) : null}
 
       {error ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-700 shadow-sm">
+        <div
+          role="alert"
+          className="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-700 shadow-sm"
+        >
           <p className="break-words">{error}</p>
           <Button
             type="button"
             variant="outline"
             className="mt-3 min-h-11 rounded-xl border-border"
-            onClick={runMatch}
+            onClick={() => runMatch()}
           >
             {t("match.retry")}
           </Button>

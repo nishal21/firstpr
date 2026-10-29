@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { LandingSteps } from "@/components/flow-steps";
 import { HomeBotSection } from "@/components/home-bot-section";
 import { HomeHero } from "@/components/home-hero";
@@ -41,12 +42,14 @@ export default async function Home({ searchParams }: HomeProps) {
       </section>
       <HomeMore />
       <HomeBotSection />
-      <HomeMatchSection
-        initialUser={one(sp.user)}
-        initialRepo={one(sp.repo)}
-        topicQuery={one(sp.q)}
-        topicLang={one(sp.lang)}
-      />
+      <Suspense fallback={null}>
+        <HomeMatchSection
+          initialUser={one(sp.user)}
+          initialRepo={one(sp.repo)}
+          topicQuery={one(sp.q)}
+          topicLang={one(sp.lang)}
+        />
+      </Suspense>
       <HomeTail />
     </>
   );

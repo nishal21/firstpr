@@ -161,6 +161,45 @@ function motionNow() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
+const userExistsCache = new Map<string, boolean>();
+
+function useConfirmedUsers(raw: string, flows: SearchFlow[]): Record<string, boolean> {
+  const candidate = flows.find((item) => item.flow === "match-user");
+  const username = candidate && candidate.flow === "match-user" ? candidate.username : "";
+  const skip = raw.trim().startsWith("@") || username.length < 2;
+  const key = username.toLowerCase();
+  const [fetched, setFetched] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    if (skip || userExistsCache.has(key)) return;
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => {
+      fetch(`/api/github-user?username=${encodeURIComponent(username)}`, {
+        signal: controller.signal,
+      })
+        .then(async (res) => {
+          if (!res.ok) return null;
+          return (await res.json()) as { exists?: boolean | null };
+        })
+        .then((json) => {
+          if (!json || typeof json.exists !== "boolean") return;
+          userExistsCache.set(key, json.exists);
+          setFetched((prev) => ({ ...prev, [key]: json.exists as boolean }));
+        })
+        .catch(() => {});
+    }, 350);
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [key, skip, username]);
+
+  if (skip) return fetched;
+  const hit = userExistsCache.get(key);
+  if (hit === undefined || fetched[key] === hit) return fetched;
+  return { ...fetched, [key]: hit };
+}
+
 const PLACEHOLDERS = [
   "hero.placeholderLang",
   "hero.placeholderSkill",
@@ -338,7 +377,15 @@ export function SiteSearch({
   }
 
   const local = useMemo(() => parseOmniQuery(value), [value]);
+  const knownUsers = useConfirmedUsers(value, local);
   const trimmed = value.trim();
+  const understoodFlows = useMemo(() => {
+    if (trimmed.startsWith("@")) return local;
+    return local.filter((item) => {
+      if (item.flow !== "match-user") return true;
+      return knownUsers[item.username.toLowerCase()] === true;
+    });
+  }, [knownUsers, local, trimmed]);
 
   const rows: Row[] = useMemo(() => {
     const quick: Row[] =
@@ -369,7 +416,7 @@ export function SiteSearch({
             },
           ]
         : [];
-    const understood: Row[] = local.map((item) => {
+    const understood: Row[] = understoodFlows.map((item) => {
       const copy = flowCopy(item, t);
       return {
         key: item.href,
@@ -410,7 +457,7 @@ export function SiteSearch({
         group: "recent" as const,
       }));
     return [...quick, ...understood, ...liveRows, ...recentRows];
-  }, [live, local, recent, t, trimmed]);
+  }, [live, understoodFlows, recent, t, trimmed]);
 
   if (rows.length > 0 && active >= rows.length) setActive(rows.length - 1);
 

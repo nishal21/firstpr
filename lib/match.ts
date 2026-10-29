@@ -3,6 +3,7 @@ import { env } from "@/lib/env";
 import {
   getRepo,
   getUserLanguages,
+  githubUserExists,
   GitHubError,
   issueHasOpenLinkedPr,
   listGoodFirstIssues,
@@ -205,10 +206,19 @@ export async function matchIssues(opts: {
   repo?: string;
 }): Promise<MatchResult> {
   const username = opts.username.trim();
+  const exists = await githubUserExists(username);
+  if (!exists) {
+    throw new GitHubError(`No GitHub user called ${username}`, "user_not_found");
+  }
+
   let languages: string[] = [];
   try {
     languages = await getUserLanguages(username);
-  } catch {
+  } catch (err) {
+    if (err instanceof GitHubError && err.code === "rate_limited") throw err;
+    if (err instanceof GitHubError && err.code === "not_found") {
+      throw new GitHubError(`No GitHub user called ${username}`, "user_not_found");
+    }
     languages = [];
   }
 

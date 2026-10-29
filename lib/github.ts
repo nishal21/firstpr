@@ -8,7 +8,11 @@ import type { AlgoliaIssueRecord } from "@/lib/algolia-record";
 import { issueObjectId } from "@/lib/algolia-plan";
 import { getEnv } from "@/lib/env";
 
-export type GitHubErrorCode = "rate_limited" | "not_found" | "github_error";
+export type GitHubErrorCode =
+  | "rate_limited"
+  | "not_found"
+  | "user_not_found"
+  | "github_error";
 
 export class GitHubError extends Error {
   readonly code: GitHubErrorCode;
@@ -480,6 +484,22 @@ export async function getRepo(owner: string, repo: string): Promise<RepoInfo> {
       };
     }),
   );
+}
+
+/** Cached core lookup (site or app token). False when GitHub returns 404. */
+export async function githubUserExists(username: string): Promise<boolean> {
+  const login = username.trim();
+  return cached(`user-exists:${login.toLowerCase()}`, async () => {
+    try {
+      await gh(async () => {
+        await getOctokit().users.getByUsername({ username: login });
+      });
+      return true;
+    } catch (err) {
+      if (err instanceof GitHubError && err.code === "not_found") return false;
+      throw err;
+    }
+  });
 }
 
 export async function getUserLanguages(username: string): Promise<string[]> {

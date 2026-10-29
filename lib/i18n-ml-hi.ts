@@ -179,6 +179,7 @@ export const ml: Record<I18nKey, string> = {
   "match.finding": "തിരയുന്നു…",
   "match.retry": "വീണ്ടും ശ്രമിക്കുക",
   "match.failed": "Match പരാജയപ്പെട്ടു",
+  "match.noUser": "GitHub-ൽ {username} എന്ന ഉപയോക്താവില്ല",
   "match.youWrite": "നിങ്ങൾ എഴുതുന്നത്:",
   "match.noPublicRepos":
     "പബ്ലിക് repo ഇതുവരെ ഇല്ല, അതിനാൽ beginner-friendly docs issues തിരഞ്ഞെടുക്കും.",
@@ -465,6 +466,7 @@ export const hi: Record<I18nKey, string> = {
   "match.finding": "खोज रहे हैं…",
   "match.retry": "फिर कोशिश करें",
   "match.failed": "Match असफल रहा",
+  "match.noUser": "GitHub पर {username} नाम का कोई उपयोगकर्ता नहीं है",
   "match.youWrite": "आप लिखते हैं:",
   "match.noPublicRepos":
     "अभी कोई पब्लिक repo नहीं, इसलिए हम beginner-friendly docs issues चुनेंगे।",

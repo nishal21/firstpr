@@ -177,6 +177,7 @@ export const en = {
   "match.finding": "Finding…",
   "match.retry": "Retry",
   "match.failed": "Match failed",
+  "match.noUser": "No GitHub user called {username}",
   "match.youWrite": "You write:",
   "match.noPublicRepos":
     "No public repos yet, so we'll pick beginner-friendly docs issues.",

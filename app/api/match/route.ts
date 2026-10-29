@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { matchFixtureKey } from "@/lib/cache";
+import { cached, matchFixtureKey } from "@/lib/cache";
 import { errorJson, jsonWithSource, withDemoFixture } from "@/lib/demo";
 import { GitHubError } from "@/lib/github";
 import { matchIssues } from "@/lib/match";
@@ -37,16 +37,17 @@ export async function POST(request: Request) {
     }
 
     const { username, repo } = parsed.data;
-    const repoKey = repo?.trim() || "default";
+    const repoInput = repo?.trim() ? repo.trim() : undefined;
+    const repoKey = repoInput || "default";
     const key = matchFixtureKey(repoKey, username);
 
     const { data, source } = await withDemoFixture({
       key,
       run: () =>
-        matchIssues({
-          username,
-          repo: repo === undefined ? undefined : repo,
-        }),
+        cached(
+          `match-live:${username.toLowerCase()}:${(repoInput ?? "").toLowerCase()}`,
+          () => matchIssues({ username, repo: repoInput }),
+        ),
     });
 
     return jsonWithSource(data, source);

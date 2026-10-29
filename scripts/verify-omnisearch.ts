@@ -14,6 +14,10 @@ const cases: Array<[string, string | undefined, string]> = [
   ["nishal21/NekoDroid", "readiness", "NekoDroid"],
   ["nishal21", "match-user", "nishal21"],
   ["@octocat", "match-user", "octocat"],
+  ["@docs", "match-user", "docs"],
+  ["docs", "match-topic", undefined],
+  ["python", "match-topic", "Python"],
+  ["javascript", "match-topic", "JavaScript"],
   ["", undefined, ""],
 ];
 
@@ -37,10 +41,16 @@ for (const [query, flow, extra] of cases) {
   if (item.flow === "match-user" && item.username !== extra) failed += 1;
 }
 
-const react = parseOmniQuery("react");
-if (react.length < 2 || react[1]?.flow !== "match-user") {
-  console.error("react should also offer the username flow");
-  failed += 1;
+for (const word of ["react", "docs", "python", "javascript"]) {
+  const flows = parseOmniQuery(word);
+  if (flows.some((item) => item.flow === "match-user")) {
+    console.error(word, "should not offer Match for a language or chip word");
+    failed += 1;
+  }
+  if (flows[0]?.flow !== "match-topic") {
+    console.error(word, "should lead with Find beginner issues");
+    failed += 1;
+  }
 }
 
 if (failed) {

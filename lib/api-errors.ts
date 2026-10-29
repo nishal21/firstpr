@@ -18,7 +18,7 @@ export function friendlyErrorMessage(
 
 export function statusForErrorCode(code: string | undefined): number {
   if (code === "rate_limited") return 429;
-  if (code === "not_found") return 404;
+  if (code === "not_found" || code === "user_not_found") return 404;
   if (code === "timeout") return 504;
   if (code === "bad_request") return 400;
   return 502;
