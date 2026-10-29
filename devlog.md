@@ -283,3 +283,4 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - Status line uses `countOpenGoodFirstIssues()`. If GitHub does not answer, the line is omitted.
 - Polish: step cards, match/explain/review surfaces, and the primary button use ink borders and hard shadows. The line above search is a git graph (main dots, blue branch, merge dot). Footer pills sit under product / source / team. MERGED has a same-color stroke so the spray reads as a solid word.
 - The match block was `FadeUp inView`, so it stayed at opacity 0 until scrolled into view and looked like a gap. It is plain markup now. The stamp stays in its final pose until JS arms the thunk. The crowd image loads eager.
+- Home adds a live `/api/search` strip, a NekoDroid walkthrough, a never-do list, languages, FAQ, AGPL/commercial note, and a CTA. `/privacy` and `/terms` describe only the flows in this repo. No database. Footer has a Legal group.
