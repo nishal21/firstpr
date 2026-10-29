@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils";
 import "./globals.css";
 
 const inter = Inter({
-  subsets: ["latin"],
+  subsets: ["latin", "cyrillic"],
   variable: "--font-sans",
   display: "swap",
   preload: true,
@@ -46,6 +46,7 @@ const plex = IBM_Plex_Mono({
 
 const notoMalayalam = Noto_Sans_Malayalam({
   subsets: ["malayalam"],
+  display: "swap",
   variable: "--font-ml",
   weight: ["400", "500", "600", "700"],
   preload: false,
@@ -53,6 +54,7 @@ const notoMalayalam = Noto_Sans_Malayalam({
 
 const notoDevanagari = Noto_Sans_Devanagari({
   subsets: ["devanagari"],
+  display: "swap",
   variable: "--font-deva",
   weight: ["400", "500", "600", "700"],
   preload: false,
@@ -60,6 +62,7 @@ const notoDevanagari = Noto_Sans_Devanagari({
 
 const notoTamil = Noto_Sans_Tamil({
   subsets: ["tamil"],
+  display: "swap",
   variable: "--font-ta",
   weight: ["400", "500", "600", "700"],
   preload: false,
@@ -67,6 +70,7 @@ const notoTamil = Noto_Sans_Tamil({
 
 const notoBengali = Noto_Sans_Bengali({
   subsets: ["bengali"],
+  display: "swap",
   variable: "--font-bn",
   weight: ["400", "500", "600", "700"],
   preload: false,
@@ -74,6 +78,7 @@ const notoBengali = Noto_Sans_Bengali({
 
 const notoSC = Noto_Sans_SC({
   subsets: ["latin"],
+  display: "swap",
   variable: "--font-zh",
   weight: ["400", "500", "700"],
   preload: false,
@@ -81,6 +86,7 @@ const notoSC = Noto_Sans_SC({
 
 const notoJP = Noto_Sans_JP({
   subsets: ["latin"],
+  display: "swap",
   variable: "--font-ja",
   weight: ["400", "500", "700"],
   preload: false,
@@ -88,6 +94,7 @@ const notoJP = Noto_Sans_JP({
 
 const notoKR = Noto_Sans_KR({
   subsets: ["latin"],
+  display: "swap",
   variable: "--font-ko",
   weight: ["400", "500", "700"],
   preload: false,
@@ -95,6 +102,7 @@ const notoKR = Noto_Sans_KR({
 
 const notoArabic = Noto_Sans_Arabic({
   subsets: ["arabic"],
+  display: "swap",
   variable: "--font-ar",
   weight: ["400", "500", "600", "700"],
   preload: false,

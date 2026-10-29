@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } fr
 import { createPortal } from "react-dom";
 import { Check, ChevronDown, Globe } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
-import { UI_LANGS, UI_LANG_NATIVE, type UiLang } from "@/lib/i18n";
+import { UI_LANGS, UI_LANG_NATIVE, uiLangFontClass, type UiLang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 function subscribeReady() {
@@ -160,7 +160,13 @@ export function LangToggle({
                       selected && (sticker ? "is-selected" : "bg-muted text-foreground"),
                     )}
                   >
-                    <span className={sticker ? "min-w-0 leading-tight [overflow-wrap:anywhere]" : "whitespace-nowrap"}>
+                    <span
+                      lang={code}
+                      className={cn(
+                        sticker ? "min-w-0 leading-tight [overflow-wrap:anywhere]" : "whitespace-nowrap",
+                        uiLangFontClass(code),
+                      )}
+                    >
                       {UI_LANG_NATIVE[code]}
                     </span>
                     {selected ? (
@@ -200,7 +206,9 @@ export function LangToggle({
         {compact ? (
           <span className="sr-only">{ready ? UI_LANG_NATIVE[lang] : "…"}</span>
         ) : (
-          <span>{ready ? UI_LANG_NATIVE[lang] : "…"}</span>
+          <span lang={ready ? lang : undefined} className={ready ? (uiLangFontClass(lang) ?? undefined) : undefined}>
+            {ready ? UI_LANG_NATIVE[lang] : "…"}
+          </span>
         )}
         <ChevronDown
           size={14}

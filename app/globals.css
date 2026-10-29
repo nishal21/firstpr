@@ -199,7 +199,8 @@
 }
 
 .font-spray {
-  font-family: var(--font-spray), var(--font-ml), var(--font-deva), var(--font-sans), sans-serif;
+  font-family: var(--font-spray), var(--font-ml), var(--font-deva), var(--font-ta), var(--font-bn),
+    var(--font-ar), var(--font-ko), var(--font-sans), sans-serif;
 }
 
 .font-plex {
