@@ -125,7 +125,9 @@ Locally, with `npm run dev` and the same variables in `.env.local`:
 curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/cron/sync-issues
 ```
 
-A successful body looks like `{ "ok": true, "indexed": 600, "removed": 0, "complete": false }`. `complete: false` means this run indexed a capped window (6 pages of 100, spaced for GitHub’s search limit) and only removed recently closed or assigned issues. Do not commit real keys.
+Each run walks GitHub newest to oldest by `created` date, always asking for page 1 of `created:<=cursor`, so GitHub's 1000-result search cap does not apply. The cursor is stored in a separate Algolia index, `<ALGOLIA_INDEX_NAME>_sync_state`, so the next run (daily cron or a manual curl) continues where the last one stopped. A run stops starting new pages after about 250 seconds (the route's `maxDuration` is 300). Each run also drops the most recently closed or assigned issues. When a pass reaches the oldest issue, it deletes records the pass did not see and returns `complete: true`. The next run then starts a new pass.
+
+A body looks like `{ "ok": true, "indexed": 2400, "removed": 37, "complete": false, "rateLimited": false, "debug": { "tokenSource": "sync", "stopReason": "time_budget", ... } }`. `debug` names the credential in use (`sync`, `default`, or `none`, never the value), why the run stopped (`done`, `time_budget`, `rate_limited`, `secondary_limit`, or `busy` when another run holds the lock), the cursor, issues saved in the current pass, and the search and GraphQL budget left. Do not commit real keys.
 
 Offline-style demo (uses committed fixtures under `data/demo/`):
 

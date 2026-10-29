@@ -1042,20 +1042,72 @@ const OPEN_ISSUE_QUERY =
 const STALE_ISSUE_QUERY =
   'is:issue (label:"good first issue" OR label:"help wanted") (is:closed OR assignee:*)';
 const INDEX_PAGE_SIZE = 100;
-const INDEX_OPEN_PAGES = 6;
-const INDEX_STALE_PAGES = 2;
 const REPO_BATCH = 30;
 
-export type IssueIndexFetch = {
+export type SyncTokenSource = "sync" | "default" | "none";
+
+export type SearchRate = { limit: number | null; remaining: number | null; resetAt: string | null };
+
+export type OpenIssuePage = {
+  /** Unassigned, public issues with repo stars and language filled in. */
   records: AlgoliaIssueRecord[];
-  complete: boolean;
-  rateLimited: boolean;
+  /** Raw search hits on this page, before filtering. */
+  hits: number;
+  total: number;
+  incomplete: boolean;
+  /** Oldest created_at (seconds) on this page, for the next cursor. */
+  oldestCreated: number | null;
+  rate: SearchRate;
 };
 
 function wait(ms: number): Promise<void> {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
+}
+
+/** Which credential the issue sync uses. Names only, never the value. */
+export function syncTokenSource(): SyncTokenSource {
+  const current = getEnv();
+  if (current.GITHUB_SYNC_TOKEN) return "sync";
+  if (current.GITHUB_TOKEN) return "default";
+  return "none";
+}
+
+function numberHeader(
+  headers: Record<string, string | number | undefined> | undefined,
+  name: string,
+): number | null {
+  const value = headers?.[name];
+  if (value === undefined) return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function searchRate(headers: Record<string, string | number | undefined> | undefined): SearchRate {
+  const reset = numberHeader(headers, "x-ratelimit-reset");
+  return {
+    limit: numberHeader(headers, "x-ratelimit-limit"),
+    remaining: numberHeader(headers, "x-ratelimit-remaining"),
+    resetAt: reset === null ? null : new Date(reset * 1000).toISOString(),
+  };
+}
+
+/** Search and GraphQL budget left for the sync credential. Does not count against either. */
+export async function getSyncRateLimit(): Promise<{
+  search: SearchRate;
+  graphql: SearchRate;
+} | null> {
+  try {
+    const { data } = await getSyncOctokit().rateLimit.get();
+    const pick = (r: { limit: number; remaining: number; reset: number } | undefined): SearchRate =>
+      r
+        ? { limit: r.limit, remaining: r.remaining, resetAt: new Date(r.reset * 1000).toISOString() }
+        : { limit: null, remaining: null, resetAt: null };
+    return { search: pick(data.resources.search), graphql: pick(data.resources.graphql) };
+  } catch {
+    return null;
+  }
 }
 
 function repoFromApiUrl(repositoryUrl: string): { owner: string; repo: string } | null {
@@ -1069,7 +1121,7 @@ function repoFromApiUrl(repositoryUrl: string): { owner: string; repo: string } 
   return { owner, repo };
 }
 
-type RepoMeta = { stars: number; language: string; isPrivate: boolean };
+export type RepoMeta = { stars: number; language: string; isPrivate: boolean };
 
 type RepoNode = {
   stargazerCount?: number;
@@ -1077,13 +1129,15 @@ type RepoNode = {
   primaryLanguage?: { name?: string | null } | null;
 } | null;
 
+/** Repo stars, language and visibility. Null for repos GitHub could not find. Throws on rate limits. */
 async function loadRepoMeta(
   pairs: { owner: string; repo: string }[],
-): Promise<Map<string, RepoMeta>> {
-  const meta = new Map<string, RepoMeta>();
+  cache: Map<string, RepoMeta | null>,
+): Promise<void> {
   const client = getSyncOctokit();
-  for (let offset = 0; offset < pairs.length; offset += REPO_BATCH) {
-    const slice = pairs.slice(offset, offset + REPO_BATCH);
+  const todo = pairs.filter((pair) => !cache.has(`${pair.owner}/${pair.repo}`));
+  for (let offset = 0; offset < todo.length; offset += REPO_BATCH) {
+    const slice = todo.slice(offset, offset + REPO_BATCH);
     const fields = slice
       .map((pair, index) => {
         const owner = JSON.stringify(pair.owner);
@@ -1091,153 +1145,143 @@ async function loadRepoMeta(
         return `r${index}: repository(owner: ${owner}, name: ${repo}) { stargazerCount isPrivate primaryLanguage { name } }`;
       })
       .join("\n");
-    try {
-      const response = await gh(() =>
-        client.request("POST /graphql", {
-          query: `query { ${fields} }`,
-        }),
+    const response = await gh(() =>
+      client.request("POST /graphql", {
+        query: `query { ${fields} }`,
+      }),
+    );
+    const payload = response.data as {
+      data?: Record<string, RepoNode | null>;
+    } & Record<string, RepoNode | null>;
+    const data = payload.data ?? payload;
+    slice.forEach((pair, index) => {
+      const node = data?.[`r${index}`];
+      cache.set(
+        `${pair.owner}/${pair.repo}`,
+        node
+          ? {
+              stars: typeof node.stargazerCount === "number" ? node.stargazerCount : 0,
+              language: node.primaryLanguage?.name ?? "",
+              isPrivate: Boolean(node.isPrivate),
+            }
+          : null,
       );
-      const payload = response.data as {
-        data?: Record<string, RepoNode | null>;
-      } & Record<string, RepoNode | null>;
-      const data = payload.data ?? payload;
-      slice.forEach((pair, index) => {
-        const node = data?.[`r${index}`];
-        if (!node) return;
-        meta.set(`${pair.owner}/${pair.repo}`, {
-          stars: typeof node.stargazerCount === "number" ? node.stargazerCount : 0,
-          language: node.primaryLanguage?.name ?? "",
-          isPrivate: Boolean(node.isPrivate),
-        });
-      });
-    } catch (err) {
-      if (err instanceof GitHubError && err.code === "rate_limited") break;
-      rethrowGitHub(err);
-    }
-    if (offset + REPO_BATCH < pairs.length) await wait(400);
+    });
   }
-  return meta;
 }
 
-async function searchIndexPage(q: string, page: number) {
-  let last: GitHubError | null = null;
-  for (let attempt = 0; attempt < 2; attempt += 1) {
-    try {
-      return await queuedSearch(() =>
-        getSyncOctokit().search.issuesAndPullRequests({
-          q,
-          sort: "updated",
-          order: "desc",
-          per_page: INDEX_PAGE_SIZE,
-          page,
-        }),
-      );
-    } catch (err) {
-      if (!(err instanceof GitHubError) || err.code !== "rate_limited" || attempt === 1) {
-        throw err;
-      }
-      last = err;
-      await wait(err.retryAfterMs > 0 ? err.retryAfterMs : 5_000);
-    }
-  }
-  throw last ?? new GitHubError("GitHub API rate limit exceeded", "rate_limited", 5_000);
+type SearchItem = Awaited<
+  ReturnType<Octokit["search"]["issuesAndPullRequests"]>
+>["data"]["items"][number];
+
+function issueDraft(issue: SearchItem): AlgoliaIssueRecord | null {
+  if ("pull_request" in issue && issue.pull_request) return null;
+  const repo = repoFromApiUrl(issue.repository_url);
+  if (!repo) return null;
+  const assigned = Boolean(issue.assignee) || (issue.assignees ?? []).length > 0;
+  const labels = (issue.labels ?? [])
+    .map((label) => (typeof label === "string" ? label : (label.name ?? "")))
+    .filter(Boolean)
+    .slice(0, 8);
+  const created = Date.parse(issue.created_at);
+  const updated = Date.parse(issue.updated_at);
+  if (Number.isNaN(created) || Number.isNaN(updated)) return null;
+  return {
+    objectID: issueObjectId(repo.owner, repo.repo, issue.number),
+    title: issue.title,
+    repo: `${repo.owner}/${repo.repo}`,
+    url: issue.html_url,
+    labels,
+    language: "",
+    stars: 0,
+    created_at: Math.floor(created / 1000),
+    updated_at: Math.floor(updated / 1000),
+    comments: issue.comments,
+    assignee: assigned ? "assigned" : "none",
+  };
 }
 
-async function searchIssuePages(
-  q: string,
-  pages: number,
-): Promise<{ items: AlgoliaIssueRecord[]; complete: boolean; rateLimited: boolean }> {
-  if (!syncToken()) {
+function requireSyncToken(): void {
+  if (syncTokenSource() === "none") {
     throw new GitHubError(
       "GITHUB_SYNC_TOKEN or GITHUB_TOKEN is required to sync the issue index",
       "github_error",
     );
   }
-  const drafts: AlgoliaIssueRecord[] = [];
-  let complete = false;
-  let rateLimited = false;
-
-  for (let page = 1; page <= pages; page += 1) {
-    let data: Awaited<ReturnType<typeof searchIndexPage>>["data"];
-    let headers: Awaited<ReturnType<typeof searchIndexPage>>["headers"];
-    try {
-      const response = await searchIndexPage(q, page);
-      data = response.data;
-      headers = response.headers;
-    } catch (err) {
-      if (err instanceof GitHubError && err.code === "rate_limited") {
-        rateLimited = true;
-        break;
-      }
-      throw err;
-    }
-    const remaining = Number(headerRemaining(headers));
-    for (const issue of data.items) {
-      if ("pull_request" in issue && issue.pull_request) continue;
-      const repo = repoFromApiUrl(issue.repository_url);
-      if (!repo) continue;
-      const assignees = issue.assignees ?? [];
-      const assigned = Boolean(issue.assignee) || assignees.length > 0;
-      const labels = (issue.labels ?? [])
-        .map((label) => (typeof label === "string" ? label : (label.name ?? "")))
-        .filter(Boolean)
-        .slice(0, 8);
-      const created = Date.parse(issue.created_at);
-      const updated = Date.parse(issue.updated_at);
-      if (Number.isNaN(created) || Number.isNaN(updated)) continue;
-      drafts.push({
-        objectID: issueObjectId(repo.owner, repo.repo, issue.number),
-        title: issue.title,
-        repo: `${repo.owner}/${repo.repo}`,
-        url: issue.html_url,
-        labels,
-        language: "",
-        stars: 0,
-        created_at: Math.floor(created / 1000),
-        updated_at: Math.floor(updated / 1000),
-        comments: issue.comments,
-        assignee: assigned ? "assigned" : "none",
-      });
-    }
-    const shortPage = data.items.length < INDEX_PAGE_SIZE;
-    if (shortPage && !data.incomplete_results) {
-      complete = true;
-      break;
-    }
-    if (Number.isFinite(remaining) && remaining < 2) break;
-  }
-
-  return { items: drafts, complete, rateLimited };
 }
 
-/** Open, unassigned good-first-issue and help-wanted issues for the Algolia index. */
-export async function listOpenIssuesForIndex(): Promise<IssueIndexFetch> {
-  const { items, complete, rateLimited } = await searchIssuePages(OPEN_ISSUE_QUERY, INDEX_OPEN_PAGES);
-  const open = items.filter((item) => item.assignee === "none");
+function searchTime(seconds: number): string {
+  return new Date(seconds * 1000).toISOString().replace(/\.\d{3}Z$/, "Z");
+}
+
+/**
+ * One page of open beginner issues created at or before `createdAtOrBefore`, newest first.
+ * Callers move the cursor to `oldestCreated`, so every request is page 1 and the
+ * 1000-result search cap never applies. Throws GitHubError "rate_limited" untouched.
+ */
+export async function searchOpenIssuePage(
+  createdAtOrBefore: number,
+  metaCache: Map<string, RepoMeta | null>,
+): Promise<OpenIssuePage> {
+  requireSyncToken();
+  const response = await queuedSearch(() =>
+    getSyncOctokit().search.issuesAndPullRequests({
+      q: `${OPEN_ISSUE_QUERY} created:<=${searchTime(createdAtOrBefore)}`,
+      sort: "created",
+      order: "desc",
+      per_page: INDEX_PAGE_SIZE,
+      page: 1,
+    }),
+  );
+  const { data } = response;
+  const drafts = data.items.flatMap((issue) => {
+    const draft = issueDraft(issue);
+    return draft ? [draft] : [];
+  });
+  const created = data.items
+    .map((issue) => Math.floor(Date.parse(issue.created_at) / 1000))
+    .filter((value) => Number.isFinite(value));
+  const open = drafts.filter((draft) => draft.assignee === "none");
   const repos = new Map<string, { owner: string; repo: string }>();
   for (const item of open) {
     const [owner, repo] = item.repo.split("/");
     if (owner && repo) repos.set(item.repo, { owner, repo });
   }
-  const meta = await loadRepoMeta([...repos.values()]);
+  await loadRepoMeta([...repos.values()], metaCache);
   const records = open.flatMap((item) => {
-    const info = meta.get(item.repo);
-    if (info?.isPrivate) return [];
-    return [{ ...item, stars: info?.stars ?? 0, language: info?.language ?? "" }];
+    const info = metaCache.get(item.repo);
+    if (!info || info.isPrivate) return [];
+    return [{ ...item, stars: info.stars, language: info.language }];
   });
-  return { records, complete, rateLimited };
+  return {
+    records,
+    hits: data.items.length,
+    total: data.total_count,
+    incomplete: data.incomplete_results,
+    oldestCreated: created.length > 0 ? Math.min(...created) : null,
+    rate: searchRate(response.headers as Record<string, string | number | undefined>),
+  };
 }
 
-/** Object IDs GitHub now reports as closed or assigned, so the index can drop them. */
+/** Object IDs GitHub most recently reports as closed or assigned, so the index can drop them. */
 export async function listStaleIssueObjectIds(): Promise<string[]> {
-  try {
-    const { items } = await searchIssuePages(STALE_ISSUE_QUERY, INDEX_STALE_PAGES);
-    return [...new Set(items.map((item) => item.objectID))];
-  } catch (err) {
-    if (err instanceof GitHubError && err.code === "rate_limited") return [];
-    throw err;
-  }
+  requireSyncToken();
+  const { data } = await queuedSearch(() =>
+    getSyncOctokit().search.issuesAndPullRequests({
+      q: STALE_ISSUE_QUERY,
+      sort: "updated",
+      order: "desc",
+      per_page: INDEX_PAGE_SIZE,
+      page: 1,
+    }),
+  );
+  const ids = data.items.flatMap((issue) => {
+    const draft = issueDraft(issue);
+    return draft ? [draft.objectID] : [];
+  });
+  return [...new Set(ids)];
 }
+
 
 export async function getRateLimit(): Promise<RateLimitInfo> {
   return cached(

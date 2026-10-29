@@ -6,7 +6,8 @@ import { GitHubError } from "@/lib/github";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+// Hobby with Fluid compute allows 300s. The sync stops starting new pages well before that.
+export const maxDuration = 300;
 
 function authorized(request: Request, secret: string): boolean {
   const header = request.headers.get("authorization") ?? "";
@@ -28,12 +29,15 @@ export async function GET(request: Request) {
   if (!env.ALGOLIA_APP_ID || !env.ALGOLIA_ADMIN_KEY) {
     return NextResponse.json({ error: "algolia_not_configured" }, { status: 503 });
   }
-  if (!env.GITHUB_TOKEN) {
+  if (!env.GITHUB_SYNC_TOKEN && !env.GITHUB_TOKEN) {
     return NextResponse.json({ error: "github_not_configured" }, { status: 503 });
   }
 
   try {
     const result = await syncIssuesIndex();
+    if (result.debug.stopReason === "busy") {
+      return NextResponse.json({ ok: false, error: "sync_in_progress", ...result }, { status: 409 });
+    }
     if (result.rateLimited && result.indexed === 0) {
       return NextResponse.json({ ok: false, error: "rate_limited", ...result }, { status: 429 });
     }
