@@ -82,12 +82,11 @@ export function SearchProvider({ children }: { children: ReactNode }) {
         className="search-dialog"
         aria-label={t("search.open")}
         onClose={() => setOpen(false)}
+        onClick={(event) => {
+          if (event.target === event.currentTarget) setOpen(false);
+        }}
       >
-        <div className="p-3 sm:p-4">
-          {open ? (
-            <SiteSearch variant="dialog" onNavigate={() => setOpen(false)} />
-          ) : null}
-        </div>
+        {open ? <SiteSearch variant="dialog" onNavigate={() => setOpen(false)} /> : null}
       </dialog>
     </SearchContext.Provider>
   );

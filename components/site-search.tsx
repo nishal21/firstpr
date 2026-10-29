@@ -544,7 +544,7 @@ export function SiteSearch({
     trimmed.length >= 2 && !queryLooksLikeGitHubUrl(trimmed) && !rows.some((row) => row.group === "live");
 
   useLayoutEffect(() => {
-    if (!panelOn) return;
+    if (!panelOn || variant === "dialog") return;
     const place = () => {
       const anchor = anchorRef.current;
       const panel = panelRef.current;
@@ -569,7 +569,7 @@ export function SiteSearch({
       window.removeEventListener("resize", place);
       window.removeEventListener("scroll", place, true);
     };
-  }, [panelOn, rows.length, searching]);
+  }, [panelOn, rows.length, searching, variant]);
 
   return (
     <div ref={anchorRef} className={cn("relative w-full", variant === "hero" && "mx-auto max-w-2xl")}>
@@ -610,11 +610,11 @@ export function SiteSearch({
             onChange={(event) => setValue(event.target.value)}
             onFocus={() => {
               setFocused(true);
-              document.documentElement.dataset.heroSearch = "open";
+              if (variant === "hero") document.documentElement.dataset.heroSearch = "open";
             }}
             onBlur={() => {
               setFocused(false);
-              delete document.documentElement.dataset.heroSearch;
+              if (variant === "hero") delete document.documentElement.dataset.heroSearch;
             }}
             onKeyDown={(event) => {
               if (event.key === "ArrowDown") {
@@ -671,13 +671,9 @@ export function SiteSearch({
         </div>
       ) : null}
 
-      {panelOn && mounted
-        ? createPortal(
-            <div
-              ref={panelRef}
-              className="search-popover"
-              data-closing={closing ? "true" : "false"}
-            >
+      {(() => {
+        const results = (
+          <>
               <ul
                 ref={listRef}
                 id={listId}
@@ -810,10 +806,23 @@ export function SiteSearch({
                   </a>
                 ) : null}
               </div>
-            </div>,
-            document.body,
-          )
-        : null}
+          </>
+        );
+        if (variant === "dialog") {
+          return panelOn ? <div className="search-dialog-results">{results}</div> : null;
+        }
+        if (!panelOn || !mounted) return null;
+        return createPortal(
+          <div
+            ref={panelRef}
+            className="search-popover"
+            data-closing={closing ? "true" : "false"}
+          >
+            {results}
+          </div>,
+          document.body,
+        );
+      })()}
     </div>
   );
 }

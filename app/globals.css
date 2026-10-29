@@ -624,19 +624,68 @@ html[data-hero-search="open"] .glimpse-card {
 
 .search-dialog {
   margin: auto;
-  width: min(40rem, calc(100vw - 1.25rem));
+  width: min(40rem, calc(100vw - 2rem));
   max-height: min(36rem, calc(100dvh - 2rem));
-  overflow: visible;
+  overflow: hidden;
   border: 3px solid #16140f;
   border-radius: 0;
   padding: 0;
-  background: #f4efe6;
+  background: #fffdf8;
   color: #16140f;
   box-shadow: 6px 6px 0 #16140f;
 }
 
 .search-dialog::backdrop {
-  background: rgb(7 16 28 / 0.56);
+  background: rgb(22 20 15 / 0.46);
+}
+
+.search-dialog .search-sticker {
+  border: 0;
+  background: #fffdf8;
+  box-shadow: none;
+}
+
+.search-dialog .search-sticker:focus-within {
+  outline: none;
+}
+
+.search-dialog-results {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  border-top: 3px solid #16140f;
+  background: #fffdf8;
+}
+
+.search-dialog-results .search-popover-list {
+  max-height: min(22rem, calc(100dvh - 11rem));
+}
+
+.dark .search-dialog {
+  border-color: #f4efe6;
+  background: #1c1a16;
+  color: #f4efe6;
+  box-shadow: 6px 6px 0 #f4efe6;
+}
+
+.dark .search-dialog .search-sticker,
+.dark .search-dialog-results {
+  border-color: #f4efe6;
+  background: #1c1a16;
+}
+
+@media (max-width: 639px) {
+  .search-dialog {
+    position: fixed;
+    inset: auto 0 0 0;
+    width: 100%;
+    max-width: none;
+    max-height: min(85dvh, 100%);
+    margin: 0;
+    border-right-width: 0;
+    border-bottom-width: 0;
+    border-left-width: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
