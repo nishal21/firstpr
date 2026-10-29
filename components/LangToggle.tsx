@@ -14,19 +14,31 @@ function subscribeReady() {
 type MenuPos = {
   top?: number;
   bottom?: number;
-  right: number;
+  left?: number;
+  right?: number;
+  width?: number;
   maxHeight: number;
 };
+
+/** Keep the menu this far from every viewport edge. */
+const EDGE = 8;
 
 export function LangToggle({
   className,
   compact = false,
   buttonClassName,
+  variant = "menu",
 }: {
   className?: string;
   compact?: boolean;
   buttonClassName?: string;
+  /**
+   * "menu" drops down from the header. "sticker" is the footer picker: it
+   * always opens upward from the trigger, in the footer's sticker style.
+   */
+  variant?: "menu" | "sticker";
 }) {
+  const sticker = variant === "sticker";
   const { lang, setLang, t, ready } = useLanguage();
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<MenuPos | null>(null);
@@ -46,6 +58,21 @@ export function LangToggle({
     function place() {
       const rect = buttonRef.current!.getBoundingClientRect();
       const gap = 4;
+      if (sticker) {
+        // Open upward, start-aligned to the trigger, clamped on screen.
+        const width = Math.min(320, window.innerWidth - EDGE * 2);
+        const left = Math.min(
+          Math.max(EDGE, rect.left),
+          window.innerWidth - EDGE - width,
+        );
+        setPos({
+          bottom: window.innerHeight - rect.top + gap + 2,
+          left,
+          width,
+          maxHeight: Math.max(160, rect.top - gap - 2 - EDGE),
+        });
+        return;
+      }
       const spaceBelow = window.innerHeight - rect.bottom - gap - 8;
       const spaceAbove = rect.top - gap - 8;
       const openUp = spaceBelow < 240 && spaceAbove > spaceBelow;
@@ -71,7 +98,7 @@ export function LangToggle({
       window.removeEventListener("resize", place);
       window.removeEventListener("scroll", place, true);
     };
-  }, [open]);
+  }, [open, sticker]);
 
   useEffect(() => {
     if (!open) return;
@@ -107,10 +134,17 @@ export function LangToggle({
             style={{
               top: pos.top,
               bottom: pos.bottom,
+              left: pos.left,
               right: pos.right,
+              width: pos.width,
               maxHeight: pos.maxHeight,
             }}
-            className="fixed z-[200] w-56 overflow-y-auto overscroll-contain rounded-md border border-border bg-card py-1 text-sm shadow-lg [scrollbar-gutter:stable]"
+            className={cn(
+              "fixed z-[200] overflow-y-auto overscroll-contain text-sm",
+              sticker
+                ? "lang-sticker-menu grid grid-cols-2 gap-1 p-2"
+                : "w-56 rounded-md border border-border bg-card py-1 shadow-lg [scrollbar-gutter:stable]",
+            )}
           >
             {UI_LANGS.map((code) => {
               const selected = code === lang;
@@ -120,16 +154,18 @@ export function LangToggle({
                     type="button"
                     onClick={() => pick(code)}
                     className={cn(
-                      "flex min-h-11 w-full items-center justify-between gap-3 px-3 py-2 text-left text-foreground outline-none hover:bg-muted focus-visible:bg-muted",
-                      selected && "bg-muted text-foreground",
+                      sticker
+                        ? "lang-sticker-option flex min-h-10 w-full items-center justify-between gap-2 px-2.5 py-1.5 text-left outline-none"
+                        : "flex min-h-11 w-full items-center justify-between gap-3 px-3 py-2 text-left text-foreground outline-none hover:bg-muted focus-visible:bg-muted",
+                      selected && (sticker ? "is-selected" : "bg-muted text-foreground"),
                     )}
                   >
-                    <span className="whitespace-nowrap">
+                    <span className={sticker ? "min-w-0 leading-tight [overflow-wrap:anywhere]" : "whitespace-nowrap"}>
                       {UI_LANG_NATIVE[code]}
                     </span>
                     {selected ? (
                       <Check
-                        className="size-3.5 shrink-0 text-primary"
+                        className={cn("size-3.5 shrink-0", sticker ? "text-current" : "text-primary")}
                         aria-hidden
                       />
                     ) : (

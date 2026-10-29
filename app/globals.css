@@ -498,6 +498,30 @@ footer:not([data-motion="off"]) .footer-ticker-track {
   outline-offset: 3px;
 }
 
+/* Footer language picker: a sticker sheet that opens upward. */
+.lang-sticker-menu {
+  border: 3px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.lang-sticker-option {
+  border: 2px solid transparent;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.lang-sticker-option:hover,
+.lang-sticker-option:focus-visible {
+  border-color: var(--ink);
+}
+
+.lang-sticker-option.is-selected {
+  background: var(--ink);
+  color: var(--paper);
+}
+
 .footer-crowd {
   margin-top: 0.5rem;
   overflow: hidden;
