@@ -332,8 +332,8 @@ export function HintLadder({
         >
           {hintPending ? t("hint.loading") : t("hint.showNext")}
           {hintPending ? (
-            <span className="flex size-9 items-center justify-center rounded-full bg-white">
-              <Spinner className="text-primary" />
+            <span className="inline-flex items-center">
+              <Spinner className="text-white" />
             </span>
           ) : (
             <ArrowBubble />

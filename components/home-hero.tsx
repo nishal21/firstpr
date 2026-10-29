@@ -6,31 +6,34 @@ import { SiteSearch } from "@/components/site-search";
 
 function CommitGraph() {
   return (
-    <svg className="commit-graph" viewBox="0 0 720 220" aria-hidden>
+    <svg className="commit-graph" viewBox="0 0 720 130" aria-hidden>
       <path
-        d="M18 148 C 70 146, 92 154, 140 140 S 210 112, 250 128 S 320 168, 390 132 S 470 78, 520 96 S 610 150, 700 118"
+        d="M16 86 L108 82 L214 90 L330 78 L456 88 L572 80 L700 86"
         fill="none"
         stroke="currentColor"
-        strokeWidth="7"
+        strokeWidth="3"
         strokeLinecap="round"
+        strokeLinejoin="round"
       />
       <path
-        d="M248 126 C 280 92, 300 48, 348 42 S 430 58, 468 96"
+        d="M214 90 C232 90 236 38 268 34 L392 30 C430 28 448 70 456 88"
         fill="none"
         stroke="#0473fd"
-        strokeWidth="6"
+        strokeWidth="3"
         strokeLinecap="round"
       />
-      <path d="M468 96 C 490 112, 506 124, 522 96" fill="none" stroke="#0473fd" strokeWidth="5" strokeLinecap="round" />
-      <circle cx="140" cy="140" r="7" fill="currentColor" />
-      <circle cx="348" cy="42" r="6" fill="#0473fd" />
-      <circle cx="522" cy="96" r="7" fill="#0473fd" />
-      <circle cx="700" cy="118" r="6" fill="currentColor" />
-      <path d="M348 48 v16" stroke="#0473fd" strokeWidth="3" strokeLinecap="round" />
-      <circle cx="346" cy="70" r="2.2" fill="#0473fd" />
-      <circle cx="352" cy="78" r="1.4" fill="#0473fd" />
-      <path d="M140 147 v12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
-      <circle cx="138" cy="164" r="1.6" fill="currentColor" />
+      <circle cx="108" cy="82" r="5.5" fill="currentColor" />
+      <circle cx="214" cy="90" r="5.5" fill="currentColor" />
+      <circle cx="330" cy="78" r="5.5" fill="currentColor" />
+      <circle cx="572" cy="80" r="5.5" fill="currentColor" />
+      <circle cx="700" cy="86" r="5.5" fill="currentColor" />
+      <circle cx="268" cy="34" r="5" fill="#0473fd" />
+      <circle cx="392" cy="30" r="5" fill="#0473fd" />
+      <circle cx="456" cy="88" r="7" fill="#0473fd" />
+      <path d="M214 96 v9" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="213" cy="108" r="1.6" fill="currentColor" />
+      <path d="M268 40 v8" stroke="#0473fd" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="269" cy="51" r="1.4" fill="#0473fd" />
     </svg>
   );
 }

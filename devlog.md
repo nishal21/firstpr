@@ -281,3 +281,4 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - Display face is Rubik Spray Paint. Body stays Inter. Small labels are IBM Plex Mono. Both load with `next/font` and `display: swap`.
 - Footer word is MERGED. A purple stamp lands once in view. Crowd is one local SVG of Open Peeps (Pablo Stanley, CC0) at `public/brand/crowd.svg`.
 - Status line uses `countOpenGoodFirstIssues()`. If GitHub does not answer, the line is omitted.
+- Polish: step cards, match/explain/review surfaces, and the primary button use ink borders and hard shadows. The line above search is a git graph (main dots, blue branch, merge dot). Footer pills sit under product / source / team. MERGED has a same-color stroke so the spray reads as a solid word.

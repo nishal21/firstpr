@@ -211,12 +211,13 @@
 .commit-graph {
   position: absolute;
   z-index: 0;
-  top: 0;
-  left: -6%;
-  width: 112%;
-  height: 7.25rem;
+  top: 0.4rem;
+  left: 0;
+  width: 100%;
+  height: 6.5rem;
   color: #16140f;
   pointer-events: none;
+  opacity: 0.72;
 }
 
 .dark .commit-graph {
@@ -298,6 +299,8 @@
 }
 
 .footer-ticker {
+  width: 100%;
+  margin: 0;
   overflow: hidden;
   border-bottom: 3px solid #16140f;
   background: #16140f;
@@ -314,7 +317,7 @@
 }
 
 .footer-ticker-track span {
-  padding-right: 1.5rem;
+  padding-right: 0;
   white-space: nowrap;
 }
 
@@ -329,12 +332,14 @@ footer[data-inview="true"]:not([data-motion="off"]) .footer-ticker-track {
 
 .footer-word {
   margin: 0;
-  font-size: clamp(4.6rem, 22vw, 15rem);
-  line-height: 0.78;
-  letter-spacing: -0.03em;
+  font-size: clamp(4.6rem, 21vw, 14rem);
+  line-height: 0.8;
+  letter-spacing: 0.01em;
   text-align: center;
   text-transform: uppercase;
   white-space: nowrap;
+  -webkit-text-stroke: 2.5px #16140f;
+  paint-order: stroke fill;
 }
 
 .footer-stamp {
@@ -623,6 +628,58 @@ html[data-hero-search="open"] .glimpse-card {
     opacity: 1;
     transform: translate3d(0, 0, 0);
   }
+}
+
+/* Merge Wall cards: flat paper, ink border, hard shadow. */
+.ink-card {
+  border: 3px solid #16140f;
+  border-radius: 0;
+  background: #fffdf8;
+  color: #16140f;
+  box-shadow: 4px 4px 0 #16140f;
+}
+
+main .rounded-xl.bg-card,
+main .rounded-2xl.bg-card,
+main .rounded-xl.bg-muted {
+  overflow: visible;
+  border: 3px solid #16140f;
+  border-radius: 0;
+  background: #fffdf8;
+  color: #16140f;
+  box-shadow: 4px 4px 0 #16140f;
+}
+
+main .rounded-xl.bg-card .text-foreground,
+main .rounded-xl.bg-card .text-card-foreground,
+main .rounded-2xl.bg-card .text-foreground,
+main .rounded-xl.bg-muted .text-foreground {
+  color: #16140f;
+}
+
+main .rounded-xl.bg-card .text-muted-foreground,
+main .rounded-2xl.bg-card .text-muted-foreground,
+main .rounded-xl.bg-muted .text-muted-foreground {
+  color: #3f3a32;
+}
+
+main .rounded-xl.bg-card input,
+main .rounded-xl.bg-card textarea,
+main .rounded-2xl.bg-card input,
+main .rounded-2xl.bg-card textarea {
+  border: 2px solid #16140f;
+  border-radius: 0;
+  background: #fff;
+  color: #16140f;
+  box-shadow: none;
+}
+
+main .rounded-xl.bg-card input:focus-visible,
+main .rounded-xl.bg-card textarea:focus-visible,
+main .rounded-2xl.bg-card input:focus-visible,
+main .rounded-2xl.bg-card textarea:focus-visible {
+  outline: 2px solid #0473fd;
+  outline-offset: 2px;
 }
 
 @keyframes glimpse-fade {

@@ -162,13 +162,7 @@ export function MatchForm({
             className={cn(arrowPillClass, "w-full shrink-0 sm:w-auto")}
           >
             {pending ? t("match.finding") : t("match.submit")}
-            {pending ? (
-              <span className="flex size-9 items-center justify-center rounded-full bg-white">
-                <Spinner className="text-primary" />
-              </span>
-            ) : (
-              <ArrowBubble />
-            )}
+            {pending ? <Spinner className="text-white" /> : <ArrowBubble />}
           </button>
         </div>
       </form>

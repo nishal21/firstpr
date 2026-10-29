@@ -218,8 +218,8 @@ export default function ReviewPage() {
         >
           {loading ? t("review.running") : t("review.submit")}
           {loading ? (
-            <span className="flex size-9 items-center justify-center rounded-full bg-white">
-              <Spinner className="text-primary" />
+            <span className="inline-flex items-center">
+              <Spinner className="text-white" />
             </span>
           ) : (
             <ArrowBubble />

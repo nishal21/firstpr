@@ -45,15 +45,31 @@ export function SiteFooter() {
     };
   }, []);
 
-  const pills = [
-    { href: "/", label: t("nav.findIssue") },
-    { href: "/issue/nishal21/NekoDroid/4", label: t("nav.explain") },
-    { href: "/review", label: t("nav.review") },
-    { href: SOURCE_URL, label: "GitHub", external: true },
-    { href: BOT_URL, label: t("footer.botLink"), external: true },
-    { href: LICENSE_URL, label: t("footer.license"), external: true },
-    { href: "https://github.com/nishal21", label: "Nishal K", external: true },
-    { href: "https://github.com/zenxrth", label: "Anan Shaji", external: true },
+  const groups: { label: string; links: { href: string; label: string; external?: boolean }[] }[] = [
+    {
+      label: t("footer.colProduct"),
+      links: [
+        { href: "/", label: t("nav.findIssue") },
+        { href: "/issue/nishal21/NekoDroid/4", label: t("nav.explain") },
+        { href: "/review", label: t("nav.review") },
+      ],
+    },
+    {
+      label: t("footer.colOpenSource"),
+      links: [
+        { href: SOURCE_URL, label: "GitHub", external: true },
+        { href: BOT_URL, label: t("footer.botLink"), external: true },
+        { href: LICENSE_URL, label: t("footer.license"), external: true },
+      ],
+    },
+    {
+      label: t("footer.colTeam"),
+      links: [
+        { href: "https://github.com/nishal21", label: "Nishal K", external: true },
+        { href: "https://github.com/zenxrth", label: "Anan Shaji", external: true },
+        { href: "#top", label: t("footer.backToTop") },
+      ],
+    },
   ];
 
   return (
@@ -71,27 +87,31 @@ export function SiteFooter() {
         <p className="footer-stamp font-spray" aria-hidden>
           ✓ {t("footer.stamp")}
         </p>
-        <nav aria-label={t("footer.nav")} className="flex flex-wrap gap-3">
-          {pills.map((pill) =>
-            pill.external ? (
-              <a
-                key={pill.href + pill.label}
-                href={pill.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="sticker-pill"
-              >
-                {pill.label}
-              </a>
-            ) : (
-              <Link key={pill.href} href={pill.href} className="sticker-pill">
-                {pill.label}
-              </Link>
-            ),
-          )}
-          <Link href="#top" className="sticker-pill">
-            {t("footer.backToTop")}
-          </Link>
+        <nav aria-label={t("footer.nav")} className="grid gap-6 sm:grid-cols-3">
+          {groups.map((group) => (
+            <div key={group.label}>
+              <p className="font-plex mb-2 text-[11px] tracking-[0.16em] uppercase">{group.label}</p>
+              <div className="flex flex-wrap gap-2">
+                {group.links.map((pill) =>
+                  pill.external ? (
+                    <a
+                      key={pill.href + pill.label}
+                      href={pill.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="sticker-pill"
+                    >
+                      {pill.label}
+                    </a>
+                  ) : (
+                    <Link key={pill.href + pill.label} href={pill.href} className="sticker-pill">
+                      {pill.label}
+                    </Link>
+                  ),
+                )}
+              </div>
+            </div>
+          ))}
         </nav>
         <div className="footer-tools flex flex-wrap items-center gap-3">
           <ThemeToggle className="sticker-pill" />
