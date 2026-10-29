@@ -22,12 +22,7 @@ function one(value: string | string[] | undefined): string {
 
 async function loadOpenCount(): Promise<number | null> {
   try {
-    return await Promise.race([
-      countOpenGoodFirstIssues(),
-      new Promise<null>((resolve) => {
-        setTimeout(() => resolve(null), 1500);
-      }),
-    ]);
+    return await countOpenGoodFirstIssues();
   } catch {
     return null;
   }

@@ -34,6 +34,9 @@ export async function GET(request: Request) {
 
   try {
     const result = await syncIssuesIndex();
+    if (result.rateLimited && result.indexed === 0) {
+      return NextResponse.json({ ok: false, error: "rate_limited", ...result }, { status: 429 });
+    }
     return NextResponse.json({ ok: true, ...result });
   } catch (err) {
     if (err instanceof GitHubError && err.code === "rate_limited") {

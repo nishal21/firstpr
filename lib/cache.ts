@@ -7,6 +7,7 @@ type CacheEntry = {
 };
 
 const store = new Map<string, CacheEntry>();
+const inflight = new Map<string, Promise<unknown>>();
 
 /** Default TTL: 10 minutes */
 export const CACHE_TTL_MS = 10 * 60 * 1000;
@@ -32,9 +33,18 @@ export async function cached<T>(
 ): Promise<T> {
   const hit = cacheGet<T>(key);
   if (hit !== undefined) return hit;
-  const value = await fn();
-  cacheSet(key, value, ttlMs);
-  return value;
+  const pending = inflight.get(key);
+  if (pending) return pending as Promise<T>;
+  const promise = fn()
+    .then((value) => {
+      cacheSet(key, value, ttlMs);
+      return value;
+    })
+    .finally(() => {
+      inflight.delete(key);
+    });
+  inflight.set(key, promise);
+  return promise as Promise<T>;
 }
 
 /** Keep only [a-z0-9-]; collapse runs of invalid chars into a single hyphen. */

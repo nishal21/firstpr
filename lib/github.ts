@@ -1,5 +1,8 @@
 import { Octokit } from "@octokit/rest";
+import { unstable_cache } from "next/cache";
+import { algoliaIndexedCount } from "@/lib/algolia-search";
 import { cached } from "@/lib/cache";
+import { retryDelayMs } from "@/lib/github-rate";
 import type { AlgoliaIssueRecord } from "@/lib/algolia-record";
 import { issueObjectId } from "@/lib/algolia-plan";
 import { env, getEnv } from "@/lib/env";
@@ -8,11 +11,13 @@ export type GitHubErrorCode = "rate_limited" | "not_found" | "github_error";
 
 export class GitHubError extends Error {
   readonly code: GitHubErrorCode;
+  readonly retryAfterMs: number;
 
-  constructor(message: string, code: GitHubErrorCode) {
+  constructor(message: string, code: GitHubErrorCode, retryAfterMs = 0) {
     super(message);
     this.name = "GitHubError";
     this.code = code;
+    this.retryAfterMs = retryAfterMs;
   }
 }
 
@@ -121,15 +126,42 @@ function rethrowGitHub(err: unknown): never {
     throw new GitHubError(message, "not_found");
   }
 
+  const secondary = /secondary rate limit|abuse detection/i.test(message);
   if (
     status === 429 ||
-    (status === 403 && remaining === "0") ||
-    ((status === 403 || status === 429) && remaining === "0")
+    secondary ||
+    (status === 403 && remaining === "0")
   ) {
-    throw new GitHubError("GitHub API rate limit exceeded", "rate_limited");
+    throw new GitHubError(
+      secondary ? message : "GitHub API rate limit exceeded",
+      "rate_limited",
+      retryDelayMs(e.response?.headers),
+    );
   }
 
   throw new GitHubError(message, "github_error");
+}
+
+const SEARCH_GAP_MS = 2_000;
+let searchTail: Promise<void> = Promise.resolve();
+let lastSearchAt = 0;
+
+/** One search at a time, with a gap, so this process does not trip a secondary limit. */
+function queuedSearch<T>(fn: () => Promise<T>): Promise<T> {
+  const run = searchTail.then(async () => {
+    const gap = SEARCH_GAP_MS - (Date.now() - lastSearchAt);
+    if (gap > 0) await wait(gap);
+    try {
+      return await gh(fn);
+    } finally {
+      lastSearchAt = Date.now();
+    }
+  });
+  searchTail = run.then(
+    () => undefined,
+    () => undefined,
+  );
+  return run;
 }
 
 async function gh<T>(fn: () => Promise<T>): Promise<T> {
@@ -451,21 +483,29 @@ export async function searchGoodFirstIssues(
   const since = oneYearAgo.toISOString().slice(0, 10);
   const labelQ = BEGINNER_LABELS.map((l) => `label:"${l}"`).join(" OR ");
 
-  return cached(`search-gfi-v2:${lang}:${limit}:${since}`, async () =>
-    gh(async () => {
+  const cleanLang = lang.toLowerCase();
+  return cached(`search-gfi-v3:${cleanLang}:${limit}:${since}`, () =>
+    durableGoodFirstSearch(cleanLang, limit, since, labelQ),
+  );
+}
+
+const durableGoodFirstSearch = unstable_cache(
+  async (lang: string, limit: number, since: string, labelQ: string) => {
+    const { data } = await queuedSearch(() => {
       const client = getOctokit();
       const q = `is:issue is:open no:assignee -linked:pr created:>${since} language:${lang} (${labelQ})`;
-      const { data } = await client.search.issuesAndPullRequests({
+      return client.search.issuesAndPullRequests({
         q,
         sort: "updated",
         order: "desc",
         per_page: Math.min(limit, 100),
       });
-
-      return data.items.slice(0, limit).map((issue) => mapListIssue(issue));
-    }),
-  );
-}
+    });
+    return data.items.slice(0, limit).map((issue) => mapListIssue(issue));
+  },
+  ["github-gfi-search-v3"],
+  { revalidate: 600 },
+);
 
 export type TextSearchHit = {
   owner: string;
@@ -476,19 +516,31 @@ export type TextSearchHit = {
   createdAt: string;
 };
 
-/** Real open good-first-issue total for the landing status line. Null when GitHub does not answer. */
+const durableOpenCount = unstable_cache(
+  async () => {
+    const { data } = await queuedSearch(() => {
+      const client = getOctokit();
+      return client.search.issuesAndPullRequests({
+        q: 'is:issue is:open label:"good first issue"',
+        per_page: 1,
+      });
+    });
+    return typeof data.total_count === "number" ? data.total_count : null;
+  },
+  ["github-gfi-total-v3"],
+  { revalidate: 60 * 60 },
+);
+
+/** Open good-first-issue total for the landing line. Algolia when configured, else a shared GitHub cache. */
 export async function countOpenGoodFirstIssues(): Promise<number | null> {
   try {
-    return await cached("gfi-total-v1", async () =>
-      gh(async () => {
-        const client = getOctokit();
-        const { data } = await client.search.issuesAndPullRequests({
-          q: 'is:issue is:open label:"good first issue"',
-          per_page: 1,
-        });
-        return typeof data.total_count === "number" ? data.total_count : null;
-      }),
-    );
+    const indexed = await algoliaIndexedCount();
+    if (indexed != null && indexed > 0) return indexed;
+  } catch {
+    // Fall through to the cached GitHub total.
+  }
+  try {
+    return await durableOpenCount();
   } catch {
     return null;
   }
@@ -502,44 +554,48 @@ export async function searchBeginnerIssuesByText(
   const clean = text.replace(/[:"]/g, " ").replace(/\s+/g, " ").trim().slice(0, 80);
   if (clean.length < 2) return [];
   const lang = language?.replace(/[^\w#+.\s-]/g, "").trim();
-  const cacheKey = `text-gfi-v2:${(lang ?? "").toLowerCase()}:${clean.toLowerCase()}`;
+  const cacheKey = `text-gfi-v3:${(lang ?? "").toLowerCase()}:${clean.toLowerCase()}`;
+  return cached(cacheKey, () => durableTextSearch(clean, lang ?? ""));
+}
 
-  return cached(cacheKey, async () =>
-    gh(async () => {
+const durableTextSearch = unstable_cache(
+  async (clean: string, lang: string): Promise<TextSearchHit[]> => {
+    const { data } = await queuedSearch(() => {
       const client = getOctokit();
       const langQ = lang ? ` language:"${lang}"` : "";
       const q = `is:issue is:open no:assignee -linked:pr label:"good first issue"${langQ} ${clean}`;
-      const { data } = await client.search.issuesAndPullRequests({
+      return client.search.issuesAndPullRequests({
         q,
         sort: "updated",
         order: "desc",
         per_page: 5,
       });
-
-      const hits: TextSearchHit[] = [];
-      for (const issue of data.items) {
-        if ("pull_request" in issue && issue.pull_request) continue;
-        const match = issue.html_url.match(
-          /github\.com\/([^/]+)\/([^/]+)\/issues\/(\d+)/i,
-        );
-        if (!match) continue;
-        const labels = (issue.labels ?? [])
-          .map((label) => (typeof label === "string" ? label : (label.name ?? "")))
-          .filter(Boolean)
-          .slice(0, 3);
-        hits.push({
-          owner: match[1],
-          repo: match[2],
-          number: Number(match[3]),
-          title: issue.title,
-          labels,
-          createdAt: issue.created_at,
-        });
-      }
-      return hits;
-    }),
-  );
-}
+    });
+    const hits: TextSearchHit[] = [];
+    for (const issue of data.items) {
+      if ("pull_request" in issue && issue.pull_request) continue;
+      const match = issue.html_url.match(
+        /github\.com\/([^/]+)\/([^/]+)\/issues\/(\d+)/i,
+      );
+      if (!match) continue;
+      const labels = (issue.labels ?? [])
+        .map((label) => (typeof label === "string" ? label : (label.name ?? "")))
+        .filter(Boolean)
+        .slice(0, 3);
+      hits.push({
+        owner: match[1] ?? "",
+        repo: match[2] ?? "",
+        number: Number(match[3]),
+        title: issue.title,
+        labels,
+        createdAt: issue.created_at,
+      });
+    }
+    return hits;
+  },
+  ["github-text-gfi-v3"],
+  { revalidate: 600 },
+);
 
 /** Resolve a branch name to its tip commit SHA. */
 export async function getBranchSha(
@@ -717,6 +773,7 @@ const REPO_BATCH = 30;
 export type IssueIndexFetch = {
   records: AlgoliaIssueRecord[];
   complete: boolean;
+  rateLimited: boolean;
 };
 
 function wait(ms: number): Promise<void> {
@@ -759,9 +816,11 @@ async function loadRepoMeta(
       })
       .join("\n");
     try {
-      const response = await client.request("POST /graphql", {
-        query: `query { ${fields} }`,
-      });
+      const response = await gh(() =>
+        client.request("POST /graphql", {
+          query: `query { ${fields} }`,
+        }),
+      );
       const payload = response.data as {
         data?: Record<string, RepoNode | null>;
       } & Record<string, RepoNode | null>;
@@ -776,6 +835,7 @@ async function loadRepoMeta(
         });
       });
     } catch (err) {
+      if (err instanceof GitHubError && err.code === "rate_limited") break;
       rethrowGitHub(err);
     }
     if (offset + REPO_BATCH < pairs.length) await wait(400);
@@ -783,28 +843,55 @@ async function loadRepoMeta(
   return meta;
 }
 
+async function searchIndexPage(q: string, page: number) {
+  let last: GitHubError | null = null;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      return await queuedSearch(() =>
+        getOctokit().search.issuesAndPullRequests({
+          q,
+          sort: "updated",
+          order: "desc",
+          per_page: INDEX_PAGE_SIZE,
+          page,
+        }),
+      );
+    } catch (err) {
+      if (!(err instanceof GitHubError) || err.code !== "rate_limited" || attempt === 1) {
+        throw err;
+      }
+      last = err;
+      await wait(err.retryAfterMs > 0 ? err.retryAfterMs : 5_000);
+    }
+  }
+  throw last ?? new GitHubError("GitHub API rate limit exceeded", "rate_limited", 5_000);
+}
+
 async function searchIssuePages(
   q: string,
   pages: number,
-): Promise<{ items: AlgoliaIssueRecord[]; complete: boolean }> {
+): Promise<{ items: AlgoliaIssueRecord[]; complete: boolean; rateLimited: boolean }> {
   if (!getEnv().GITHUB_TOKEN) {
     throw new GitHubError("GITHUB_TOKEN is required to sync the issue index", "github_error");
   }
-  const client = getOctokit();
   const drafts: AlgoliaIssueRecord[] = [];
   let complete = false;
+  let rateLimited = false;
 
   for (let page = 1; page <= pages; page += 1) {
-    if (page > 1) await wait(2100);
-    const { data, headers } = await gh(() =>
-      client.search.issuesAndPullRequests({
-        q,
-        sort: "updated",
-        order: "desc",
-        per_page: INDEX_PAGE_SIZE,
-        page,
-      }),
-    );
+    let data: Awaited<ReturnType<typeof searchIndexPage>>["data"];
+    let headers: Awaited<ReturnType<typeof searchIndexPage>>["headers"];
+    try {
+      const response = await searchIndexPage(q, page);
+      data = response.data;
+      headers = response.headers;
+    } catch (err) {
+      if (err instanceof GitHubError && err.code === "rate_limited") {
+        rateLimited = true;
+        break;
+      }
+      throw err;
+    }
     const remaining = Number(headerRemaining(headers));
     for (const issue of data.items) {
       if ("pull_request" in issue && issue.pull_request) continue;
@@ -841,12 +928,12 @@ async function searchIssuePages(
     if (Number.isFinite(remaining) && remaining < 2) break;
   }
 
-  return { items: drafts, complete };
+  return { items: drafts, complete, rateLimited };
 }
 
 /** Open, unassigned good-first-issue and help-wanted issues for the Algolia index. */
 export async function listOpenIssuesForIndex(): Promise<IssueIndexFetch> {
-  const { items, complete } = await searchIssuePages(OPEN_ISSUE_QUERY, INDEX_OPEN_PAGES);
+  const { items, complete, rateLimited } = await searchIssuePages(OPEN_ISSUE_QUERY, INDEX_OPEN_PAGES);
   const open = items.filter((item) => item.assignee === "none");
   const repos = new Map<string, { owner: string; repo: string }>();
   for (const item of open) {
@@ -859,13 +946,18 @@ export async function listOpenIssuesForIndex(): Promise<IssueIndexFetch> {
     if (info?.isPrivate) return [];
     return [{ ...item, stars: info?.stars ?? 0, language: info?.language ?? "" }];
   });
-  return { records, complete };
+  return { records, complete, rateLimited };
 }
 
 /** Object IDs GitHub now reports as closed or assigned, so the index can drop them. */
 export async function listStaleIssueObjectIds(): Promise<string[]> {
-  const { items } = await searchIssuePages(STALE_ISSUE_QUERY, INDEX_STALE_PAGES);
-  return [...new Set(items.map((item) => item.objectID))];
+  try {
+    const { items } = await searchIssuePages(STALE_ISSUE_QUERY, INDEX_STALE_PAGES);
+    return [...new Set(items.map((item) => item.objectID))];
+  } catch (err) {
+    if (err instanceof GitHubError && err.code === "rate_limited") return [];
+    throw err;
+  }
 }
 
 export async function getRateLimit(): Promise<RateLimitInfo> {

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { algoliaSearchEnabled, searchAlgoliaIssues } from "@/lib/algolia-search";
 import { GitHubError, searchBeginnerIssuesByText } from "@/lib/github";
 import { parseOmniQuery } from "@/lib/omnisearch";
 
@@ -14,6 +15,15 @@ export async function GET(request: Request) {
     (topic && topic.flow === "match-topic" ? topic.language : undefined) ||
     langParam.trim() ||
     undefined;
+
+  if (algoliaSearchEnabled()) {
+    try {
+      const issues = await searchAlgoliaIssues(q, language);
+      return NextResponse.json({ issues });
+    } catch {
+      // The index was unreachable. Fall through to the cached GitHub search.
+    }
+  }
 
   try {
     const issues = await searchBeginnerIssuesByText(q, language);

@@ -7,6 +7,7 @@ export type SyncIssuesResult = {
   indexed: number;
   removed: number;
   complete: boolean;
+  rateLimited: boolean;
 };
 
 type AdminClient = ReturnType<typeof algoliasearch>;
@@ -66,14 +67,22 @@ export async function syncIssuesIndex(): Promise<SyncIssuesResult> {
   }
 
   const keep = new Set(open.records.map((record) => record.objectID));
-  if (open.complete) {
-    const removed = await deleteMissing(client, indexName, keep);
-    return { indexed: open.records.length, removed, complete: true };
+  if (open.records.length === 0) {
+    return { indexed: 0, removed: 0, complete: false, rateLimited: open.rateLimited };
   }
 
-  const stale = (await listStaleIssueObjectIds()).filter((id) => !keep.has(id));
-  if (stale.length > 0) {
-    await client.deleteObjects({ indexName, objectIDs: stale });
+  if (open.complete && !open.rateLimited) {
+    const removed = await deleteMissing(client, indexName, keep);
+    return { indexed: open.records.length, removed, complete: true, rateLimited: false };
   }
-  return { indexed: open.records.length, removed: stale.length, complete: false };
+
+  let removed = 0;
+  if (!open.rateLimited) {
+    const stale = (await listStaleIssueObjectIds()).filter((id) => !keep.has(id));
+    if (stale.length > 0) {
+      await client.deleteObjects({ indexName, objectIDs: stale });
+      removed = stale.length;
+    }
+  }
+  return { indexed: open.records.length, removed, complete: false, rateLimited: open.rateLimited };
 }

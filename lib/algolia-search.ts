@@ -61,6 +61,19 @@ function marked(value: string | undefined): HighlightPart[] | undefined {
   return highlightParts(value);
 }
 
+/** Number of records in the issue index. Null when Algolia is not configured. */
+export async function algoliaIndexedCount(): Promise<number | null> {
+  const searchClient = client();
+  if (!searchClient) return null;
+  const indexName = process.env.NEXT_PUBLIC_ALGOLIA_INDEX_NAME?.trim() || ALGOLIA_INDEX_DEFAULT;
+  const response = await searchClient.search({
+    requests: [{ indexName, query: "", hitsPerPage: 0 }],
+  });
+  const first = response.results[0];
+  if (!first || !("nbHits" in first) || typeof first.nbHits !== "number") return null;
+  return first.nbHits;
+}
+
 /** Browser search. Throws when Algolia is unreachable so the caller can use GitHub. */
 export async function searchAlgoliaIssues(
   raw: string,
