@@ -10,8 +10,8 @@ import {
   GraduationCap,
   ListChecks,
   MapPin,
-  Sparkles,
   SpellCheck,
+  Target,
   Terminal,
   type LucideIcon,
 } from "lucide-react";
@@ -268,7 +268,7 @@ export function IssueExplain({
           </p>
         </div>
         <div className="min-w-0 rounded-xl border border-border bg-card p-5 shadow-sm">
-          <CardHeading icon={Sparkles}>{t("explain.whyMatters")}</CardHeading>
+          <CardHeading icon={Target}>{t("explain.whyMatters")}</CardHeading>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground break-words">
             {explanation.why_it_matters}
           </p>
