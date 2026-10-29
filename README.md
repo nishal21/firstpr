@@ -132,7 +132,6 @@ We wrote the code with AI coding help in Cursor. We reviewed, tested, and debugg
 
 ## Sponsors & Community Support
 
-- Sponsored by [Neon](https://neon.com) — Serverless Postgres
 - Security scanning by [Snyk](https://snyk.io)
 - Search powered by [Algolia](https://www.algolia.com)
 - Web extraction powered by [webclaw](https://webclaw.io)
