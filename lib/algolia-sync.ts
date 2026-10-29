@@ -4,6 +4,7 @@ import type { AlgoliaIssueRecord } from "@/lib/algolia-record";
 import { getEnv } from "@/lib/env";
 import {
   GitHubError,
+  SyncRateLimitError,
   getSyncRateLimit,
   listStaleIssueObjectIds,
   searchOpenIssuePage,
@@ -41,6 +42,9 @@ export type SyncIssuesResult = {
     search: SearchRate | null;
     graphql: SearchRate | null;
     rateLimitMessage: string | null;
+    /** Which API returned the limit that stopped or slowed this run. */
+    limitedBy: "search" | "graphql" | null;
+    rateWaits: number;
   };
 };
 
@@ -72,7 +76,11 @@ export const SYNC_BUDGET_MS = 250_000;
 /** Time one page usually needs: search, repo lookup, and the Algolia write. */
 const PAGE_RESERVE_MS = 25_000;
 const LOCK_MS = 300_000;
-const MAX_RATE_WAITS = 3;
+const MAX_RATE_WAITS = 2;
+/** Space sync searches out. Each one is slow on GitHub's side, which counts toward secondary limits. */
+const PAGE_GAP_MS = 6_000;
+/** GitHub asks for at least a minute after a secondary limit with no Retry-After. */
+const SECONDARY_WAIT_MS = 65_000;
 
 function nowSeconds(): number {
   return Math.floor(Date.now() / 1000);
@@ -164,6 +172,8 @@ export async function syncIssuesIndex(): Promise<SyncIssuesResult> {
   let githubTotal: number | null = null;
   let lastRate: SearchRate | null = limits?.search ?? null;
   let rateLimitMessage: string | null = null;
+  let limitedBy: "search" | "graphql" | null = null;
+  let rateWaits = 0;
 
   const result = (): SyncIssuesResult => ({
     indexed,
@@ -182,6 +192,8 @@ export async function syncIssuesIndex(): Promise<SyncIssuesResult> {
       search: lastRate,
       graphql: limits?.graphql ?? null,
       rateLimitMessage,
+      limitedBy,
+      rateWaits,
     },
   });
 
@@ -195,14 +207,16 @@ export async function syncIssuesIndex(): Promise<SyncIssuesResult> {
   try {
     await client.setSettings({ indexName, indexSettings: INDEX_SETTINGS });
     const metaCache = new Map<string, RepoMeta | null>();
-    let rateWaits = 0;
     let finished = false;
+    let firstPage = true;
 
     while (state.cursor !== null) {
       if (Date.now() + PAGE_RESERVE_MS > deadline) {
         stopReason = "time_budget";
         break;
       }
+      if (!firstPage) await new Promise((resolve) => setTimeout(resolve, PAGE_GAP_MS));
+      firstPage = false;
       let page;
       try {
         searches += 1;
@@ -210,13 +224,20 @@ export async function syncIssuesIndex(): Promise<SyncIssuesResult> {
       } catch (err) {
         if (!(err instanceof GitHubError) || err.code !== "rate_limited") throw err;
         rateLimitMessage = err.message.slice(0, 200);
-        const delay = err.retryAfterMs > 0 ? err.retryAfterMs : 5_000;
+        const secondary = err instanceof SyncRateLimitError ? err.secondary : isSecondary(err);
+        if (err instanceof SyncRateLimitError) limitedBy = err.source;
+        const delay = secondary
+          ? Math.max(err.retryAfterMs, SECONDARY_WAIT_MS)
+          : err.retryAfterMs > 0
+            ? err.retryAfterMs
+            : 5_000;
         if (rateWaits < MAX_RATE_WAITS && Date.now() + delay + PAGE_RESERVE_MS < deadline) {
           rateWaits += 1;
           await new Promise((resolve) => setTimeout(resolve, delay));
+          firstPage = true;
           continue;
         }
-        stopReason = isSecondary(err) ? "secondary_limit" : "rate_limited";
+        stopReason = secondary ? "secondary_limit" : "rate_limited";
         break;
       }
       lastRate = page.rate;

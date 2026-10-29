@@ -1046,6 +1046,25 @@ const REPO_BATCH = 30;
 
 export type SyncTokenSource = "sync" | "default" | "none";
 
+/** A rate limit hit during the issue sync, tagged with the API that returned it. */
+export class SyncRateLimitError extends GitHubError {
+  readonly source: "search" | "graphql";
+  readonly secondary: boolean;
+
+  constructor(err: GitHubError, source: "search" | "graphql") {
+    super(err.message, "rate_limited", err.retryAfterMs);
+    this.source = source;
+    this.secondary = /secondary rate limit|abuse detection/i.test(err.message);
+  }
+}
+
+function tagLimit(err: unknown, source: "search" | "graphql"): never {
+  if (err instanceof GitHubError && err.code === "rate_limited" && !(err instanceof SyncRateLimitError)) {
+    throw new SyncRateLimitError(err, source);
+  }
+  throw err;
+}
+
 export type SearchRate = { limit: number | null; remaining: number | null; resetAt: string | null };
 
 export type OpenIssuePage = {
@@ -1145,6 +1164,7 @@ async function loadRepoMeta(
         return `r${index}: repository(owner: ${owner}, name: ${repo}) { stargazerCount isPrivate primaryLanguage { name } }`;
       })
       .join("\n");
+    if (offset > 0) await wait(1_000);
     const response = await gh(() =>
       client.request("POST /graphql", {
         query: `query { ${fields} }`,
@@ -1232,7 +1252,7 @@ export async function searchOpenIssuePage(
       per_page: INDEX_PAGE_SIZE,
       page: 1,
     }),
-  );
+  ).catch((err: unknown) => tagLimit(err, "search"));
   const { data } = response;
   const drafts = data.items.flatMap((issue) => {
     const draft = issueDraft(issue);
@@ -1247,7 +1267,9 @@ export async function searchOpenIssuePage(
     const [owner, repo] = item.repo.split("/");
     if (owner && repo) repos.set(item.repo, { owner, repo });
   }
-  await loadRepoMeta([...repos.values()], metaCache);
+  await loadRepoMeta([...repos.values()], metaCache).catch((err: unknown) =>
+    tagLimit(err, "graphql"),
+  );
   const records = open.flatMap((item) => {
     const info = metaCache.get(item.repo);
     if (!info || info.isPrivate) return [];
