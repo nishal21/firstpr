@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useT } from "@/components/language-provider";
+import { parseGitHubInput, repoSlug, shortLabel } from "@/lib/parse-github-input";
 
 type Hit = {
   owner: string;
@@ -15,20 +16,27 @@ export function TopicIssues({ query, language }: { query: string; language?: str
   const t = useT();
   const [hits, setHits] = useState<Hit[] | null>(null);
   const [failed, setFailed] = useState(false);
+  const input = parseGitHubInput(query);
+  const repo = repoSlug(input);
+  const notGitHub = input.kind === "url";
+  // A repo link searches that repo only; other links never become a word search.
+  const searchFor = notGitHub ? null : (repo ?? query);
 
   useEffect(() => {
+    if (searchFor === null) return;
     const controller = new AbortController();
-    const lang = language ? `&lang=${encodeURIComponent(language)}` : "";
-    fetch(`/api/search?q=${encodeURIComponent(query)}${lang}`, {
+    const lang = language && !repo ? `&lang=${encodeURIComponent(language)}` : "";
+    fetch(`/api/search?q=${encodeURIComponent(searchFor)}${lang}`, {
       signal: controller.signal,
     })
       .then(async (res) => {
         if (!res.ok) throw new Error("search");
-        return (await res.json()) as { issues?: Hit[] };
+        return (await res.json()) as { issues?: Hit[]; error?: string };
       })
       .then((json) => {
-        setHits(Array.isArray(json.issues) ? json.issues : []);
-        setFailed(false);
+        const list = Array.isArray(json.issues) ? json.issues : [];
+        setHits(list);
+        setFailed(list.length === 0 && Boolean(json.error));
       })
       .catch((err: unknown) => {
         if (err instanceof DOMException && err.name === "AbortError") return;
@@ -36,23 +44,50 @@ export function TopicIssues({ query, language }: { query: string; language?: str
         setHits([]);
       });
     return () => controller.abort();
-  }, [language, query]);
+  }, [language, repo, searchFor]);
+
+  if (notGitHub) {
+    return (
+      <div className="mb-8 rounded-xl border border-border bg-card p-5 shadow-sm">
+        <h3 className="text-base font-semibold text-foreground">{t("match.notGithub")}</h3>
+        <p className="mt-1 text-sm text-muted-foreground">{t("match.notGithubHint")}</p>
+      </div>
+    );
+  }
+
+  const empty = hits !== null && hits.length === 0;
+  const issuesUrl = repo ? `https://github.com/${repo}/issues` : null;
 
   return (
     <div className="mb-8 rounded-xl border border-border bg-card p-5 shadow-sm">
-      <h3 className="text-base font-semibold text-foreground">
-        {t("match.topicHeading", { query })}
+      <h3 className="text-base font-semibold break-words text-foreground">
+        {repo
+          ? t("match.repoHeading", { repo })
+          : t("match.topicHeading", { query: shortLabel(query) })}
       </h3>
-      {language ? (
+      {language && !repo ? (
         <p className="mt-1 text-sm text-muted-foreground">{language}</p>
+      ) : null}
+      {repo ? (
+        <p className="mt-1 text-sm text-muted-foreground">{t("match.repoMatchHint")}</p>
       ) : null}
       {hits === null ? (
         <p className="mt-3 text-sm text-muted-foreground">{t("search.searching")}</p>
       ) : null}
-      {failed ? (
-        <p className="mt-3 text-sm text-muted-foreground">{t("match.topicEmpty")}</p>
+      {empty && repo && issuesUrl ? (
+        <p className="mt-3 text-sm break-words text-muted-foreground">
+          {failed ? t("match.repoFailed", { repo }) : t("match.repoEmpty", { repo })}{" "}
+          <a
+            href={issuesUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="font-medium text-primary hover:underline"
+          >
+            {t("match.repoEmptyLink")}
+          </a>
+        </p>
       ) : null}
-      {hits && hits.length === 0 && !failed ? (
+      {empty && !repo ? (
         <p className="mt-3 text-sm text-muted-foreground">{t("match.topicEmpty")}</p>
       ) : null}
       {hits && hits.length > 0 ? (

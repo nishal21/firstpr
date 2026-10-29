@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { friendlyErrorMessage } from "@/lib/api-errors";
+import { normalizeRepoField, normalizeUsernameField } from "@/lib/parse-github-input";
 import { cn } from "@/lib/utils";
 
 type IssueCard = {
@@ -81,8 +82,9 @@ export function MatchForm({
 
   const runMatch = useCallback(
     (name?: string, repoValue?: string) => {
-      const user = (name ?? username).trim();
-      const repoName = (repoValue ?? repo).trim();
+      // Accept pasted links: a profile URL or @handle, a repo/issue/PR URL.
+      const user = normalizeUsernameField(name ?? username);
+      const repoName = normalizeRepoField(repoValue ?? repo);
       if (!user) return;
       setError(null);
       setData(null);

@@ -21,11 +21,8 @@ import { SearchByAlgolia } from "@/components/search-by-algolia";
 import { SearchKeycaps } from "@/components/search-keycaps";
 import { algoliaSearchEnabled, searchAlgoliaIssues } from "@/lib/algolia-search";
 import type { HighlightPart } from "@/lib/algolia-plan";
-import {
-  parseOmniQuery,
-  queryLooksLikeGitHubUrl,
-  type SearchFlow,
-} from "@/lib/omnisearch";
+import { parseOmniQuery, type SearchFlow } from "@/lib/omnisearch";
+import { parseGitHubInput, repoSlug } from "@/lib/parse-github-input";
 import type { I18nKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -46,6 +43,7 @@ type RowKind =
   | "language"
   | "recent"
   | "issue"
+  | "notice"
   | SearchFlow["flow"];
 
 type Row = {
@@ -217,6 +215,7 @@ function flowBadge(flow: SearchFlow["flow"]): I18nKey {
       return "flow.review";
     case "readiness":
       return "flow.readiness";
+    case "repo-issues":
     case "match-user":
     case "match-topic":
       return "flow.match";
@@ -252,6 +251,8 @@ function flowCopy(
       return {
         title: t("search.readiness", { owner: item.owner, repo: item.repo }),
       };
+    case "repo-issues":
+      return { title: t("search.repoIssues", { owner: item.owner, repo: item.repo }) };
     case "match-user":
       return { title: t("search.matchUser", { username: item.username }) };
     case "match-topic":
@@ -279,6 +280,10 @@ function RowIcon({ kind }: { kind: RowKind }) {
       return <Clock className={className} aria-hidden />;
     case "issue":
       return <CircleDot className={className} aria-hidden />;
+    case "notice":
+      return <Link2 className={className} aria-hidden />;
+    case "repo-issues":
+      return <ListChecks className={className} aria-hidden />;
     case "explain":
       return <BookOpen className={className} aria-hidden />;
     case "review":
@@ -377,6 +382,11 @@ export function SiteSearch({
   }
 
   const local = useMemo(() => parseOmniQuery(value), [value]);
+  const input = useMemo(() => parseGitHubInput(value), [value]);
+  const inputRepo = repoSlug(input);
+  // Words search everywhere; a repo/issue/PR link lists that repo's issues.
+  // Any other link (or a profile) never runs a word search.
+  const liveSearch = input.kind === "text" || inputRepo !== null;
   const knownUsers = useConfirmedUsers(value, local);
   const trimmed = value.trim();
   const understoodFlows = useMemo(() => {
@@ -416,7 +426,19 @@ export function SiteSearch({
             },
           ]
         : [];
-    const understood: Row[] = understoodFlows.map((item) => {
+    const notice: Row[] =
+      input.kind === "url"
+        ? [
+            {
+              key: "notice:not-github",
+              kind: "notice",
+              title: t("search.notGithub"),
+              detail: t("search.notGithubHint"),
+              group: "understood",
+            },
+          ]
+        : [];
+    const flowRows: Row[] = understoodFlows.map((item) => {
       const copy = flowCopy(item, t);
       return {
         key: item.href,
@@ -428,6 +450,7 @@ export function SiteSearch({
         group: "understood" as const,
       };
     });
+    const understood = [...notice, ...flowRows];
     const seen = new Set(understood.map((row) => row.href));
     const liveRows: Row[] = live
       .map((issue) => {
@@ -457,7 +480,7 @@ export function SiteSearch({
         group: "recent" as const,
       }));
     return [...quick, ...understood, ...liveRows, ...recentRows];
-  }, [live, understoodFlows, recent, t, trimmed]);
+  }, [input.kind, live, understoodFlows, recent, t, trimmed]);
 
   if (rows.length > 0 && active >= rows.length) setActive(rows.length - 1);
 
@@ -487,16 +510,21 @@ export function SiteSearch({
   }, [focused, reduceMotion, trimmed]);
 
   useEffect(() => {
-    if (trimmed.length < 2 || queryLooksLikeGitHubUrl(trimmed)) return;
+    const parsed = parseGitHubInput(trimmed);
+    const repoQuery = repoSlug(parsed);
+    if (trimmed.length < 2 || (parsed.kind !== "text" && !repoQuery)) return;
     const controller = new AbortController();
     const timer = window.setTimeout(() => {
-      const topic = parseOmniQuery(trimmed).find((item) => item.flow === "match-topic");
+      const topic = repoQuery
+        ? undefined
+        : parseOmniQuery(trimmed).find((item) => item.flow === "match-topic");
       const lang =
         topic && topic.flow === "match-topic" && topic.language
           ? `&lang=${encodeURIComponent(topic.language)}`
           : "";
       setSearching(true);
-      const algolia = algoliaSearchEnabled()
+      // Algolia can't filter by repo, so repo links go to /api/search.
+      const algolia = algoliaSearchEnabled() && !repoQuery
         ? searchAlgoliaIssues(trimmed, topic && topic.flow === "match-topic" ? topic.language : undefined).catch(
             (err: unknown) => {
               if (err instanceof DOMException && err.name === "AbortError") throw err;
@@ -508,7 +536,7 @@ export function SiteSearch({
         .then(async (hits) => {
           if (controller.signal.aborted) return null;
           if (hits) return { issues: hits as LiveIssue[], error: null };
-          const res = await fetch(`/api/search?q=${encodeURIComponent(trimmed)}${lang}`, {
+          const res = await fetch(`/api/search?q=${encodeURIComponent(repoQuery ?? trimmed)}${lang}`, {
             signal: controller.signal,
           });
           const json = (await res.json()) as { issues?: LiveIssue[]; error?: string };
@@ -572,6 +600,10 @@ export function SiteSearch({
       inputRef.current?.focus();
       return;
     }
+    if (row.kind === "notice") {
+      inputRef.current?.focus();
+      return;
+    }
     if (row.kind === "recent" && row.query) {
       setValue(row.query);
       inputRef.current?.focus();
@@ -588,7 +620,7 @@ export function SiteSearch({
 
   const placeholder = t(PLACEHOLDERS[placeholderIndex] ?? "hero.placeholderLang");
   const showLiveStatus =
-    trimmed.length >= 2 && !queryLooksLikeGitHubUrl(trimmed) && !rows.some((row) => row.group === "live");
+    trimmed.length >= 2 && liveSearch && !rows.some((row) => row.group === "live");
 
   useLayoutEffect(() => {
     if (!panelOn || variant === "dialog") return;
@@ -767,7 +799,9 @@ export function SiteSearch({
                         <p className="px-3 pb-2 text-sm text-muted-foreground">{t("search.errorGeneric")}</p>
                       ) : null}
                       {group === "live" && showLiveStatus && settledFor === trimmed && !searchError ? (
-                        <p className="px-3 pb-2 text-sm text-muted-foreground">{t("search.emptyLive")}</p>
+                        <p className="px-3 pb-2 text-sm break-words text-muted-foreground">
+                          {inputRepo ? t("search.emptyRepo", { repo: inputRepo }) : t("search.emptyLive")}
+                        </p>
                       ) : null}
                       {items.map(({ row, index }) => {
                         const age = issueAge(row.createdAt, t("search.ageToday"));

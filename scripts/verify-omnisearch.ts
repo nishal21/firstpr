@@ -19,6 +19,15 @@ const cases: Array<[string, string | undefined, string]> = [
   ["python", "match-topic", "Python"],
   ["javascript", "match-topic", "JavaScript"],
   ["", undefined, ""],
+  [
+    "https://patch-diff.githubusercontent.com/raw/facebook/react-native/pull/54321.diff",
+    "review",
+    "54321",
+  ],
+  ["https://raw.githubusercontent.com/facebook/react-native/main/README.md", "readiness", "react-native"],
+  ["https://api.github.com/repos/facebook/react-native", "readiness", "react-native"],
+  ["github.com/octocat", "match-user", "octocat"],
+  ["https://example.com/some/page", undefined, ""],
 ];
 
 let failed = 0;
@@ -51,6 +60,14 @@ for (const word of ["react", "docs", "python", "javascript"]) {
     console.error(word, "should lead with Find beginner issues");
     failed += 1;
   }
+}
+
+const repoRow = parseOmniQuery("https://github.com/facebook/react-native").find(
+  (item) => item.flow === "repo-issues",
+);
+if (!repoRow || repoRow.href !== "/?q=facebook%2Freact-native#match") {
+  console.error("repo link should offer its beginner issues", repoRow);
+  failed += 1;
 }
 
 if (failed) {
