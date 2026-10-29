@@ -21,10 +21,15 @@ export function SiteFooter() {
     const el = footerRef.current;
     if (!el) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const seen = () => {
+      const rect = el.getBoundingClientRect();
+      return rect.top < window.innerHeight && rect.bottom > 0;
+    };
     const apply = () => {
       if (reduce.matches || document.hidden) el.dataset.motion = "off";
       else delete el.dataset.motion;
-      if (reduce.matches) el.dataset.stamped = "true";
+      if (reduce.matches || seen()) el.dataset.stamped = "true";
+      else el.dataset.arm = "true";
     };
     apply();
     const io = new IntersectionObserver(
@@ -33,7 +38,7 @@ export function SiteFooter() {
         el.dataset.inview = on ? "true" : "false";
         if (on) el.dataset.stamped = "true";
       },
-      { threshold: 0.28 },
+      { threshold: 0.05 },
     );
     io.observe(el);
     reduce.addEventListener("change", apply);
@@ -120,7 +125,15 @@ export function SiteFooter() {
         <p className="font-plex text-[11px] tracking-wide">{t("footer.colophon")}</p>
       </div>
       <div className="footer-crowd" aria-hidden>
-        <Image src="/brand/crowd.svg" alt="" width={2400} height={420} />
+        <Image
+          src="/brand/crowd.svg"
+          alt=""
+          width={2400}
+          height={420}
+          loading="eager"
+          unoptimized
+          className="footer-crowd-img"
+        />
       </div>
     </footer>
   );

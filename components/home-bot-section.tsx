@@ -9,7 +9,7 @@ const BOT_URL = "https://github.com/apps/firstprbot";
 export function HomeBotSection() {
   const t = useT();
   return (
-    <section className="mx-auto max-w-5xl px-4 py-6 sm:px-6 md:py-10">
+    <section className="mx-auto max-w-5xl px-4 pt-4 pb-2 sm:px-6 md:pt-6 md:pb-3">
       <div className="ink-card p-6 sm:p-8">
         <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between md:gap-10">
           <div className="min-w-0 max-w-xl">
