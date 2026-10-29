@@ -45,26 +45,24 @@ export function SiteHeader() {
 
   return (
     <header id="top" className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur">
-      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-2 px-4 sm:px-6">
+      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-1.5 px-3 sm:gap-2 sm:px-6">
         <Link
           href="/"
-          className="flex shrink-0 items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+          className="flex min-w-0 items-center gap-1.5 outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
         >
           <Image
             src="/brand/logo-mark-192.png"
             alt=""
             width={28}
             height={28}
-            className="size-7"
-            priority
+            className="size-7 shrink-0"
           />
           <Image
             src="/brand/wordmark-light.png"
             alt="FirstPR"
             width={120}
             height={24}
-            className="h-6 w-auto"
-            priority
+            className="h-5 w-auto sm:h-6"
           />
         </Link>
 
@@ -109,7 +107,7 @@ export function SiteHeader() {
           >
             <Search className="size-5" aria-hidden />
           </button>
-          <LangToggle />
+          <LangToggle compact />
           <button
             type="button"
             className="inline-flex size-11 items-center justify-center rounded-xl text-foreground outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/40"

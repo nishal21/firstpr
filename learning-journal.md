@@ -256,3 +256,14 @@
 - Flows: match user `/?user=#match`, topic `/?q=&lang=#match`, explain `/issue/owner/repo/n`, review `/review?pr=`, repo check `/repo/owner/repo`.
 - New i18n keys must be added to `lib/i18n-en.ts` and both objects in `lib/i18n-ml-hi.ts`. World packs use `fill()` and pick up English automatically.
 - Next: if the marquee stutters, change duration or pause it. Do not add blur, shadow animation, or a scroll listener. Preview branch is `redesign-footer-hero` (no pull request; Vercel builds the branch).
+
+## 2026-10-29 — Hero pass, footer frozen
+- Owner does not want more Aperios footer work. Leave `components/site-footer.tsx` and the marquee CSS until a new reference arrives.
+- Phone header overflow was the language name plus menu. Mobile `LangToggle` is `compact` (globe only). Header padding is `px-3`.
+- Headline key `hero.headline` is “Find your first issue.” Sub, chips, trust lines, and glimpse cards are in en/ml/hi. Search groups: `search.groupUnderstood`, `search.groupLive`, `search.groupRecent`. Recent queries live in localStorage `firstpr-recent-searches`.
+- LCP: do not fade the h1 in from opacity 0. Noto faces use `preload: false`; Inter stays preloaded.
+
+## 2026-10-29 — hellohello footer
+- Owner rejected Aperios. New reference is ++hellohello (https://www.hellohello.is/): giant line, giant ©26, 3D mark behind the type, full-width bar, link row.
+- Scene is `.footer-spin` / `.footer-tilt` in `app/globals.css`. Transform only. `data-inview` starts the spin; `data-hold` and `data-motion=off` stop it.
+- Do not add blur to chase Buzz. Do not put the marquee back.

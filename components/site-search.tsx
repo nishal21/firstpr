@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo, useState, useSyncExternalStore } from "react";
+import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
@@ -20,9 +20,89 @@ type LiveIssue = {
   title: string;
 };
 
-type Row =
-  | { key: string; href: string; badge: I18nKey; title: string; detail?: string }
-  | { key: string; href: string; badge: I18nKey; title: string; detail: string };
+type Row = {
+  key: string;
+  href: string;
+  badge: I18nKey;
+  title: string;
+  detail?: string;
+  group: "understood" | "live" | "recent";
+};
+
+const RECENT_KEY = "firstpr-recent-searches";
+const RECENT_EVENT = "firstpr-recent-change";
+
+const CHIPS = [
+  { label: "hero.chipPython", query: "python" },
+  { label: "hero.chipJs", query: "javascript" },
+  { label: "hero.chipDocs", query: "docs" },
+  { label: "hero.chipGfi", query: "good first issue" },
+  { label: "hero.chipPaste", query: "" },
+] as const satisfies readonly { label: I18nKey; query: string }[];
+
+const NO_RECENT: string[] = [];
+let recentSnapshot: string[] = NO_RECENT;
+let recentSource: string | null | undefined;
+
+function readRecent(): string[] {
+  let raw: string | null = null;
+  try {
+    raw = localStorage.getItem(RECENT_KEY);
+  } catch {
+    raw = null;
+  }
+  if (raw === recentSource) return recentSnapshot;
+  recentSource = raw;
+  if (!raw) {
+    recentSnapshot = NO_RECENT;
+    return recentSnapshot;
+  }
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      recentSnapshot = NO_RECENT;
+      return recentSnapshot;
+    }
+    const next = parsed
+      .filter((item): item is string => typeof item === "string")
+      .slice(0, 5);
+    recentSnapshot = next.length > 0 ? next : NO_RECENT;
+    return recentSnapshot;
+  } catch {
+    recentSnapshot = NO_RECENT;
+    return recentSnapshot;
+  }
+}
+
+function writeRecent(query: string) {
+  const next = [query, ...readRecent().filter((item) => item !== query)].slice(0, 5);
+  localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+  window.dispatchEvent(new Event(RECENT_EVENT));
+}
+
+function subscribeRecent(onChange: () => void) {
+  window.addEventListener("storage", onChange);
+  window.addEventListener(RECENT_EVENT, onChange);
+  return () => {
+    window.removeEventListener("storage", onChange);
+    window.removeEventListener(RECENT_EVENT, onChange);
+  };
+}
+
+function groupLabel(group: Row["group"]): I18nKey {
+  switch (group) {
+    case "understood":
+      return "search.groupUnderstood";
+    case "live":
+      return "search.groupLive";
+    case "recent":
+      return "search.groupRecent";
+    default: {
+      const exhaustive: never = group;
+      return exhaustive;
+    }
+  }
+}
 
 function subscribeMotion(onChange: () => void) {
   const media = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -110,6 +190,8 @@ export function SiteSearch({
   const t = useT();
   const router = useRouter();
   const listId = useId();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const recent = useSyncExternalStore(subscribeRecent, readRecent, () => NO_RECENT);
   const [value, setValue] = useState("");
   const [active, setActive] = useState(0);
   const [focused, setFocused] = useState(variant === "dialog");
@@ -128,7 +210,7 @@ export function SiteSearch({
   const local = useMemo(() => parseOmniQuery(value), [value]);
 
   const rows: Row[] = useMemo(() => {
-    const localRows: Row[] = local.map((item) => {
+    const understood: Row[] = local.map((item) => {
       const copy = flowCopy(item, t);
       return {
         key: item.href,
@@ -136,9 +218,10 @@ export function SiteSearch({
         badge: flowBadge(item.flow),
         title: copy.title,
         detail: copy.detail,
+        group: "understood",
       };
     });
-    const seen = new Set(localRows.map((row) => row.href));
+    const seen = new Set(understood.map((row) => row.href));
     const liveRows: Row[] = live
       .map((issue) => {
         const href = `/issue/${encodeURIComponent(issue.owner)}/${encodeURIComponent(issue.repo)}/${issue.number}`;
@@ -148,11 +231,22 @@ export function SiteSearch({
           badge: "flow.explain" as const,
           title: issue.title,
           detail: `${issue.owner}/${issue.repo}#${issue.number}`,
+          group: "live" as const,
         };
       })
       .filter((row) => !seen.has(row.href));
-    return [...localRows, ...liveRows];
-  }, [live, local, t]);
+    const current = value.trim();
+    const recentRows: Row[] = recent
+      .filter((query) => query !== current)
+      .map((query) => ({
+        key: `recent:${query}`,
+        href: "",
+        badge: "search.groupRecent",
+        title: query,
+        group: "recent" as const,
+      }));
+    return [...understood, ...liveRows, ...recentRows];
+  }, [live, local, recent, t, value]);
 
   useEffect(() => {
     if (reduceMotion || focused || value.trim()) return;
@@ -198,17 +292,31 @@ export function SiteSearch({
   }, [local, value]);
 
   function go(href: string) {
+    const query = value.trim();
+    if (query) writeRecent(query);
     onNavigate?.();
     router.push(href);
+  }
+
+  function activate(row: Row) {
+    if (row.group === "recent") {
+      setValue(row.title);
+      inputRef.current?.focus();
+      return;
+    }
+    go(row.href);
   }
 
   function submit() {
     const row = rows[active] ?? rows[0];
     if (!row) return;
-    go(row.href);
+    activate(row);
   }
 
-  const listOpen = value.trim().length > 0 && (rows.length > 0 || searching);
+  const listOpen =
+    (focused || variant === "dialog") &&
+    (rows.length > 0 || searching) &&
+    (value.trim().length > 0 || recent.length > 0);
   const placeholder = t(PLACEHOLDERS[placeholderIndex] ?? "hero.placeholderLang");
 
   return (
@@ -225,18 +333,19 @@ export function SiteSearch({
         </label>
         <div
           className={cn(
-            "flex min-h-14 items-center gap-2 rounded-2xl border border-[#d5deea] bg-white py-1.5 pr-1.5 pl-3 shadow-[0_1px_0_rgba(4,115,253,0.04)] focus-within:border-primary",
-            variant === "dialog" && "min-h-[3.25rem]",
+            "flex min-h-16 items-center gap-2 rounded-[1.25rem] border border-[#c5d7f2] bg-white py-2 pr-2 pl-3.5 shadow-[0_12px_40px_rgba(4,115,253,0.1)] focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/20",
+            variant === "dialog" && "min-h-[3.25rem] shadow-none",
           )}
         >
           <Image
             src="/brand/logo-mark-192.png"
             alt=""
-            width={28}
-            height={28}
-            className="size-7 shrink-0"
+            width={32}
+            height={32}
+            className="size-8 shrink-0"
           />
           <input
+            ref={inputRef}
             id={`${listId}-input`}
             value={value}
             placeholder={placeholder}
@@ -267,7 +376,7 @@ export function SiteSearch({
                 setLive([]);
               }
             }}
-            className="min-w-0 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground"
+            className="min-w-0 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground sm:text-lg"
           />
           <kbd className="hidden shrink-0 items-center rounded-md border border-border bg-[#f4f7fb] px-1.5 py-0.5 font-sans text-[11px] font-medium text-muted-foreground sm:inline-flex">
             {t("hero.kbd")}
@@ -282,43 +391,70 @@ export function SiteSearch({
         </div>
       </form>
 
+      {variant === "hero" ? (
+        <div className="mt-3 flex flex-wrap gap-2">
+          {CHIPS.map((chip) => (
+            <button
+              key={chip.label}
+              type="button"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => {
+                if (chip.query) setValue(chip.query);
+                inputRef.current?.focus();
+              }}
+              className="inline-flex min-h-9 items-center rounded-full border border-[#c5d7f2] bg-white/90 px-3 text-sm text-foreground outline-none hover:border-primary hover:text-primary focus-visible:ring-2 focus-visible:ring-primary/30"
+            >
+              {t(chip.label)}
+            </button>
+          ))}
+        </div>
+      ) : null}
+
       {listOpen ? (
         <ul
           id={listId}
           role="listbox"
-          className="absolute z-30 mt-2 max-h-[min(22rem,50vh)] w-full overflow-auto rounded-2xl border border-border bg-white py-1 text-left shadow-[0_12px_40px_rgba(19,30,48,0.08)]"
+          className="absolute z-30 mt-2 max-h-[min(24rem,52vh)] w-full overflow-auto rounded-2xl border border-[#d5e4f7] bg-white py-1 text-left shadow-[0_18px_50px_rgba(19,30,48,0.14)]"
         >
-          {rows.map((row, index) => (
-            <li key={row.key} role="presentation">
-              <button
-                id={`${listId}-opt-${index}`}
-                type="button"
-                role="option"
-                aria-selected={index === active}
-                onMouseEnter={() => setActive(index)}
-                onMouseDown={(event) => event.preventDefault()}
-                onClick={() => go(row.href)}
-                className={cn(
-                  "flex w-full min-h-11 items-start gap-3 px-3 py-2.5 text-left outline-none",
-                  index === active ? "bg-accent" : "bg-white",
-                )}
-              >
-                <span className="mt-0.5 shrink-0 rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-primary uppercase">
-                  {t(row.badge)}
-                </span>
-                <span className="min-w-0">
-                  <span className="block text-sm font-medium break-words text-foreground">
-                    {row.title}
+          {rows.map((row, index) => {
+            const showGroup = index === 0 || rows[index - 1]?.group !== row.group;
+            return (
+              <li key={row.key} role="presentation">
+                {showGroup ? (
+                  <p className="px-3 pt-2 pb-1 text-[10px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
+                    {t(groupLabel(row.group))}
+                  </p>
+                ) : null}
+                <button
+                  id={`${listId}-opt-${index}`}
+                  type="button"
+                  role="option"
+                  aria-selected={index === active}
+                  onMouseEnter={() => setActive(index)}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => activate(row)}
+                  className={cn(
+                    "flex w-full min-h-11 items-start gap-3 px-3 py-2.5 text-left outline-none",
+                    index === active ? "bg-accent" : "bg-white",
+                  )}
+                >
+                  <span className="mt-0.5 shrink-0 rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-primary uppercase">
+                    {t(row.badge)}
                   </span>
-                  {row.detail ? (
-                    <span className="mt-0.5 block text-xs break-words text-muted-foreground">
-                      {row.detail}
+                  <span className="min-w-0">
+                    <span className="block text-sm font-medium break-words text-foreground">
+                      {row.title}
                     </span>
-                  ) : null}
-                </span>
-              </button>
-            </li>
-          ))}
+                    {row.detail ? (
+                      <span className="mt-0.5 block text-xs break-words text-muted-foreground">
+                        {row.detail}
+                      </span>
+                    ) : null}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
           {searching ? (
             <li className="px-3 py-2 text-xs text-muted-foreground">{t("search.searching")}</li>
           ) : null}

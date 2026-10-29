@@ -246,3 +246,13 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - Hero is a single search box. `lib/omnisearch.ts` routes language/skill/words → `/?q=#match`, username → match, issue URL → `/issue/...`, PR URL → `/review?pr=`, repo → `/repo/[owner]/[repo]`. Live hits from `GET /api/search` (GitHub, server token, no keys in the client). Ctrl/Cmd+K opens the same box.
 - i18n keys added on en, ml, hi. Other langs inherit English through `fill()`.
 - Trace at 360px, 4x CPU, footer in view: 0 long tasks over 50ms, 0 dropped frames. `npm run build` passed.
+
+## 2026-10-29 — Hero and header, footer left alone
+- Header at phone width: language control is icon-only, tighter padding, smaller wordmark. Menu stays on screen at 320–360.
+- Headline is “Find your first issue.” Chips under the search, grouped dropdown (understood / open issues / recent), compact Match–Explain–Review card. Soft blue mesh behind the search. Noto fonts no longer preload, so the headline can paint sooner.
+- Do not restyle the footer in this pass. Owner rejected the Aperios look; a new reference is coming.
+
+## 2026-10-29 — Footer follows hellohello
+- Reference: ++hellohello, https://www.hellohello.is/ (listed on footer.design/styles/animated). Huge blue line, ©26, a 3D cat and plus behind the type, full-width bar.
+- Motion is rotateX/rotateY only. The spin runs while the footer is on screen and pauses off-screen, in a hidden tab, and when reduced motion is on. Pointer tilt uses a cached box, no scroll listener.
+- Buzz was skipped because the word is a blur. Juggle’s gallery footer is not on the live page.

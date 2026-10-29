@@ -18,7 +18,13 @@ type MenuPos = {
   maxHeight: number;
 };
 
-export function LangToggle({ className }: { className?: string }) {
+export function LangToggle({
+  className,
+  compact = false,
+}: {
+  className?: string;
+  compact?: boolean;
+}) {
   const { lang, setLang, t, ready } = useLanguage();
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<MenuPos | null>(null);
@@ -146,14 +152,22 @@ export function LangToggle({ className }: { className?: string }) {
         aria-expanded={open}
         aria-label={t("nav.language")}
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex min-h-11 h-11 items-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-card px-3 text-sm text-muted-foreground outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/40 disabled:opacity-60"
+        className={cn(
+          "inline-flex h-11 items-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-card text-sm text-muted-foreground outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/40 disabled:opacity-60",
+          compact ? "size-11 justify-center px-0" : "min-h-11 px-3",
+        )}
       >
         <Globe className="size-3.5 shrink-0" aria-hidden />
-        <span>{ready ? UI_LANG_NATIVE[lang] : "…"}</span>
+        {compact ? (
+          <span className="sr-only">{ready ? UI_LANG_NATIVE[lang] : "…"}</span>
+        ) : (
+          <span>{ready ? UI_LANG_NATIVE[lang] : "…"}</span>
+        )}
         <ChevronDown
           size={14}
           className={cn(
             "shrink-0 text-slate-400 transition-transform",
+            compact && "hidden",
             open && "rotate-180",
           )}
           aria-hidden

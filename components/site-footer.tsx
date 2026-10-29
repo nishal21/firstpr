@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, type PointerEvent, type ReactNode } from "react";
+import { useEffect, useRef, type PointerEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
 import { useT } from "@/components/language-provider";
 
 const SOURCE_URL = "https://github.com/nishal21/firstpr";
@@ -11,132 +12,31 @@ const BOT_URL = "https://github.com/apps/firstprbot";
 
 type FooterLink = { href: string; label: string; external?: boolean };
 
-function MagLink({
-  href,
-  external,
-  children,
-}: {
-  href: string;
-  external?: boolean;
-  children: ReactNode;
-}) {
-  const ref = useRef<HTMLAnchorElement>(null);
-  const box = useRef({ left: 0, top: 0, width: 0, height: 0 });
-
-  function allow(event: PointerEvent<HTMLAnchorElement>): boolean {
-    if (event.pointerType !== "mouse") return false;
-    const footer = event.currentTarget.closest("footer");
-    return footer?.getAttribute("data-motion") !== "off";
-  }
-
-  function onEnter(event: PointerEvent<HTMLAnchorElement>) {
-    if (!allow(event)) return;
-    const rect = event.currentTarget.getBoundingClientRect();
-    box.current = {
-      left: rect.left,
-      top: rect.top,
-      width: rect.width,
-      height: rect.height,
-    };
-  }
-
-  function onMove(event: PointerEvent<HTMLAnchorElement>) {
-    const el = ref.current;
-    if (!el || !allow(event)) return;
-    const cached = box.current;
-    const dx = event.clientX - (cached.left + cached.width / 2);
-    const dy = event.clientY - (cached.top + cached.height / 2);
-    const tx = Math.max(-6, Math.min(6, dx * 0.12));
-    const ty = Math.max(-4, Math.min(4, dy * 0.16));
-    el.style.transform = `translate3d(${tx.toFixed(2)}px, ${ty.toFixed(2)}px, 0)`;
-  }
-
-  function onLeave() {
-    if (ref.current) ref.current.style.transform = "translate3d(0, 0, 0)";
-  }
-
-  const className =
-    "footer-mag inline-flex min-h-11 items-center text-[1.05rem] leading-tight text-white outline-none focus-visible:ring-2 focus-visible:ring-[#7ea2ff]";
-
-  if (external) {
-    return (
-      <a
-        ref={ref}
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={className}
-        onPointerEnter={onEnter}
-        onPointerMove={onMove}
-        onPointerLeave={onLeave}
-      >
-        {children}
-      </a>
-    );
-  }
-
+function FooterMark() {
   return (
-    <Link
-      ref={ref}
-      href={href}
-      className={className}
-      onPointerEnter={onEnter}
-      onPointerMove={onMove}
-      onPointerLeave={onLeave}
-    >
-      {children}
-    </Link>
-  );
-}
-
-function Column({ title, links }: { title: string; links: FooterLink[] }) {
-  return (
-    <div className="min-w-0">
-      <p className="text-[10px] font-medium tracking-[0.18em] text-white/45 uppercase">
-        {title}
-      </p>
-      <ul className="mt-3 flex flex-col">
-        {links.map((link) => (
-          <li key={link.href + link.label}>
-            <MagLink href={link.href} external={link.external}>
-              {link.label}
-            </MagLink>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-function MarqueeGroup() {
-  return (
-    <div className="footer-marquee-group">
-      <span className="footer-word">FirstPR</span>
-      <Image
-        src="/brand/logo-mark-512.png"
-        alt=""
-        width={160}
-        height={160}
-        className="footer-cat"
-      />
-      <span className="footer-word">FirstPR</span>
-      <Image
-        src="/brand/logo-mark-512.png"
-        alt=""
-        width={160}
-        height={160}
-        className="footer-cat"
-      />
+    <div className="footer-tilt">
+      <div className="footer-spin">
+        <div className="footer-plus" aria-hidden />
+        <Image
+          src="/brand/logo-mark-512.png"
+          alt=""
+          width={220}
+          height={220}
+          className="footer-cat-mark"
+        />
+      </div>
     </div>
   );
 }
 
 export function SiteFooter() {
   const t = useT();
-  const ref = useRef<HTMLElement>(null);
+  const footerRef = useRef<HTMLElement>(null);
+  const tiltRef = useRef<HTMLDivElement>(null);
+  const box = useRef({ cx: 0, cy: 0, w: 1, h: 1 });
 
   useEffect(() => {
-    const el = ref.current;
+    const el = footerRef.current;
     if (!el) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
     const applyReduce = () => {
@@ -155,7 +55,7 @@ export function SiteFooter() {
         if (el.dataset.motion === "off") return;
         el.dataset.inview = entry?.isIntersecting ? "true" : "false";
       },
-      { threshold: 0.12 },
+      { threshold: 0.2 },
     );
     io.observe(el);
 
@@ -173,6 +73,38 @@ export function SiteFooter() {
     };
   }, []);
 
+  function allow(event: PointerEvent<HTMLElement>) {
+    if (event.pointerType !== "mouse") return false;
+    const footer = footerRef.current;
+    return footer?.dataset.motion !== "off" && footer?.dataset.inview === "true";
+  }
+
+  function onEnter(event: PointerEvent<HTMLElement>) {
+    if (!allow(event)) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    box.current = {
+      cx: rect.left + rect.width / 2,
+      cy: rect.top + rect.height / 2,
+      w: rect.width || 1,
+      h: rect.height || 1,
+    };
+  }
+
+  function onMove(event: PointerEvent<HTMLElement>) {
+    const tilt = tiltRef.current;
+    if (!tilt || !allow(event)) return;
+    const { cx, cy, w, h } = box.current;
+    const dx = (event.clientX - cx) / w;
+    const dy = (event.clientY - cy) / h;
+    const ry = Math.max(-14, Math.min(14, dx * 18));
+    const rx = Math.max(-10, Math.min(10, -dy * 12));
+    tilt.style.transform = `rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg)`;
+  }
+
+  function onLeave() {
+    if (tiltRef.current) tiltRef.current.style.transform = "rotateX(0deg) rotateY(0deg)";
+  }
+
   const product: FooterLink[] = [
     { href: "/", label: t("nav.findIssue") },
     { href: "/issue/nishal21/NekoDroid/4", label: t("nav.explain") },
@@ -183,55 +115,82 @@ export function SiteFooter() {
     { href: BOT_URL, label: t("footer.botLink"), external: true },
     { href: LICENSE_URL, label: t("footer.license"), external: true },
   ];
-  const team: FooterLink[] = [
-    { href: "https://github.com/nishal21", label: "Nishal K", external: true },
-    { href: "https://github.com/zenxrth", label: "Anan Shaji", external: true },
-  ];
 
   return (
-    <footer ref={ref} className="mt-auto bg-white text-[#111418]">
-      <div className="mx-auto max-w-[90rem] px-4 pt-16 pb-6 sm:px-8 md:pt-24 md:pb-8">
-        <p className="text-[clamp(2.6rem,6.2vw,5.6rem)] leading-[0.9] font-semibold tracking-[-0.055em] text-balance">
-          {t("footer.ctaTitle")}
-        </p>
-      </div>
-      <div className="h-3 bg-[#d5d8de]" aria-hidden />
-      <div className="bg-[#0c1016] text-white">
-        <div className="mx-auto grid max-w-[90rem] grid-cols-1 gap-x-6 gap-y-8 px-4 pt-10 sm:grid-cols-3 sm:px-8 md:pt-12">
-          <Column title={t("footer.colProduct")} links={product} />
-          <Column title={t("footer.colOpenSource")} links={source} />
-          <Column title={t("footer.colTeam")} links={team} />
-        </div>
-        <div className="mx-auto mt-6 max-w-[90rem] border-t border-dotted border-white/25" />
-
-        <div className="footer-marquee mt-2 overflow-hidden" aria-hidden>
-          <div className="footer-marquee-track">
-            <MarqueeGroup />
-            <MarqueeGroup />
+    <footer
+      ref={footerRef}
+      className="mt-auto bg-[#07090f] text-white"
+      onPointerEnter={onEnter}
+      onPointerMove={onMove}
+      onPointerLeave={onLeave}
+    >
+      <div className="h-px bg-primary" />
+      <div className="mx-auto max-w-6xl px-4 pt-8 pb-6 sm:px-8 md:pt-14">
+        <div className="footer-stage relative md:min-h-[26rem]">
+          <div ref={tiltRef} className="pointer-events-none absolute inset-0 hidden items-center justify-center md:flex">
+            <FooterMark />
+          </div>
+          <div className="relative z-10 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+            <h2 className="max-w-[9ch] text-[clamp(2.7rem,11vw,6.4rem)] leading-[0.88] font-semibold tracking-[-0.045em] text-primary">
+              {t("footer.ctaTitle")}
+            </h2>
+            <p className="text-[clamp(4.2rem,18vw,7.5rem)] leading-none font-semibold tracking-[-0.06em] text-primary md:pt-2">
+              ©26
+            </p>
           </div>
         </div>
 
-        <p className="mx-auto max-w-md px-4 pt-6 pb-10 text-center text-sm leading-relaxed text-white/70 sm:text-base">
+        <div className="footer-stage mt-2 flex justify-center md:hidden">
+          <FooterMark />
+        </div>
+
+        <p className="relative z-10 mt-4 max-w-sm text-xl leading-tight font-semibold text-primary md:mt-2 md:text-3xl">
           {t("footer.tagline")}
         </p>
+        <Link
+          href="/#match"
+          className="relative z-10 mt-5 flex min-h-16 items-center justify-between gap-3 bg-primary px-4 text-lg font-semibold text-white outline-none focus-visible:ring-2 focus-visible:ring-white sm:px-5 md:mt-8 md:text-2xl"
+        >
+          {t("hero.cta")}
+          <ArrowUpRight className="size-6 shrink-0" aria-hidden />
+        </Link>
+      </div>
 
-        <div className="mx-auto flex max-w-[90rem] flex-col gap-3 border-t border-white/10 px-4 py-5 text-sm text-white/55 sm:flex-row sm:items-center sm:justify-between sm:px-8">
-          <p className="max-w-md">{t("footer.built")}</p>
-          <a
-            href={LICENSE_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex min-h-11 items-center outline-none hover:text-white focus-visible:ring-2 focus-visible:ring-[#7ea2ff]"
-          >
-            {t("footer.license")}
-          </a>
-          <a
-            href="#top"
-            className="inline-flex min-h-11 items-center outline-none hover:text-white focus-visible:ring-2 focus-visible:ring-[#7ea2ff]"
-          >
-            {t("footer.backToTop")}
-          </a>
+      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-6 text-sm text-primary sm:px-8 md:flex-row md:items-start md:justify-between">
+        <ul className="flex flex-col gap-1">
+          {product.map((link) => (
+            <li key={link.href}>
+              <Link href={link.href} className="inline-flex min-h-11 items-center outline-none hover:text-white focus-visible:ring-2 focus-visible:ring-primary">
+                {link.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <ul className="flex flex-col gap-1">
+          {source.map((link) => (
+            <li key={link.href}>
+              <a
+                href={link.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-11 items-center outline-none hover:text-white focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                {link.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+        <div className="max-w-xs text-primary/80">
+          <p>{t("footer.built")}</p>
+          <p className="mt-2">
+            <a href="https://github.com/nishal21" className="hover:text-white">Nishal K</a>
+            {" · "}
+            <a href="https://github.com/zenxrth" className="hover:text-white">Anan Shaji</a>
+          </p>
         </div>
+        <a href="#top" className="inline-flex min-h-11 items-center text-primary/80 hover:text-white">
+          {t("footer.backToTop")}
+        </a>
       </div>
     </footer>
   );
