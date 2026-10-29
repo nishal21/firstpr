@@ -44,7 +44,7 @@ export function SiteHeader() {
   }, [menuOpen]);
 
   return (
-    <header id="top" className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur">
+    <header id="top" className="sticky top-0 z-50 border-b-[3px] border-[#16140f] bg-background dark:border-[#f4efe6]">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-1.5 px-3 sm:gap-2 sm:px-6">
         <Link
           href="/"
@@ -62,7 +62,14 @@ export function SiteHeader() {
             alt="FirstPR"
             width={120}
             height={24}
-            className="h-5 w-auto sm:h-6"
+            className="wordmark-light h-5 w-auto sm:h-6"
+          />
+          <Image
+            src="/brand/wordmark-dark.png"
+            alt=""
+            width={120}
+            height={24}
+            className="wordmark-dark h-5 w-auto sm:h-6"
           />
         </Link>
 

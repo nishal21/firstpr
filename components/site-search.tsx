@@ -2,7 +2,6 @@
 
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
@@ -548,17 +547,13 @@ export function SiteSearch({
         </label>
         <div
           className={cn(
-            "flex min-h-16 items-center gap-2 rounded-[1.25rem] border border-border bg-popover py-2 pr-2 pl-3.5 shadow-[0_12px_40px_rgba(4,115,253,0.1)] focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/20",
+            "search-sticker flex min-h-16 items-center gap-2 py-2 pr-2 pl-3.5",
             variant === "dialog" && "min-h-[3.25rem] shadow-none",
           )}
         >
-          <Image
-            src="/brand/logo-mark-192.png"
-            alt=""
-            width={32}
-            height={32}
-            className="size-8 shrink-0"
-          />
+          <span className="font-plex shrink-0 text-sm text-[#16140f]/70" aria-hidden>
+            &gt;
+          </span>
           <input
             ref={inputRef}
             id={variant === "hero" ? "firstpr-search" : `${listId}-input`}
@@ -595,17 +590,17 @@ export function SiteSearch({
                 inputRef.current?.blur();
               }
             }}
-            className="min-w-0 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground sm:text-lg"
+            className="min-w-0 flex-1 bg-transparent text-base outline-none sm:text-lg"
           />
-          <kbd className="hidden shrink-0 rounded-md border border-border bg-muted px-1.5 py-0.5 font-sans text-[11px] font-medium text-muted-foreground sm:inline-flex">
+          <kbd className="font-plex hidden shrink-0 border-2 border-[#16140f] bg-[#fffdf8] px-1.5 py-0.5 text-[11px] text-[#16140f] sm:inline-flex">
             /
           </kbd>
-          <kbd className="hidden shrink-0 items-center rounded-md border border-border bg-muted px-1.5 py-0.5 font-sans text-[11px] font-medium text-muted-foreground sm:inline-flex">
+          <kbd className="font-plex hidden shrink-0 border-2 border-[#16140f] bg-[#fffdf8] px-1.5 py-0.5 text-[11px] text-[#16140f] sm:inline-flex">
             {t("hero.kbd")}
           </kbd>
           <button
             type="submit"
-            className="inline-flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+            className="inline-flex size-11 shrink-0 items-center justify-center border-[3px] border-[#16140f] bg-[#0473fd] text-white outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#16140f]"
             aria-label={t("search.go")}
           >
             <ArrowRight className="size-4" aria-hidden />
@@ -624,7 +619,10 @@ export function SiteSearch({
                 if (chip.query) setValue(chip.query);
                 inputRef.current?.focus();
               }}
-              className="inline-flex min-h-9 items-center rounded-full border border-border bg-popover/90 px-3 text-sm text-foreground outline-none hover:border-primary hover:text-primary focus-visible:ring-2 focus-visible:ring-primary/30"
+              className={cn(
+                "search-chip inline-flex min-h-9 items-center px-2.5 text-xs outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#16140f]",
+                chip.query === "" && "search-chip-diff",
+              )}
             >
               {t(chip.label)}
             </button>

@@ -474,6 +474,24 @@ export type TextSearchHit = {
   createdAt: string;
 };
 
+/** Real open good-first-issue total for the landing status line. Null when GitHub does not answer. */
+export async function countOpenGoodFirstIssues(): Promise<number | null> {
+  try {
+    return await cached("gfi-total-v1", async () =>
+      gh(async () => {
+        const client = getOctokit();
+        const { data } = await client.search.issuesAndPullRequests({
+          q: 'is:issue is:open label:"good first issue"',
+          per_page: 1,
+        });
+        return typeof data.total_count === "number" ? data.total_count : null;
+      }),
+    );
+  } catch {
+    return null;
+  }
+}
+
 /** Public good-first-issue search for the landing omnibox. Cached. No client keys. */
 export async function searchBeginnerIssuesByText(
   text: string,

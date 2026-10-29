@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import {
+  IBM_Plex_Mono,
   Inter,
   Noto_Sans_Arabic,
   Noto_Sans_Bengali,
@@ -9,8 +10,10 @@ import {
   Noto_Sans_Malayalam,
   Noto_Sans_SC,
   Noto_Sans_Tamil,
+  Rubik_Spray_Paint,
 } from "next/font/google";
 import { LanguageProvider } from "@/components/language-provider";
+import { ThemeProvider } from "@/components/theme-provider";
 import { SearchProvider } from "@/components/search-provider";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -23,6 +26,22 @@ const inter = Inter({
   variable: "--font-sans",
   display: "swap",
   preload: true,
+});
+
+const spray = Rubik_Spray_Paint({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-spray",
+  display: "swap",
+  preload: true,
+});
+
+const plex = IBM_Plex_Mono({
+  weight: ["400", "500"],
+  subsets: ["latin"],
+  variable: "--font-plex",
+  display: "swap",
+  preload: false,
 });
 
 const notoMalayalam = Noto_Sans_Malayalam({
@@ -128,10 +147,13 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       data-scroll-behavior="smooth"
       className={cn(
         "h-full antialiased",
         inter.variable,
+        spray.variable,
+        plex.variable,
         notoMalayalam.variable,
         notoDevanagari.variable,
         notoTamil.variable,
@@ -143,6 +165,7 @@ export default function RootLayout({
       )}
     >
       <body className="flex min-h-full flex-col overflow-x-hidden bg-background font-sans text-foreground">
+        <ThemeProvider>
         <LanguageProvider>
           <SearchProvider>
             <SiteHeader />
@@ -150,6 +173,7 @@ export default function RootLayout({
             <SiteFooter />
           </SearchProvider>
         </LanguageProvider>
+        </ThemeProvider>
         <Toaster />
       </body>
     </html>

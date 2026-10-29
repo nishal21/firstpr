@@ -290,4 +290,8 @@
 
 ## 2026-10-29 — Footer ring hydration
 - Do not put `Math.cos` / `Math.sin` straight into SVG attributes. Server and client can disagree by one ulp. Round with `toFixed(2)` in a module-level `RING` array.
+- Merge Wall: no gradients, no blur shadows, no second cat outside the header logo and the one sticker by the headline. Hard shadow is `Npx Npx 0 #16140f`.
+- Rubik Spray Paint does not cover Malayalam or Devanagari. `.font-spray` falls through `--font-ml` and `--font-deva`.
+- `dark:block` lost to `hidden` in this Tailwind setup. Theme wordmarks use `.dark .wordmark-dark` in `globals.css`.
+- Open Peeps busts are composed from `@opeepsfun/open-peeps` path data into `public/brand/crowd.svg`. Do not commit the npm tarball.
 - Animated gallery, excluding the three rejected references: Eclipse (https://www.eclipse.space/) is the one to keep. Digital Metal and The Content Architecture were the other two worth a look; Dirt and Buzz rely on filters.

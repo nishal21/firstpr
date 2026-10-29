@@ -275,3 +275,9 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 ## 2026-10-29 — Eclipse footer, ring coordinates
 - Gallery pass on https://www.footer.design/styles/animated (12 sites). Aperios, hellohello, and Turion stay out. Built footer is Eclipse Space: https://www.eclipse.space/ — one ring, one cat.
 - Ring dots are rounded to 2 decimals in `RING` before render. Raw `Math.cos` differed by one ulp between server and browser and tripped a hydration mismatch.
+
+## 2026-10-29 — Merge Wall
+- Dropped the Eclipse ring and the soft hero. Landing is a warm wall, spray headline, hard sticker search, one cat tag, and a flat blue footer.
+- Display face is Rubik Spray Paint. Body stays Inter. Small labels are IBM Plex Mono. Both load with `next/font` and `display: swap`.
+- Footer word is MERGED. A purple stamp lands once in view. Crowd is one local SVG of Open Peeps (Pablo Stanley, CC0) at `public/brand/crowd.svg`.
+- Status line uses `countOpenGoodFirstIssues()`. If GitHub does not answer, the line is omitted.

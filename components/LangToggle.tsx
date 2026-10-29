@@ -21,9 +21,11 @@ type MenuPos = {
 export function LangToggle({
   className,
   compact = false,
+  buttonClassName,
 }: {
   className?: string;
   compact?: boolean;
+  buttonClassName?: string;
 }) {
   const { lang, setLang, t, ready } = useLanguage();
   const [open, setOpen] = useState(false);
@@ -155,6 +157,7 @@ export function LangToggle({
         className={cn(
           "inline-flex h-11 items-center gap-1.5 whitespace-nowrap rounded-md border border-border bg-card text-sm text-muted-foreground outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/40 disabled:opacity-60",
           compact ? "size-11 justify-center px-0" : "min-h-11 px-3",
+          buttonClassName,
         )}
       >
         <Globe className="size-3.5 shrink-0" aria-hidden />
