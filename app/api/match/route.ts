@@ -37,15 +37,18 @@ export async function POST(request: Request) {
     }
 
     const { username, repo } = parsed.data;
-    const repoInput = repo?.trim() ? repo.trim() : undefined;
-    const repoKey = repoInput || "default";
+    // An empty repo box means "search every repo", never the demo repo.
+    const repoInput = repo?.trim() ?? "";
+    const repoKey = repoInput || "all";
     const key = matchFixtureKey(repoKey, username);
 
     const { data, source } = await withDemoFixture({
       key,
       run: () =>
         cached(
-          `match-live:${username.toLowerCase()}:${(repoInput ?? "").toLowerCase()}`,
+          repoInput
+            ? `match-live:${username.toLowerCase()}:${repoInput.toLowerCase()}`
+            : `match-all:${username.toLowerCase()}`,
           () => matchIssues({ username, repo: repoInput }),
         ),
     });

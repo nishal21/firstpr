@@ -49,7 +49,7 @@ export function MatchForm({
 }) {
   const t = useT();
   const [username, setUsername] = useState(initialUsername);
-  const [repo, setRepo] = useState(initialRepo.trim() ? initialRepo : "nishal21/NekoDroid");
+  const [repo, setRepo] = useState(initialRepo.trim());
   const autoRan = useRef(false);
   const [data, setData] = useState<MatchResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -284,18 +284,24 @@ export function MatchForm({
             </article>
           ) : noIssues ? (
             <p className="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground shadow-sm break-words">
-              {t("match.noIssuesBefore")}
-              <Link
-                href="/"
-                className="font-medium text-primary hover:underline"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setRepo("nishal21/NekoDroid");
-                }}
-              >
-                nishal21/NekoDroid
-              </Link>
-              {t("match.noIssuesAfter")}
+              {repo.trim() ? (
+                <>
+                  {t("match.noIssuesBefore")}
+                  <button
+                    type="button"
+                    className="font-medium text-primary outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring/40"
+                    onClick={() => {
+                      setRepo("");
+                      runMatch(undefined, "");
+                    }}
+                  >
+                    {t("match.allRepos")}
+                  </button>
+                  {t("match.noIssuesAfter")}
+                </>
+              ) : (
+                t("match.noIssuesAnywhere")
+              )}
             </p>
           ) : null}
 
