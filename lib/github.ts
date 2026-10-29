@@ -505,6 +505,13 @@ export async function isPublicRepo(owner: string, repo: string): Promise<boolean
   });
 }
 
+/** Private, internal and missing repos all read as "not found". */
+export async function requirePublicRepo(owner: string, repo: string): Promise<void> {
+  if (!(await isPublicRepo(owner, repo))) {
+    throw new GitHubError(REPO_NOT_FOUND_MSG, "not_found");
+  }
+}
+
 /** Cached core lookup (site or app token). False when GitHub returns 404. */
 export async function githubUserExists(username: string): Promise<boolean> {
   const login = username.trim();
@@ -1000,6 +1007,32 @@ export async function getPullFiles(
             : file.patch
           : null,
       }));
+    }),
+  );
+}
+
+export const MAX_PULL_DIFF_CHARS = 300_000;
+const PULL_DIFF_TIMEOUT_MS = 10_000;
+
+/**
+ * A public PR's unified diff from the GitHub API. Callers check the repo is
+ * public first. Too-large diffs fail instead of being cut mid-hunk.
+ */
+export async function getPullDiff(owner: string, repo: string, number: number): Promise<string> {
+  return cached(`pr-diff:${owner}/${repo}:${number}`, async () =>
+    gh(async () => {
+      const { data } = await getOctokit().pulls.get({
+        owner,
+        repo,
+        pull_number: number,
+        mediaType: { format: "diff" },
+        request: { signal: AbortSignal.timeout(PULL_DIFF_TIMEOUT_MS) },
+      });
+      const diff = String(data as unknown);
+      if (diff.length > MAX_PULL_DIFF_CHARS) {
+        throw new GitHubError("That diff is too large to load here.", "github_error");
+      }
+      return diff;
     }),
   );
 }

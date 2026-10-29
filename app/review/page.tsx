@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
-import { GitPullRequestArrow } from "lucide-react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { BookOpenText, CircleDot, FileDiff, GitPullRequestArrow } from "lucide-react";
 import { useT } from "@/components/language-provider";
-import { PageIntro } from "@/components/page-intro";
+import { ToolIntro } from "@/components/tool-intro";
 import { ArrowBubble, arrowPillClass } from "@/components/ui/arrow-pill";
 import { cn } from "@/lib/utils";
 import { SavedResultDot } from "@/components/saved-result-dot";
@@ -12,9 +12,9 @@ import { Spinner } from "@/components/spinner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { friendlyErrorMessage } from "@/lib/api-errors";
+import { parseGitHubInput } from "@/lib/parse-github-input";
 import type { ReviewResult } from "@/lib/review-format";
 
 type ReviewApiResponse = ReviewResult & {
@@ -27,6 +27,18 @@ type ReviewApiResponse = ReviewResult & {
   pr?: { title: string; htmlUrl: string };
 };
 
+type DiffLinkResponse = {
+  owner?: string;
+  repo?: string;
+  number?: number;
+  diff?: string;
+  issueNumber?: number | null;
+  error?: string;
+  code?: string;
+};
+
+type Tab = "pr" | "diff";
+
 function subscribeQuery() {
   return () => {};
 }
@@ -35,21 +47,40 @@ function readPrQuery(): string {
   return new URLSearchParams(window.location.search).get("pr")?.trim() ?? "";
 }
 
-const DEFAULT_PR = "https://github.com/nishal21/NekoDroid/pull/7";
+/** A pasted PR, .diff or .patch link as a canonical github.com PR URL, else null. */
+function pullLink(raw: string): { url: string; owner: string; repo: string; number: number } | null {
+  const text = raw.trim();
+  if (!text || /\s/.test(text)) return null;
+  const parsed = parseGitHubInput(text);
+  if (parsed.kind !== "pull") return null;
+  return {
+    url: `https://github.com/${parsed.owner}/${parsed.repo}/pull/${parsed.number}`,
+    owner: parsed.owner,
+    repo: parsed.repo,
+    number: parsed.number,
+  };
+}
+
+const fieldClass =
+  "sticker-field mt-1.5 min-h-11 h-11 w-full rounded-none text-base md:text-sm";
 
 export default function ReviewPage() {
   const t = useT();
   const queryPr = useSyncExternalStore(subscribeQuery, readPrQuery, () => "");
-  const [tab, setTab] = useState("pr");
-  const [prUrl, setPrUrl] = useState(DEFAULT_PR);
+  const [tab, setTab] = useState<Tab>("pr");
+  const [prUrl, setPrUrl] = useState("");
   const [appliedPr, setAppliedPr] = useState("");
   if (queryPr && queryPr !== appliedPr) {
     setAppliedPr(queryPr);
     setPrUrl(queryPr);
   }
   const [diff, setDiff] = useState("");
-  const [repo, setRepo] = useState("nishal21/NekoDroid");
+  const [repo, setRepo] = useState("");
   const [issueNumber, setIssueNumber] = useState("");
+  const [diffLoading, setDiffLoading] = useState(false);
+  const [diffNote, setDiffNote] = useState<{ ok: boolean; text: string } | null>(null);
+  const diffRequest = useRef(0);
+  const [prProblem, setPrProblem] = useState(false);
   const [loading, setLoading] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -77,9 +108,67 @@ export default function ReviewPage() {
     return () => clearInterval(id);
   }, [loading, loadingSteps.length]);
 
+  /** The diff box got a PR or .diff link: load that diff and fill repo and issue. */
+  async function loadDiffLink(link: NonNullable<ReturnType<typeof pullLink>>) {
+    const id = ++diffRequest.current;
+    setDiffLoading(true);
+    setDiffNote(null);
+    try {
+      const res = await fetch("/api/review/diff", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: link.url }),
+      });
+      const json = (await res.json()) as DiffLinkResponse;
+      if (id !== diffRequest.current) return;
+      if (!res.ok || !json.diff) {
+        setDiffNote({
+          ok: false,
+          text: friendlyErrorMessage(json.code, json.error || t("review.loadDiffFailed")),
+        });
+        return;
+      }
+      setDiff(json.diff);
+      setRepo(`${link.owner}/${link.repo}`);
+      if (json.issueNumber) setIssueNumber(String(json.issueNumber));
+      setDiffNote({
+        ok: true,
+        text: t("review.loadedDiff", { ref: `${link.owner}/${link.repo}#${link.number}` }),
+      });
+    } catch {
+      if (id === diffRequest.current) setDiffNote({ ok: false, text: t("review.loadDiffFailed") });
+    } finally {
+      if (id === diffRequest.current) setDiffLoading(false);
+    }
+  }
+
+  function onDiffChange(next: string) {
+    setDiff(next);
+    const link = pullLink(next);
+    if (link) void loadDiffLink(link);
+    else if (diffNote && !diffNote.ok) setDiffNote(null);
+  }
+
   async function run() {
-    if (loading) return;
-    if (tab === "pr" ? !prUrl.trim() : !diff.trim()) return;
+    if (loading || diffLoading) return;
+    let body: Record<string, unknown>;
+    if (tab === "pr") {
+      const link = pullLink(prUrl);
+      if (!link) {
+        setPrProblem(true);
+        return;
+      }
+      body = { prUrl: link.url };
+    } else {
+      if (!diff.trim()) return;
+      const link = pullLink(diff);
+      if (link) return void loadDiffLink(link);
+      body = {
+        diff: diff.trim(),
+        repo: repo.trim() || undefined,
+        issueNumber: issueNumber.trim() ? Number(issueNumber.trim()) : undefined,
+      };
+    }
 
     setLoading(true);
     setError(null);
@@ -87,17 +176,6 @@ export default function ReviewPage() {
     setResult(null);
 
     try {
-      const body =
-        tab === "pr"
-          ? { prUrl: prUrl.trim() }
-          : {
-              diff: diff.trim(),
-              repo: repo.trim() || undefined,
-              issueNumber: issueNumber.trim()
-                ? Number(issueNumber.trim())
-                : undefined,
-            };
-
       const res = await fetch("/api/review", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -119,101 +197,137 @@ export default function ReviewPage() {
     }
   }
 
+  const tabs: { id: Tab; label: string }[] = [
+    { id: "pr", label: t("review.tabPr") },
+    { id: "diff", label: t("review.tabDiff") },
+  ];
+
   return (
     <>
-    <PageIntro
-      eyebrow={
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/15 bg-white/80 px-3 py-1 text-accent-foreground backdrop-blur dark:border-[var(--ink)] dark:bg-[var(--paper)] dark:text-[var(--ink)]">
-          <GitPullRequestArrow className="size-4 text-primary" aria-hidden />
-          {t("steps.step", { n: 3 })} · {t("flow.review")}
-        </span>
-      }
+    <ToolIntro
+      icon={GitPullRequestArrow}
+      step={`${t("steps.step", { n: 3 })} · ${t("flow.review")}`}
       title={t("review.title")}
       subtitle={t("review.subtitle")}
+      chipsLabel={t("review.checksLabel")}
+      chips={[
+        { icon: CircleDot, label: t("review.checkIssue") },
+        { icon: BookOpenText, label: "CONTRIBUTING.md" },
+        { icon: FileDiff, label: t("review.checkDiff") },
+      ]}
     />
     <section className="mx-auto max-w-5xl px-4 py-8 sm:px-6 md:py-12">
       <form
-        className="min-w-0 rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6"
+        className="ink-card min-w-0 p-4 sm:p-6"
         onSubmit={(e) => {
           e.preventDefault();
           void run();
         }}
       >
-        <Tabs value={tab} onValueChange={(v) => setTab(String(v))}>
-          <div className="mb-4 max-w-full overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <TabsList
-              variant="line"
-              className="inline-flex h-auto min-h-11 w-max max-w-none sm:w-auto"
+        <div role="tablist" aria-label={t("review.title")} className="sticker-seg w-full sm:w-auto">
+          {tabs.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              role="tab"
+              id={`review-tab-${item.id}`}
+              aria-selected={tab === item.id}
+              aria-controls={`review-panel-${item.id}`}
+              className="sticker-seg-option flex-1 sm:flex-none"
+              onClick={() => setTab(item.id)}
             >
-              <TabsTrigger
-                value="pr"
-                className="min-h-11 flex-none px-4 sm:flex-none"
-              >
-                {t("review.tabPr")}
-              </TabsTrigger>
-              <TabsTrigger
-                value="diff"
-                className="min-h-11 flex-none px-4 sm:flex-none"
-              >
-                {t("review.tabDiff")}
-              </TabsTrigger>
-            </TabsList>
-          </div>
+              {item.label}
+            </button>
+          ))}
+        </div>
 
-          <TabsContent value="pr" className="space-y-3">
-            <label className="block text-sm font-medium text-foreground">
+        {tab === "pr" ? (
+          <div role="tabpanel" id="review-panel-pr" aria-labelledby="review-tab-pr" className="mt-5">
+            <label className="block text-sm font-semibold text-foreground">
               {t("review.prUrl")}
               <Input
-                className="mt-1.5 min-h-11 h-11 w-full rounded-xl border-border focus-visible:border-primary focus-visible:ring-ring/30"
+                className={fieldClass}
                 placeholder={t("review.prUrlPlaceholder")}
                 value={prUrl}
-                onChange={(e) => setPrUrl(e.target.value)}
+                onChange={(e) => {
+                  setPrUrl(e.target.value);
+                  setPrProblem(false);
+                }}
                 disabled={loading}
+                autoComplete="off"
+                spellCheck={false}
+                aria-invalid={prProblem || undefined}
               />
             </label>
-          </TabsContent>
-
-          <TabsContent value="diff" className="space-y-3">
-            <label className="block text-sm font-medium text-foreground">
+            <p className={cn("mt-2 text-sm", prProblem ? "text-destructive" : "text-foreground/70")} role={prProblem ? "alert" : undefined}>
+              {prProblem ? t("review.prUrlInvalid") : t("review.prUrlHelp")}
+            </p>
+          </div>
+        ) : (
+          <div role="tabpanel" id="review-panel-diff" aria-labelledby="review-tab-diff" className="mt-5 space-y-4">
+            <label className="block text-sm font-semibold text-foreground">
               {t("review.diff")}
               <Textarea
-                className="mt-1.5 min-h-40 w-full max-w-full overflow-x-auto rounded-xl border-border font-mono text-sm focus-visible:border-primary focus-visible:ring-ring/30"
+                className="sticker-field font-plex mt-1.5 min-h-44 max-h-80 w-full max-w-full overflow-auto rounded-none text-[13px] leading-relaxed [field-sizing:fixed]"
                 placeholder={t("review.diffPlaceholder")}
                 value={diff}
-                onChange={(e) => setDiff(e.target.value)}
-                disabled={loading}
+                onChange={(e) => onDiffChange(e.target.value)}
+                disabled={loading || diffLoading}
+                spellCheck={false}
               />
             </label>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <label className="block min-w-0 text-sm font-medium text-foreground">
+            <p
+              className={cn(
+                "flex min-h-5 items-center gap-2 text-sm",
+                diffNote && !diffNote.ok ? "text-destructive" : "text-foreground/70",
+              )}
+              aria-live="polite"
+            >
+              {diffLoading ? (
+                <>
+                  <Spinner />
+                  {t("review.loadingDiff")}
+                </>
+              ) : diffNote ? (
+                <span className={cn(diffNote.ok && "check-chip")}>{diffNote.text}</span>
+              ) : (
+                t("review.diffHelp")
+              )}
+            </p>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <label className="block min-w-0 text-sm font-semibold text-foreground">
                 {t("review.repo")}
                 <Input
-                  className="mt-1.5 min-h-11 h-11 w-full rounded-xl border-border focus-visible:border-primary focus-visible:ring-ring/30"
+                  className={fieldClass}
                   placeholder={t("review.repoPlaceholder")}
                   value={repo}
                   onChange={(e) => setRepo(e.target.value)}
                   disabled={loading}
+                  autoComplete="off"
+                  spellCheck={false}
                 />
               </label>
-              <label className="block min-w-0 text-sm font-medium text-foreground">
+              <label className="block min-w-0 text-sm font-semibold text-foreground">
                 {t("review.issueNumber")}
                 <Input
-                  className="mt-1.5 min-h-11 h-11 w-full rounded-xl border-border focus-visible:border-primary focus-visible:ring-ring/30"
+                  className={fieldClass}
                   placeholder={t("review.issuePlaceholder")}
                   value={issueNumber}
-                  onChange={(e) => setIssueNumber(e.target.value)}
+                  onChange={(e) => setIssueNumber(e.target.value.replace(/[^\d]/g, ""))}
                   disabled={loading}
+                  inputMode="numeric"
+                  autoComplete="off"
                 />
               </label>
             </div>
-          </TabsContent>
-        </Tabs>
+          </div>
+        )}
 
         <button
           type="submit"
-          className={cn(arrowPillClass, "mt-5 w-full sm:w-auto")}
+          className={cn(arrowPillClass, "mt-6 w-full sm:w-auto")}
           disabled={
-            loading || (tab === "pr" ? !prUrl.trim() : !diff.trim())
+            loading || diffLoading || (tab === "pr" ? !prUrl.trim() : !diff.trim())
           }
         >
           {loading ? t("review.running") : t("review.submit")}
@@ -266,12 +380,12 @@ export default function ReviewPage() {
       ) : null}
 
       {error ? (
-        <div className="mt-8 rounded-xl border border-red-200 bg-red-50 p-5 shadow-sm">
-          <p className="text-sm text-red-800 break-words">{error}</p>
+        <div className="ink-card mt-8 p-5" role="alert">
+          <p className="text-sm font-medium break-words">{error}</p>
           <Button
             type="button"
             variant="outline"
-            className="mt-3 min-h-11 rounded-xl border-border"
+            className="sticker-pill mt-3 rounded-none"
             onClick={() => void run()}
           >
             {t("review.retry")}

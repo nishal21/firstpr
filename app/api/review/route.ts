@@ -13,6 +13,7 @@ import {
   getRepo,
   parsePrUrl,
   parseRepo,
+  requirePublicRepo,
   type GoodFirstIssue,
   type PullRequestInfo,
 } from "@/lib/github";
@@ -75,6 +76,7 @@ export async function POST(request: Request) {
 
 async function reviewFromPrUrl(prUrl: string, lang: string | null) {
   const { owner, repo, number } = parsePrUrl(prUrl);
+  await requirePublicRepo(owner, repo);
   const [pr, files] = await Promise.all([
     getPullRequest(owner, repo, number),
     getPullFiles(owner, repo, number),
@@ -155,6 +157,7 @@ async function reviewFromDiff(opts: {
     const parsed = parseRepo(opts.repo);
     owner = parsed.owner;
     repoName = parsed.repo;
+    await requirePublicRepo(owner, repoName);
     try {
       const repoInfo = await getRepo(owner, repoName);
       treeSha = repoInfo.headSha;

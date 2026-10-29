@@ -1,7 +1,7 @@
 import { assessDifficulty, difficultyBadgeLabel } from "@/lib/difficulty";
 import { env } from "@/lib/env";
 import {
-  isPublicRepo,
+  requirePublicRepo,
   getUserLanguages,
   githubUserExists,
   GitHubError,
@@ -139,13 +139,6 @@ function scoreIssue(
 }
 
 const FALLBACK_OWNER = "nishal21";
-
-/** Private, internal and missing repos all read as "not found". */
-async function requirePublicRepo(owner: string, repo: string): Promise<void> {
-  if (!(await isPublicRepo(owner, repo))) {
-    throw new GitHubError(REPO_NOT_FOUND_MSG, "not_found");
-  }
-}
 
 /**
  * Resolve a forgiving repo field: owner/repo, GitHub URL, or bare name.
