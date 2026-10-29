@@ -453,7 +453,7 @@ export function SiteSearch({
           id={listId}
           role="listbox"
           className="search-popover py-1"
-        >,
+        >
           {rows.map((row, index) => {
             const showGroup = index === 0 || rows[index - 1]?.group !== row.group;
             return (
