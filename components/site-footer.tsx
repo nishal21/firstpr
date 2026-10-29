@@ -6,6 +6,14 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { useT } from "@/components/language-provider";
 
+const RING = Array.from({ length: 64 }, (_, index) => {
+  const angle = (index / 64) * Math.PI * 2;
+  return {
+    cx: (100 + Math.cos(angle) * 78).toFixed(2),
+    cy: (100 + Math.sin(angle) * 78).toFixed(2),
+  };
+});
+
 const SOURCE_URL = "https://github.com/nishal21/firstpr";
 const LICENSE_URL = "https://github.com/nishal21/firstpr/blob/main/LICENSE";
 const BOT_URL = "https://github.com/apps/firstprbot";
@@ -201,18 +209,9 @@ export function SiteFooter() {
         >
           <div className="footer-ringwrap" aria-hidden>
             <svg className="footer-ring" viewBox="0 0 200 200">
-              {Array.from({ length: 64 }, (_, index) => {
-                const angle = (index / 64) * Math.PI * 2;
-                return (
-                  <circle
-                    key={index}
-                    cx={100 + Math.cos(angle) * 78}
-                    cy={100 + Math.sin(angle) * 78}
-                    r="2.15"
-                    fill="currentColor"
-                  />
-                );
-              })}
+              {RING.map((dot, index) => (
+                <circle key={index} cx={dot.cx} cy={dot.cy} r="2.15" fill="currentColor" />
+              ))}
             </svg>
             <Image
               src="/brand/logo-mark-512.png"

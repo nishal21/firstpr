@@ -287,3 +287,7 @@
 - Recent clear must set `recentSource = undefined` before the storage event, or `useSyncExternalStore` keeps the old array.
 - New copy goes in `lib/i18n-en.ts` and both dictionaries in `lib/i18n-ml-hi.ts`.
 - Next: if a phone sheet covers the field, anchor it to the input bottom, not the screen bottom. Do not open a pull request; push `redesign-footer-hero`.
+
+## 2026-10-29 — Footer ring hydration
+- Do not put `Math.cos` / `Math.sin` straight into SVG attributes. Server and client can disagree by one ulp. Round with `toFixed(2)` in a module-level `RING` array.
+- Animated gallery, excluding the three rejected references: Eclipse (https://www.eclipse.space/) is the one to keep. Digital Metal and The Content Architecture were the other two worth a look; Dirt and Buzz rely on filters.

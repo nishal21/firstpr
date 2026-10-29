@@ -271,3 +271,7 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - Empty field shows Paste a link, Browse good first issues, By language, then recent searches (Clear writes `[]` to `firstpr-recent-searches`).
 - Open-issue skeletons stay up until `/api/search` settles, so the empty line does not flash. Hits now include `labels` and `createdAt` (`text-gfi-v2` cache key).
 - Under 640px the panel is a full-width sheet. Open/close animation is transform and opacity only. `.dark` uses the popover tokens.
+
+## 2026-10-29 — Eclipse footer, ring coordinates
+- Gallery pass on https://www.footer.design/styles/animated (12 sites). Aperios, hellohello, and Turion stay out. Built footer is Eclipse Space: https://www.eclipse.space/ — one ring, one cat.
+- Ring dots are rounded to 2 decimals in `RING` before render. Raw `Math.cos` differed by one ulp between server and browser and tripped a hydration mismatch.
