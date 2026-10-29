@@ -7,6 +7,7 @@ import { retryDelayMs } from "@/lib/github-rate";
 import type { AlgoliaIssueRecord } from "@/lib/algolia-record";
 import { issueObjectId } from "@/lib/algolia-plan";
 import { getEnv } from "@/lib/env";
+import { isPublicRepoData } from "@/lib/repo-visibility";
 
 export type GitHubErrorCode =
   | "rate_limited"
@@ -484,6 +485,24 @@ export async function getRepo(owner: string, repo: string): Promise<RepoInfo> {
       };
     }),
   );
+}
+
+/**
+ * True only for a public repo. Private, internal and missing repos are false,
+ * so user-pasted repos never surface issues the site token can see privately.
+ */
+export async function isPublicRepo(owner: string, repo: string): Promise<boolean> {
+  return cached(`repo-public:${owner.toLowerCase()}/${repo.toLowerCase()}`, async () => {
+    try {
+      return await gh(async () => {
+        const { data } = await getOctokit().repos.get({ owner, repo });
+        return isPublicRepoData(data);
+      });
+    } catch (err) {
+      if (err instanceof GitHubError && err.code === "not_found") return false;
+      throw err;
+    }
+  });
 }
 
 /** Cached core lookup (site or app token). False when GitHub returns 404. */

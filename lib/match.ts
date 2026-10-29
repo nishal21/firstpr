@@ -1,7 +1,7 @@
 import { assessDifficulty, difficultyBadgeLabel } from "@/lib/difficulty";
 import { env } from "@/lib/env";
 import {
-  getRepo,
+  isPublicRepo,
   getUserLanguages,
   githubUserExists,
   GitHubError,
@@ -140,6 +140,13 @@ function scoreIssue(
 
 const FALLBACK_OWNER = "nishal21";
 
+/** Private, internal and missing repos all read as "not found". */
+async function requirePublicRepo(owner: string, repo: string): Promise<void> {
+  if (!(await isPublicRepo(owner, repo))) {
+    throw new GitHubError(REPO_NOT_FOUND_MSG, "not_found");
+  }
+}
+
 /**
  * Resolve a forgiving repo field: owner/repo, GitHub URL, or bare name.
  * Bare name tries `username/repo`, then `nishal21/repo`.
@@ -162,7 +169,7 @@ async function resolveMatchRepo(
       throw new GitHubError(REPO_NOT_FOUND_MSG, "not_found");
     }
     try {
-      await getRepo(parsed.owner, parsed.repo);
+      await requirePublicRepo(parsed.owner, parsed.repo);
       return parsed;
     } catch (err) {
       if (err instanceof GitHubError && err.code === "not_found") {
@@ -174,7 +181,7 @@ async function resolveMatchRepo(
 
   const bare = parseRepo(trimmed, { defaultOwner: username });
   try {
-    await getRepo(bare.owner, bare.repo);
+    await requirePublicRepo(bare.owner, bare.repo);
     return bare;
   } catch (err) {
     if (!(err instanceof GitHubError) || err.code !== "not_found") throw err;
@@ -182,7 +189,7 @@ async function resolveMatchRepo(
 
   if (username.toLowerCase() !== FALLBACK_OWNER) {
     try {
-      await getRepo(FALLBACK_OWNER, bare.repo);
+      await requirePublicRepo(FALLBACK_OWNER, bare.repo);
       return { owner: FALLBACK_OWNER, repo: bare.repo };
     } catch (err) {
       if (!(err instanceof GitHubError) || err.code !== "not_found") throw err;

@@ -366,7 +366,7 @@ export function SiteSearch({
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [live, setLive] = useState<LiveIssue[]>([]);
   const [searching, setSearching] = useState(false);
-  const [searchError, setSearchError] = useState<"rate" | "generic" | null>(null);
+  const [searchError, setSearchError] = useState<"rate" | "generic" | "missing" | null>(null);
   const [settledFor, setSettledFor] = useState<string | null>(null);
   const [trackedValue, setTrackedValue] = useState(value);
   const [panelOn, setPanelOn] = useState(false);
@@ -545,6 +545,9 @@ export function SiteSearch({
           }
           if (json.error === "rate_limited") {
             return { issues: [] as LiveIssue[], error: "rate" as const };
+          }
+          if (json.error === "repo_not_found") {
+            return { issues: [] as LiveIssue[], error: "missing" as const };
           }
           return { issues: Array.isArray(json.issues) ? json.issues : [], error: null };
         })
@@ -797,6 +800,11 @@ export function SiteSearch({
                       ) : null}
                       {group === "live" && showLiveStatus && settledFor === trimmed && searchError === "generic" ? (
                         <p className="px-3 pb-2 text-sm text-muted-foreground">{t("search.errorGeneric")}</p>
+                      ) : null}
+                      {group === "live" && showLiveStatus && settledFor === trimmed && searchError === "missing" ? (
+                        <p className="px-3 pb-2 text-sm break-words text-muted-foreground">
+                          {t("search.noPublicRepo", { repo: inputRepo ?? trimmed })}
+                        </p>
                       ) : null}
                       {group === "live" && showLiveStatus && settledFor === trimmed && !searchError ? (
                         <p className="px-3 pb-2 text-sm break-words text-muted-foreground">

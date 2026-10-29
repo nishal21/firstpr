@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { algoliaSearchEnabled, searchAlgoliaIssues } from "@/lib/algolia-search";
 import {
   GitHubError,
+  isPublicRepo,
   listGoodFirstIssues,
   searchBeginnerIssuesByText,
 } from "@/lib/github";
@@ -29,6 +30,10 @@ export async function GET(request: Request) {
   if (input.kind === "repo" || input.kind === "pull" || input.kind === "issue") {
     const { owner, repo } = input;
     try {
+      // Only public repos: the site token may see private ones.
+      if (!(await isPublicRepo(owner, repo))) {
+        return NextResponse.json({ issues: [], error: "repo_not_found", repo: `${owner}/${repo}` });
+      }
       const list = await listGoodFirstIssues(owner, repo);
       const issues = list.slice(0, REPO_LIMIT).map((issue) => ({
         owner,

@@ -16,6 +16,7 @@ export function TopicIssues({ query, language }: { query: string; language?: str
   const t = useT();
   const [hits, setHits] = useState<Hit[] | null>(null);
   const [failed, setFailed] = useState(false);
+  const [missing, setMissing] = useState(false);
   const input = parseGitHubInput(query);
   const repo = repoSlug(input);
   const notGitHub = input.kind === "url";
@@ -36,11 +37,13 @@ export function TopicIssues({ query, language }: { query: string; language?: str
       .then((json) => {
         const list = Array.isArray(json.issues) ? json.issues : [];
         setHits(list);
+        setMissing(json.error === "repo_not_found");
         setFailed(list.length === 0 && Boolean(json.error));
       })
       .catch((err: unknown) => {
         if (err instanceof DOMException && err.name === "AbortError") return;
         setFailed(true);
+        setMissing(false);
         setHits([]);
       });
     return () => controller.abort();
@@ -74,7 +77,12 @@ export function TopicIssues({ query, language }: { query: string; language?: str
       {hits === null ? (
         <p className="mt-3 text-sm text-muted-foreground">{t("search.searching")}</p>
       ) : null}
-      {empty && repo && issuesUrl ? (
+      {empty && repo && missing ? (
+        <p className="mt-3 text-sm break-words text-muted-foreground">
+          {t("match.repoNotPublic", { repo })}
+        </p>
+      ) : null}
+      {empty && repo && issuesUrl && !missing ? (
         <p className="mt-3 text-sm break-words text-muted-foreground">
           {failed ? t("match.repoFailed", { repo }) : t("match.repoEmpty", { repo })}{" "}
           <a
