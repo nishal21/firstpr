@@ -5,6 +5,7 @@ import Link from "next/link";
 import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/components/language-provider";
 import { arrowPillClass } from "@/components/ui/arrow-pill";
+import { FAQ } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
 type FreshIssue = {
@@ -52,29 +53,6 @@ const NEVER = [
   "Write your code, a commit message, or a patch.",
   "Open, push, or merge a pull request for you.",
   "Replace the maintainer’s review.",
-];
-
-const FAQ = [
-  {
-    q: "Does FirstPR write the fix?",
-    a: "No. Explain and the hint ladder are written to refuse code-for-me requests. You edit the repo yourself.",
-  },
-  {
-    q: "Which repos can it read?",
-    a: "Public GitHub repositories. Private repos are not part of this app.",
-  },
-  {
-    q: "Do I need an account?",
-    a: "No. There is no login. Match asks for a GitHub username so it can look up public languages and issues.",
-  },
-  {
-    q: "What does FirstPRbot do?",
-    a: "On a repo where the GitHub App is installed, /firstpr explain on an issue posts a guide, and /firstpr review on a pull request posts a score card. Opening or updating a PR can post that card too. The bot does not write the fix.",
-  },
-  {
-    q: "Where does my text go?",
-    a: "Issue and PR text needed for explain, hints, difficulty, and review is sent to the model provider configured on the server (OpenAI by default, optional Neysa endpoints for file picking). See the privacy page for the full list.",
-  },
 ];
 
 export function HomeMore() {

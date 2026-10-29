@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { LegalDoc, LegalSection } from "@/components/legal-doc";
 
-export const metadata: Metadata = {
-  title: "Privacy · FirstPR",
-  description: "What FirstPR collects, where it is processed, and how long it is kept.",
-};
+export const metadata: Metadata = pageMetadata({
+  title: "Privacy",
+  description:
+    "What FirstPR collects, where issue and pull request text is processed, and how long it is kept. There is no login and no account.",
+  path: "/privacy",
+});
 
 const TOC = [
   { id: "who", label: "Who operates FirstPR" },

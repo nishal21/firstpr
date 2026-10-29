@@ -90,13 +90,17 @@ export function IssueExplain({
   owner,
   repo,
   number,
+  heading,
 }: {
   owner: string;
   repo: string;
   number: number;
   lang?: string | null;
+  /** Issue title known on the server, shown as the page heading while the guide loads. */
+  heading?: string | null;
 }) {
   const t = useT();
+  const pageHeading = heading?.trim() || `${owner}/${repo}#${number}`;
   const [data, setData] = useState<ExplainApiResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [fromCache, setFromCache] = useState(false);
@@ -164,11 +168,13 @@ export function IssueExplain({
   if (loading) {
     return (
       <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
-        <p className="mb-6 text-sm font-medium text-primary">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground break-words sm:text-3xl">
+          {pageHeading}
+        </h1>
+        <p className="mt-3 text-sm font-medium text-primary">
           {loadingSteps[stepIndex]}…
         </p>
-        <div className="space-y-6">
-          <Skeleton className="h-8 w-2/3 rounded-lg bg-muted" />
+        <div className="mt-6 space-y-6">
           <Skeleton className="h-4 w-40 rounded-lg bg-muted" />
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <Skeleton className="h-28 w-full rounded-xl bg-muted" />
@@ -184,6 +190,9 @@ export function IssueExplain({
   if (error || !data) {
     return (
       <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
+        <h1 className="mb-6 text-2xl font-semibold tracking-tight text-foreground break-words sm:text-3xl">
+          {pageHeading}
+        </h1>
         <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
           <p className="text-sm text-foreground break-words">
             {error || t("explain.somethingWrong")}

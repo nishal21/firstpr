@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import Link from "next/link";
 
-export const metadata: Metadata = {
-  title: "Credits · FirstPR",
-  description: "People, fonts, libraries, and services used to build FirstPR.",
-};
+export const metadata: Metadata = pageMetadata({
+  title: "Credits",
+  description:
+    "The people, fonts, open-source libraries, and services used to build FirstPR, with links to each.",
+  path: "/credits",
+});
 
 const FONTS = [
   {

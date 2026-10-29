@@ -94,7 +94,8 @@ export function HomeBotSection() {
   const t = useT();
   return (
     <section
-      className="mx-auto max-w-5xl px-4 pt-4 pb-2 sm:px-6 md:pt-6 md:pb-3"
+      id="bot"
+      className="mx-auto max-w-5xl scroll-mt-20 px-4 pt-4 pb-2 sm:px-6 md:pt-6 md:pb-3"
       aria-labelledby="bot-heading"
     >
       <div className="ink-card bot-wall p-5 sm:p-8">

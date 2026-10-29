@@ -1,10 +1,13 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo";
 import { LegalDoc, LegalSection } from "@/components/legal-doc";
 
-export const metadata: Metadata = {
-  title: "Terms · FirstPR",
-  description: "Terms for using the FirstPR site and FirstPRbot.",
-};
+export const metadata: Metadata = pageMetadata({
+  title: "Terms",
+  description:
+    "Terms for using the FirstPR website and the FirstPRbot GitHub App, including acceptable use and the AGPL-3.0 license.",
+  path: "/terms",
+});
 
 const TOC = [
   { id: "accept", label: "Acceptance" },

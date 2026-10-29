@@ -18,6 +18,9 @@ import { SearchProvider } from "@/components/search-provider";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { Toaster } from "@/components/ui/sonner";
+import { JsonLd } from "@/components/json-ld";
+import { KEYWORDS, MAKERS, ORG_NAME, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
+import { siteGraph } from "@/lib/structured-data";
 import { cn } from "@/lib/utils";
 import "./globals.css";
 
@@ -108,43 +111,50 @@ const notoArabic = Noto_Sans_Arabic({
   preload: false,
 });
 
-const siteDescription =
-  "Find a beginner issue, see where to look, and check your PR before a maintainer does.";
+const verification: Metadata["verification"] = {};
+if (process.env.GOOGLE_SITE_VERIFICATION) verification.google = process.env.GOOGLE_SITE_VERIFICATION;
+if (process.env.BING_SITE_VERIFICATION) verification.other = { "msvalidate.01": process.env.BING_SITE_VERIFICATION };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://firstpr-coral.vercel.app"),
-  title: "FirstPR",
-  description: siteDescription,
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: `${SITE_NAME}: find, understand, and review your first open-source PR`,
+    template: `%s · ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  keywords: KEYWORDS,
+  authors: MAKERS.map((name) => ({ name })),
+  creator: "Nishal K",
+  publisher: ORG_NAME,
+  category: "technology",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+  },
   openGraph: {
-    title: "FirstPR",
-    description: siteDescription,
-    url: "https://firstpr-coral.vercel.app",
-    images: [
-      {
-        url: "/brand/logo-full.png",
-        width: 1874,
-        height: 714,
-        alt: "FirstPR",
-      },
-    ],
+    type: "website",
+    siteName: SITE_NAME,
+    locale: "en_US",
+    url: "/",
+    title: `${SITE_NAME}: find, understand, and review your first open-source PR`,
+    description: SITE_DESCRIPTION,
   },
   twitter: {
     card: "summary_large_image",
-    title: "FirstPR",
-    description: siteDescription,
-    images: [
-      {
-        url: "/brand/logo-full.png",
-        width: 1874,
-        height: 714,
-        alt: "FirstPR",
-      },
-    ],
+    title: `${SITE_NAME}: find, understand, and review your first open-source PR`,
+    description: SITE_DESCRIPTION,
   },
+  ...(Object.keys(verification).length ? { verification } : {}),
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0473FD",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#0473FD" },
+    { media: "(prefers-color-scheme: dark)", color: "#0c1730" },
+  ],
+  colorScheme: "light dark",
 };
 
 export default function RootLayout({
@@ -183,6 +193,7 @@ export default function RootLayout({
         </LanguageProvider>
         </ThemeProvider>
         <Toaster />
+        <JsonLd data={siteGraph()} />
       </body>
     </html>
   );
