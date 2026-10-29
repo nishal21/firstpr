@@ -49,17 +49,17 @@ export async function POST(req: Request) {
   // GitHub wants a reply within ~10s; do LLM work after the response.
   after(async () => {
     try {
-      await app.webhooks.verifyAndReceive({
+      // Signature was checked above; parse once and hand the event over.
+      await app.webhooks.receive({
         id,
         // Event name comes from GitHub; cast through unknown for Octokit unions.
         name: name as never,
-        signature,
-        payload,
+        payload: JSON.parse(payload),
       });
       console.log(`[webhook] finished ${name} delivery=${id}`);
     } catch (err) {
       console.error(
-        "[webhook] verifyAndReceive failed:",
+        "[webhook] receive failed:",
         err instanceof Error ? err.message : err,
       );
     }
