@@ -80,6 +80,7 @@ export function SiteFooter() {
       links: [
         { href: "/privacy", label: t("footer.privacy") },
         { href: "/terms", label: t("footer.terms") },
+        { href: "/credits", label: t("footer.credits") },
       ],
     },
   ];

@@ -123,6 +123,8 @@ export const en = {
   "footer.colLegal": "Legal",
   "footer.privacy": "Privacy",
   "footer.terms": "Terms",
+  "footer.credits": "Credits",
+  "search.toClear": "to clear",
   "home.freshTitle": "Fresh good first issues",
   "home.walkTitle": "How a first PR goes",
   "home.neverTitle": "What FirstPR will never do",

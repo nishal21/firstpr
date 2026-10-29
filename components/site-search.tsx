@@ -17,6 +17,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { useT } from "@/components/language-provider";
+import { SearchKeycaps } from "@/components/search-keycaps";
 import {
   parseOmniQuery,
   queryLooksLikeGitHubUrl,
@@ -547,11 +548,11 @@ export function SiteSearch({
         </label>
         <div
           className={cn(
-            "search-sticker flex min-h-16 items-center gap-2 py-2 pr-2 pl-3.5",
+            "search-sticker flex min-h-16 items-center gap-3 py-2 pr-2 pl-3.5",
             variant === "dialog" && "min-h-[3.25rem] shadow-none",
           )}
         >
-          <span className="font-plex shrink-0 text-sm text-[#16140f]/70" aria-hidden>
+          <span className="search-prompt font-plex shrink-0" aria-hidden>
             &gt;
           </span>
           <input
@@ -592,19 +593,22 @@ export function SiteSearch({
             }}
             className="min-w-0 flex-1 bg-transparent text-base outline-none sm:text-lg"
           />
-          <kbd className="font-plex hidden shrink-0 border-2 border-[#16140f] bg-[#fffdf8] px-1.5 py-0.5 text-[11px] text-[#16140f] sm:inline-flex">
-            /
-          </kbd>
-          <kbd className="font-plex hidden shrink-0 border-2 border-[#16140f] bg-[#fffdf8] px-1.5 py-0.5 text-[11px] text-[#16140f] sm:inline-flex">
-            {t("hero.kbd")}
-          </kbd>
-          <button
-            type="submit"
-            className="inline-flex size-11 shrink-0 items-center justify-center border-[3px] border-[#16140f] bg-[#0473fd] text-white outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#16140f]"
-            aria-label={t("search.go")}
-          >
+          <span className="flex shrink-0 items-center gap-3">
+            {variant !== "dialog" && !focused && trimmed.length === 0 ? <SearchKeycaps /> : null}
+            {variant === "hero" && trimmed.length > 0 ? (
+              <span className="search-kbd-row">
+                <kbd className="search-kbd">esc</kbd>
+                <span className="search-kbd-note">{t("search.toClear")}</span>
+              </span>
+            ) : null}
+            <button
+              type="submit"
+              className="inline-flex size-11 shrink-0 items-center justify-center border-[3px] border-[#16140f] bg-[#0473fd] text-white outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#16140f]"
+              aria-label={t("search.go")}
+            >
             <ArrowRight className="size-4" aria-hidden />
-          </button>
+            </button>
+          </span>
         </div>
       </form>
 

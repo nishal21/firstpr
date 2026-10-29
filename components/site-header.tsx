@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, Search, X } from "lucide-react";
 import { LangToggle } from "@/components/LangToggle";
+import { SearchKeycaps } from "@/components/search-keycaps";
 import { useT } from "@/components/language-provider";
 import { useSearch } from "@/components/search-provider";
 import { cn } from "@/lib/utils";
@@ -78,13 +79,11 @@ export function SiteHeader() {
           <button
             type="button"
             onClick={() => setOpen(true)}
-            className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border bg-white px-3 text-muted-foreground outline-none hover:text-primary focus-visible:ring-2 focus-visible:ring-ring/40"
+            className="inline-flex min-h-11 items-center gap-3 border-[3px] border-[#16140f] bg-[#fffdf8] px-3 text-[#16140f] shadow-[3px_3px_0_#16140f] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0473fd]"
           >
             <Search className="size-4" aria-hidden />
             <span>{t("nav.search")}</span>
-            <kbd className="rounded-md border border-border bg-[#f4f7fb] px-1.5 py-0.5 font-sans text-[11px] font-medium">
-              {t("hero.kbd")}
-            </kbd>
+            <SearchKeycaps />
           </button>
           {NAV_LINKS.map((link) => {
             const active = linkActive(pathname, link.href);
