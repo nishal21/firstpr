@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import type { ExplainIssueResult } from "@/lib/explain";
 
 const SITE_ORIGIN = "https://firstpr-coral.vercel.app";
@@ -119,17 +120,60 @@ const GOOD_FIRST_RE =
 const TEST_PATH_RE =
   /(^|\/)(tests?|__tests__|spec|specs)\/|\.(test|spec)\.[a-z0-9]+$|_test\.(go|py|rs)$|(^|\/)test_[^/]+\.py$/i;
 
-/** Squash text into one safe table cell / list line. */
-function cell(text: string, max = 110): string {
+/** Squash model or user text into one safe line of prose. */
+function prose(text: string, max = 110): string {
   let t = text
     .replace(/```[\s\S]*?```/g, " ")
     .replace(/\s+/g, " ")
-    .replace(/\|/g, "\\|")
+    .replace(/\s*\|\s*/g, ", ")
     .replace(/@(?=[A-Za-z0-9])/g, "@\u200b")
     .replace(/<!--/g, "&lt;!--")
+    .replace(/^[,\s]+|[,\s]+$/g, "")
     .trim();
   if (t.length > max) t = `${t.slice(0, max - 1).trimEnd()}…`;
   return t;
+}
+
+/** Same as prose, with pipes escaped so the text can sit in a table cell. */
+function cell(text: string, max = 110): string {
+  return prose(text.replace(/\|/g, "\u0000"), max).replace(/\u0000/g, "\\|");
+}
+
+/** A full sentence: capital first letter, ends with a period. */
+function sentence(text: string, max = 150): string {
+  let t = prose(text, max);
+  if (!t) return t;
+  // Capitalize plain words only, never code like formatDate or package-lock.json.
+  if (/^[a-z]+(?=[\s,;:]|$)/.test(t)) t = t.charAt(0).toUpperCase() + t.slice(1);
+  return /[.!?…]$/.test(t) ? t : `${t}.`;
+}
+
+/** GitHub's "Files changed" anchor for a file, optionally at a line on the new side. */
+export function diffUrl(prUrl: string, path: string, line?: number): string {
+  const hash = createHash("sha256").update(path).digest("hex");
+  return `${prUrl}/files#diff-${hash}${line ? `R${line}` : ""}`;
+}
+
+/** True when the PR changes at least one test file. */
+function hasTestChanges(input: PrCommentInput): boolean {
+  if (input.files.some((f) => TEST_PATH_RE.test(f.filename))) return true;
+  return find(input, "tests_touched")?.status === "pass";
+}
+
+const TEST_CLAIM_RE = /\b(tests?|specs?|tested|testing)\b/i;
+
+/**
+ * Evidence for a check. Model-written ("AI read") notes can't claim tests when
+ * no test files changed; those clauses are dropped.
+ */
+function evidence(input: PrCommentInput, c: { evidence: string; source: "rule" | "ai" }): string {
+  if (c.source !== "ai" || hasTestChanges(input) || !TEST_CLAIM_RE.test(c.evidence)) {
+    return c.evidence;
+  }
+  const kept = c.evidence
+    .split(/\s*(?:;|,|\band\b|\bbut\b)\s*/i)
+    .filter((part) => part && !TEST_CLAIM_RE.test(part));
+  return kept.length > 0 ? kept.join("; ") : "Couldn't confirm from the diff (no test files changed)";
 }
 
 function find(input: PrCommentInput, id: string) {
@@ -214,11 +258,11 @@ function checklistTable(input: PrCommentInput): string[] {
   }
 
   const done = find(input, "issue_done_when");
-  if (issue && done) rows.push(["Covers the issue", word(done.status), cell(done.evidence)]);
+  if (issue && done) rows.push(["Covers the issue", word(done.status), cell(evidence(input, done))]);
 
   const contributing = find(input, "contributing_rules");
   if (contributing) {
-    rows.push(["CONTRIBUTING.md", word(contributing.status), cell(contributing.evidence)]);
+    rows.push(["CONTRIBUTING.md", word(contributing.status), cell(evidence(input, contributing))]);
   }
 
   const tests = find(input, "tests_touched");
@@ -258,14 +302,24 @@ function maintainerFocus(input: PrCommentInput): string[] {
 
   for (const n of notes) {
     if (out.length >= 3) break;
-    const loc = `\`${cell(n.path, 80)}:${n.line}\``;
-    const link = n.filesChangedUrl ? `[${loc}](${n.filesChangedUrl})` : loc;
-    out.push(`- ${link}: ${cell(n.comment, 140)}`);
+    const loc = `\`${prose(n.path, 80)}:${n.line}\``;
+    const url = n.filesChangedUrl ?? diffUrl(input.prUrl, n.path, n.line);
+    out.push(`- [${loc}](${url}): ${sentence(n.comment, 140)}`);
   }
 
   const forbidden = find(input, "forbidden_files");
   if (out.length < 3 && forbidden?.status === "fail") {
-    out.push(`- ${cell(forbidden.evidence, 140)}`);
+    const hit = input.files.find((f) => forbidden.evidence.includes(f.filename));
+    const why = hit
+      ? forbidden.evidence
+          .replace(hit.filename, "this file")
+          .replace(/^this file changed,\s*/i, "changed, but ")
+      : forbidden.evidence;
+    out.push(
+      hit
+        ? `- [\`${prose(hit.filename, 80)}\`](${diffUrl(input.prUrl, hit.filename)}): ${sentence(why, 140)}`
+        : `- ${sentence(why, 140)}`,
+    );
   }
 
   if (out.length === 0) {
@@ -275,7 +329,7 @@ function maintainerFocus(input: PrCommentInput): string[] {
       .slice(0, 2);
     biggest.forEach((f, i) => {
       out.push(
-        `- [\`${cell(f.filename, 80)}\`](${input.prUrl}/files) (+${f.additions} −${f.deletions})${i === 0 ? ", the largest change in this PR" : ""}`,
+        `- [\`${prose(f.filename, 80)}\`](${diffUrl(input.prUrl, f.filename)}): +${f.additions} −${f.deletions}${i === 0 ? ", the largest change in this PR." : "."}`,
       );
     });
   }
@@ -303,7 +357,7 @@ function contributorSteps(input: PrCommentInput, verdict: PrCommentVerdict): str
     .sort((a, b) => (a.status === "fail" ? 0 : 1) - (b.status === "fail" ? 0 : 1));
   for (const c of open) {
     if (steps.length >= 3) break;
-    steps.push(`${c.label}: ${cell(c.fix ?? "", 150)}`);
+    steps.push(sentence(c.fix ?? "", 150));
   }
 
   if (steps.length === 0) {
@@ -322,17 +376,17 @@ function fullScoring(input: PrCommentInput): string[] {
   ];
   for (const c of input.review.checklist) {
     lines.push(
-      `| ${cell(c.label, 40)} | ${word(c.status, "Pass", "Check", "Fail")} | ${c.source === "ai" ? "AI read" : "Rule"} | ${cell(c.evidence, 160)} |`,
+      `| ${cell(c.label, 40)} | ${word(c.status, "Pass", "Check", "Fail")} | ${c.source === "ai" ? "AI read" : "Rule"} | ${cell(evidence(input, c), 160)} |`,
     );
   }
   const qs = input.review.questions_a_maintainer_would_ask.slice(0, 3);
   if (qs.length > 0) {
     lines.push("", "**Questions a maintainer might ask**", "");
-    for (const q of qs) lines.push(`- ${cell(q, 200)}`);
+    for (const q of qs) lines.push(`- ${prose(q, 200)}`);
   }
   lines.push(
     "",
-    `Checked commit \`${input.headSha.slice(0, 7)}\`. Rule checks come from the PR, the issue and CONTRIBUTING.md; "AI read" items compare the diff with the issue and can be wrong.`,
+    `Checked commit \`${input.headSha.slice(0, 7)}\`. Rule checks read the PR, the issue and CONTRIBUTING.md. Rows marked "AI read" are a model's guess from the diff and the issue. They can be wrong, so check them yourself.`,
     "",
     "</details>",
   );

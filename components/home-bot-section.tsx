@@ -69,8 +69,8 @@ function CommentPreview() {
 
           <p className="bot-preview-h">What a maintainer should look at</p>
           <p className="bot-preview-line">
-            <code className="font-plex">src/date/format.ts:48</code>
-            <span> reads the timezone from the request now.</span>
+            <code className="bot-preview-link font-plex">src/date/format.ts:48</code>
+            <span>: Reads the timezone from the request now.</span>
           </p>
 
           <p className="bot-preview-h">For the contributor</p>

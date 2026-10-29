@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { parseBotConfig } from "../lib/bot-config.ts";
 import { parseLinkedIssueNumbers } from "../lib/linked-issues.ts";
 import {
+  diffUrl,
   formatPrComment,
   prCommentVerdict,
   PR_COMMENT_MARKER,
@@ -60,7 +61,9 @@ const base: PrCommentInput = {
       { id: "issue_done_when", label: "Issue Done when", status: "pass", evidence: "formatDate now takes the user's timezone and the test covers IST and PST", fix: null, source: "ai" },
       { id: "contributing_rules", label: "CONTRIBUTING rules", status: "pass", evidence: "Branch, commit style and test placement follow CONTRIBUTING.md", fix: null, source: "ai" },
     ],
-    line_comments: [],
+    line_comments: [
+      { path: "src/date/format.ts", line: 48, severity: "suggestion", comment: "reads the timezone from the request now", filesChangedUrl: null },
+    ],
     questions_a_maintainer_would_ask: ["Does formatDate still default to UTC when no timezone is passed?"],
   },
 };
@@ -86,6 +89,7 @@ const needs: PrCommentInput = {
       if (c.id === "tests_touched") return { ...c, status: "fail" as const, evidence: "No test files changed", fix: "Add a test that shows the bug from #17 is fixed." };
       if (c.id === "scope") return { ...c, status: "warn" as const, evidence: "9 files changed, 252 lines changed", fix: "Keep the PR to what #17 asks; move the refactor to its own PR." };
       if (c.id === "forbidden_files") return { ...c, status: "fail" as const, evidence: "package-lock.json changed, CONTRIBUTING.md says not to commit lockfiles", fix: "Revert package-lock.json." };
+      if (c.id === "issue_done_when") return { ...c, evidence: "formatDate now takes the user's timezone from the request" };
       if (c.id === "contributing_rules") return { ...c, status: "warn" as const, evidence: "Lockfile changed; commit messages don't use the type: prefix", fix: "Reword commits as fix: ... per CONTRIBUTING.md." };
       return c;
     }),
@@ -158,6 +162,32 @@ for (const [file, input, want] of samples) {
   }
   if (outDir) writeFileSync(join(outDir, file), md + "\n");
 }
+
+const needsMd = formatPrComment(needs);
+const proseLines = needsMd.split("\n").filter((l) => !l.startsWith("| "));
+expect("needs: no escaped pipe in prose", !proseLines.some((l) => l.includes("\\|")));
+expect("needs: pipe read as comma", needsMd.includes("renames formatDate, which breaks existing imports."));
+expect("needs: no rule labels in steps", !/^\d\. (Tests touched|Forbidden files|Scope|CONTRIBUTING rules):/m.test(needsMd));
+expect("needs: revert step", needsMd.includes("Revert package-lock.json."));
+const focusLines = needsMd.split("#### What a maintainer should look at")[1].split("####")[0].split("\n").filter((l) => l.startsWith("- "));
+expect("needs: maintainer bullets end with a period", focusLines.every((l) => l.endsWith(".")));
+expect("needs: maintainer bullets linked", focusLines.every((l) => l.startsWith("- [`")));
+expect("needs: unlinked note gets a diff anchor", needsMd.includes(`(${diffUrl(needs.prUrl, "src/date/index.ts", 3)})`));
+expect("needs: no test claim without tests", !/\btests?\b.*covers|covers.*\btests?\b/i.test(needsMd));
+// A model note that claims tests is trimmed when no test file changed.
+const claims: PrCommentInput = {
+  ...needs,
+  review: {
+    ...needs.review,
+    checklist: needs.review.checklist.map((c) =>
+      c.id === "issue_done_when" ? { ...c, evidence: "formatDate now takes the user's timezone and the test covers IST and PST" } : c,
+    ),
+  },
+};
+const claimsMd = formatPrComment(claims);
+expect("claims: test clause dropped", !claimsMd.includes("IST and PST") && claimsMd.includes("formatDate now takes the user's timezone"));
+expect("claims: kept when tests changed", formatPrComment({ ...claims, files: base.files, review: { ...claims.review, checklist: claims.review.checklist.map((c) => (c.id === "tests_touched" ? { ...c, status: "pass" as const } : c)) } }).includes("IST and PST"));
+expect("ready: plain disclaimer", formatPrComment(base).includes("They can be wrong, so check them yourself."));
 
 expect("needs: blocker first", formatPrComment(needs).includes("[`src/date/format.ts:48`]"));
 expect("needs: nit skipped", !formatPrComment(needs).split("<details>")[0].includes("Typo"));

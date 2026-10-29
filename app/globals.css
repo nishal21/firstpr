@@ -930,6 +930,12 @@ body:has(.err-scene) .footer-body {
   color: var(--ink-soft);
 }
 
+.bot-preview-line code.bot-preview-link {
+  color: #0473fd;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .bot-preview-line code {
   border: 1.5px solid color-mix(in srgb, var(--ink) 45%, transparent);
   padding: 0 0.25rem;
