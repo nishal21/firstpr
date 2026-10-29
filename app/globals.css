@@ -371,13 +371,12 @@ footer[data-inview="true"]:not([data-motion="off"]) .footer-ticker-track {
 }
 
 .footer-wordwrap {
-  overflow: hidden;
-  padding: 0.25rem 0 0;
+  padding: 0.2rem 20px 0;
 }
 
 .footer-word {
   margin: 0;
-  font-size: clamp(4.6rem, 21vw, 14rem);
+  font-size: calc((100vw - 40px) / 4.46);
   line-height: 0.8;
   letter-spacing: 0.01em;
   text-align: center;
@@ -385,6 +384,39 @@ footer[data-inview="true"]:not([data-motion="off"]) .footer-ticker-track {
   white-space: nowrap;
   -webkit-text-stroke: 2.5px #16140f;
   paint-order: stroke fill;
+}
+
+.footer-body {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 0 20px 1rem;
+}
+
+.footer-pills {
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .footer-pills {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.footer-pills .sticker-pill {
+  max-width: 100%;
+  white-space: normal;
+}
+
+@media (min-width: 1024px) {
+  .footer-pills {
+    grid-template-columns: repeat(4, minmax(0, max-content));
+    justify-content: space-between;
+    align-items: start;
+    column-gap: 1.25rem;
+  }
 }
 
 .footer-stamp {
@@ -441,34 +473,21 @@ footer[data-inview="true"]:not([data-motion="off"]) .footer-ticker-track {
 }
 
 .footer-crowd {
-  height: 7.5rem;
-  overflow: hidden;
   margin-top: 0.5rem;
+  line-height: 0;
 }
 
 .footer-crowd img,
 .footer-crowd-img {
   display: block;
-  width: 180%;
+  width: 100%;
   max-width: none;
-  height: 12rem;
-  object-fit: cover;
-  object-position: left 22%;
+  height: auto;
 }
 
 @media (min-width: 768px) {
   .cat-tag {
     width: 6.75rem;
-  }
-
-  .footer-crowd {
-    height: 11rem;
-  }
-
-  .footer-crowd img,
-  .footer-crowd-img {
-    width: 120%;
-    height: 16rem;
   }
 }
 

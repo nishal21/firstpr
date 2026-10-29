@@ -96,11 +96,11 @@ export function SiteFooter() {
       <div className="footer-wordwrap">
         <p className="footer-word font-spray">{t("footer.word")}</p>
       </div>
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 pb-4 sm:px-6">
+      <div className="footer-body">
         <p className="footer-stamp font-spray" aria-hidden>
           ✓ {t("footer.stamp")}
         </p>
-        <nav aria-label={t("footer.nav")} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <nav aria-label={t("footer.nav")} className="footer-pills">
           {groups.map((group) => (
             <div key={group.label}>
               <p className="font-plex mb-2 text-[11px] tracking-[0.16em] uppercase">{group.label}</p>
@@ -136,8 +136,8 @@ export function SiteFooter() {
         <Image
           src="/brand/crowd.svg"
           alt=""
-          width={2400}
-          height={420}
+          width={8856}
+          height={1287}
           loading="eager"
           unoptimized
           className="footer-crowd-img"
