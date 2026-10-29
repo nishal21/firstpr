@@ -253,8 +253,12 @@
 - OG image is `app/opengraph-image.tsx`. Dead `components/explain-client.tsx` is gone.
 - Unit check: `npx tsx scripts/verify-overhaul-units.ts`. `npm run build` passes. `npm run lint` still fails on older files (LangToggle, language-provider, lines.ts, serp.ts, review route prefer-const, global-error `<a>`).
 
+## 2026-10-29 — Lint and hi/ml copy
+- `npm run lint` is clean. Lang and “mounted” read through `useSyncExternalStore` so the button still shows “…” until the client snapshot, then the saved language before paint. `global-error` Home is `next/link`. `prefer-const` only where the binding was never reassigned.
+- New landing and feature strings are in `lib/i18n-ml-hi.ts`. `hero.titleMark` is the same phrase already inside each translated `hero.title`, so the underline still finds it.
+- Citation line for Tan, Zhou, and Sun stays in English in every language. The sentences around it are translated. Numbers 40.9% and 58.4% are unchanged.
+
 ## Next for another agent
 1. Fill an Algolia index named `good_first_issues` and set the search-only key on Vercel. Do not commit the key.
 2. Pro mode is a teaser only. Do not ship it until it can explain a normal issue without writing the patch.
-3. Translate the new `landing.*`, `ready.*`, `journey.*` keys. Malayalam and Hindi fall back to English via `fill()`.
-4. Auth and Neon are still not wired. Journey data stays in the browser on purpose.
+3. Auth and Neon are still not wired. Journey data stays in the browser on purpose.

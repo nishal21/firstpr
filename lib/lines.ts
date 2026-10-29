@@ -122,8 +122,8 @@ export function verifyCitation(
   const lines = splitLines(fileText);
   const total = lines.length;
   const quoteNorm = collapseWhitespace(citation.quote);
-  let start = citation.start_line;
-  let end = citation.end_line;
+  const start = citation.start_line;
+  const end = citation.end_line;
 
   if (total === 0) {
     return { ok: false, start, end, reason: "empty_file" };

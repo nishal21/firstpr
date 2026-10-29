@@ -6,7 +6,7 @@ import {
   useContext,
   useLayoutEffect,
   useMemo,
-  useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 import {
@@ -30,28 +30,46 @@ type LanguageContextValue = {
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
+const LANG_CHANGE_EVENT = "firstpr-ui-lang-change";
+
 function applyDocumentLang(next: UiLang) {
   document.documentElement.lang = next;
   document.documentElement.dir = next === "ar" ? "rtl" : "ltr";
 }
 
-export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<UiLang>(DEFAULT_UI_LANG);
-  const [ready, setReady] = useState(false);
+function subscribeUiLang(onChange: () => void): () => void {
+  window.addEventListener(LANG_CHANGE_EVENT, onChange);
+  window.addEventListener("storage", onChange);
+  return () => {
+    window.removeEventListener(LANG_CHANGE_EVENT, onChange);
+    window.removeEventListener("storage", onChange);
+  };
+}
 
-  // useLayoutEffect: apply stored lang before paint so the page doesn't flash English → Hindi.
+function subscribeReady(): () => void {
+  return () => {};
+}
+
+export function LanguageProvider({ children }: { children: ReactNode }) {
+  const ready = useSyncExternalStore(subscribeReady, () => true, () => false);
+  const lang = useSyncExternalStore(
+    subscribeUiLang,
+    readStoredUiLang,
+    () => DEFAULT_UI_LANG,
+  );
+
+  // Apply the stored language before paint. The store snapshot is already
+  // the saved value once `ready` is true, so this does not write English over it.
   useLayoutEffect(() => {
-    const next = readStoredUiLang();
-    setLangState(next);
-    applyDocumentLang(next);
-    writeStoredUiLang(next);
-    setReady(true);
-  }, []);
+    if (!ready) return;
+    applyDocumentLang(lang);
+    writeStoredUiLang(lang);
+  }, [ready, lang]);
 
   const setLang = useCallback((next: UiLang) => {
-    setLangState(next);
-    applyDocumentLang(next);
     writeStoredUiLang(next);
+    applyDocumentLang(next);
+    window.dispatchEvent(new Event(LANG_CHANGE_EVENT));
   }, []);
 
   const t = useCallback(

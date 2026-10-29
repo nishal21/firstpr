@@ -247,9 +247,12 @@ Done:
 - `scripts/verify-overhaul-units.ts` passes; production build passes
 Not done:
 - Pro, accounts, Algolia index contents, Plausible (no domain set)
-- Full `npm run lint` (older errors listed in learning-journal.md)
+
+## 2026-10-29 — Lint clean, Malayalam and Hindi
+- `npm run lint` passes on the whole repo
+- New UI strings translated in `lib/i18n-ml-hi.ts`
+- Rechecked: tsc, lint, build, `scripts/verify-overhaul-units.ts`
 
 ## Next
 - Index good-first issues in Algolia, then set the public search key in the host env
 - Keep Pro as a teaser until the explain path accepts non-beginner issues
-- Translate new UI strings for hi and ml before calling those pages done
