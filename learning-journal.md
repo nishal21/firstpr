@@ -270,7 +270,8 @@
 - The 3D mark lives in `.footer-scene-slot` under the headline, `overflow: hidden`, z-index 0. Do not absolute-position it over the h2. The headline and ©26 stay in the row above.
 
 ## 2026-10-29 — Turion footer
-- hellohello and Aperios are rejected. Reference is Turion Space, https://www.turionspace.com/ : gradient, floating objects, columns, giant cropped word.
+- Aperios, hellohello, and Turion are rejected. Reference is Eclipse Space, https://www.eclipse.space/ : one dotted ring, one subject in the middle, line and columns underneath.
+- One cat only, class `.footer-mascot`. Ring is 64 SVG dots in `.footer-ring`, rotated with transform, paused off-screen.
 - Classes: `.site-footer`, `.footer-orb-*`, `.footer-giant`, `.search-popover`. Orbs pause via `data-inview` / `data-hold` / `data-motion`.
 - Suggestions are portaled to `document.body`. Do not put the list back inside `.hero-tint` (`overflow-hidden` clips it).
 - Do not leave a comma between the `<ul>` tag and `{rows.map}` in `site-search.tsx`. That comma rendered as a speck beside the panel.

@@ -104,6 +104,8 @@ function Column({ title, links }: { title: string; links: FooterLink[] }) {
 export function SiteFooter() {
   const t = useT();
   const footerRef = useRef<HTMLElement>(null);
+  const tiltRef = useRef<HTMLDivElement>(null);
+  const box = useRef({ cx: 0, cy: 0, w: 1, h: 1 });
 
   useEffect(() => {
     const el = footerRef.current;
@@ -146,6 +148,32 @@ export function SiteFooter() {
     };
   }, []);
 
+  function onEnter(event: PointerEvent<HTMLElement>) {
+    if (event.pointerType !== "mouse") return;
+    if (footerRef.current?.dataset.motion === "off") return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    box.current = {
+      cx: rect.left + rect.width / 2,
+      cy: rect.top + rect.height / 2,
+      w: rect.width || 1,
+      h: rect.height || 1,
+    };
+  }
+
+  function onMove(event: PointerEvent<HTMLElement>) {
+    const tilt = tiltRef.current;
+    if (!tilt || event.pointerType !== "mouse") return;
+    if (footerRef.current?.dataset.motion === "off" || footerRef.current?.dataset.inview !== "true") return;
+    const { cx, cy, w, h } = box.current;
+    const rx = Math.max(-8, Math.min(8, -((event.clientY - cy) / h) * 10));
+    const ry = Math.max(-10, Math.min(10, ((event.clientX - cx) / w) * 14));
+    tilt.style.transform = `rotateX(${rx.toFixed(2)}deg) rotateY(${ry.toFixed(2)}deg)`;
+  }
+
+  function onLeave() {
+    if (tiltRef.current) tiltRef.current.style.transform = "rotateX(0deg) rotateY(0deg)";
+  }
+
   const product: FooterLink[] = [
     { href: "/", label: t("nav.findIssue") },
     { href: "/issue/nishal21/NekoDroid/4", label: t("nav.explain") },
@@ -163,49 +191,65 @@ export function SiteFooter() {
 
   return (
     <footer ref={footerRef} className="site-footer mt-auto">
-      <div className="mx-auto max-w-6xl px-4 pt-10 sm:px-8 md:pt-16">
-        <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <p className="max-w-md text-2xl leading-tight font-semibold tracking-tight md:text-4xl">
-            {t("footer.ctaTitle")}
-          </p>
-          <Link
-            href="/#match"
-            className="footer-cta inline-flex min-h-12 items-center gap-3 rounded-full bg-[var(--footer-bar)] px-5 text-base font-semibold text-[var(--footer-bar-ink)] outline-none focus-visible:ring-2 focus-visible:ring-current"
-          >
-            {t("hero.cta")}
-            <ArrowUpRight className="footer-cta-arrow size-5" aria-hidden />
-          </Link>
-        </div>
-
-        <nav aria-label={t("footer.nav")} className="relative z-10 mt-8 grid grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-4">
-          <Column title={t("footer.colProduct")} links={product} />
-          <Column title={t("footer.colOpenSource")} links={source} />
-          <Column title={t("footer.colTeam")} links={team} />
-          <div>
-            <p className="text-[11px] font-semibold tracking-[0.16em] text-[var(--footer-muted)] uppercase">
-              FirstPR
-            </p>
-            <p className="mt-3 max-w-[16rem] text-sm leading-relaxed text-[var(--footer-muted)]">
-              {t("footer.built")}
-            </p>
-            <a
-              href="#top"
-              className="mt-2 inline-flex min-h-11 items-center text-base font-medium outline-none hover:underline focus-visible:ring-2 focus-visible:ring-current"
-            >
-              {t("footer.backToTop")}
-            </a>
+      <div className="mx-auto max-w-6xl px-4 pt-8 pb-8 sm:px-8 md:pt-12 md:pb-10">
+        <div
+          ref={tiltRef}
+          className="footer-tilt"
+          onPointerEnter={onEnter}
+          onPointerMove={onMove}
+          onPointerLeave={onLeave}
+        >
+          <div className="footer-ringwrap" aria-hidden>
+            <svg className="footer-ring" viewBox="0 0 200 200">
+              {Array.from({ length: 64 }, (_, index) => {
+                const angle = (index / 64) * Math.PI * 2;
+                return (
+                  <circle
+                    key={index}
+                    cx={100 + Math.cos(angle) * 78}
+                    cy={100 + Math.sin(angle) * 78}
+                    r="2.15"
+                    fill="currentColor"
+                  />
+                );
+              })}
+            </svg>
+            <Image
+              src="/brand/logo-mark-512.png"
+              alt=""
+              width={240}
+              height={240}
+              className="footer-mascot"
+            />
           </div>
-        </nav>
-
-        <div className="footer-scene" aria-hidden>
-          <div className="footer-glow" />
-          <Image src="/brand/logo-mark-512.png" alt="" width={190} height={190} className="footer-orb footer-orb-a" />
-          <Image src="/brand/logo-mark-512.png" alt="" width={120} height={120} className="footer-orb footer-orb-b" />
-          <Image src="/brand/logo-mark-512.png" alt="" width={78} height={78} className="footer-orb footer-orb-c" />
         </div>
-      </div>
-      <div className="footer-wordwrap" aria-hidden>
-        <p className="footer-giant">FirstPR</p>
+
+        <div className="relative z-10 mt-6 flex flex-col gap-8 md:mt-8 md:flex-row md:items-end md:justify-between">
+          <div className="max-w-sm">
+            <p className="text-2xl leading-tight font-semibold tracking-tight md:text-4xl">
+              {t("footer.ctaTitle")}
+            </p>
+            <Link
+              href="/#match"
+              className="footer-cta mt-4 inline-flex min-h-12 items-center gap-3 rounded-full bg-[var(--footer-bar)] px-5 text-base font-semibold text-[var(--footer-bar-ink)] outline-none focus-visible:ring-2 focus-visible:ring-current"
+            >
+              {t("hero.cta")}
+              <ArrowUpRight className="footer-cta-arrow size-5" aria-hidden />
+            </Link>
+          </div>
+          <nav aria-label={t("footer.nav")} className="grid grid-cols-2 gap-x-6 gap-y-6 sm:grid-cols-3">
+            <Column title={t("footer.colProduct")} links={product} />
+            <Column title={t("footer.colOpenSource")} links={source} />
+            <Column title={t("footer.colTeam")} links={team} />
+          </nav>
+        </div>
+        <p className="relative z-10 mt-6 max-w-md text-sm leading-relaxed text-[var(--footer-muted)]">
+          {t("footer.built")}
+          {" · "}
+          <a href="#top" className="font-medium underline-offset-4 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-current">
+            {t("footer.backToTop")}
+          </a>
+        </p>
       </div>
     </footer>
   );

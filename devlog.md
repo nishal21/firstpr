@@ -263,3 +263,4 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - Search suggestions render in a fixed layer on document.body so the hero no longer clips them. GitHub search waits 450ms. The product card pauses while the field is focused.
 - A comma sat in the suggestion list markup and showed as a speck left of the panel. Removed.
 - Theme: `.site-footer` tokens switch under `.dark`. No theme toggle in the app yet; the light gradient is the default.
+- Dropped Turion. Footer now follows Eclipse Space (https://www.eclipse.space/): one dotted ring, one cat in the middle, line and links under it.
