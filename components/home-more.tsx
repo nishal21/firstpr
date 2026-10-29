@@ -105,14 +105,14 @@ export function HomeTail() {
       <Oss title={t("home.ossTitle")} />
       <section className="mx-auto max-w-5xl px-4 pt-2 pb-8 sm:px-6">
         <div className="ink-card flex flex-col gap-4 p-5 sm:flex-row sm:items-end sm:justify-between sm:p-6">
-          <h2 className="max-w-md text-2xl font-semibold tracking-tight text-[#16140f] md:text-3xl">
+          <h2 className="max-w-md text-2xl font-semibold tracking-tight text-[var(--ink)] md:text-3xl">
             {t("home.ctaTitle")}
           </h2>
           <div className="flex flex-wrap gap-3">
             <Link href="/#match" className={arrowPillClass}>
               {t("home.ctaMatch")}
             </Link>
-            <Link href="/review" className={cn(arrowPillClass, "bg-[#16140f]")}>
+            <Link href="/review" className={cn(arrowPillClass, "bg-[var(--fill)] text-[var(--fill-foreground)]")}>
               {t("home.ctaReview")}
             </Link>
           </div>
@@ -165,15 +165,15 @@ function FreshIssues({ title }: { title: string }) {
             const href = `/issue/${encodeURIComponent(issue.owner)}/${encodeURIComponent(issue.repo)}/${issue.number}`;
             return (
               <li key={href}>
-                <Link href={href} className="ink-card block p-4 text-[#16140f] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0473fd]">
-                  <p className="font-plex text-[11px] tracking-wide text-[#3f3a32]">
+                <Link href={href} className="ink-card block p-4 text-[var(--ink)] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0473fd]">
+                  <p className="font-plex text-[11px] tracking-wide text-[var(--ink-soft)]">
                     {issue.owner}/{issue.repo}#{issue.number}
                   </p>
                   <p className="mt-1 text-sm font-semibold">{issue.title}</p>
                   {issue.labels && issue.labels.length > 0 ? (
                     <p className="mt-2 flex flex-wrap gap-1">
                       {issue.labels.slice(0, 2).map((label) => (
-                        <span key={label} className="border border-[#16140f] px-1.5 py-0.5 text-[10px] font-medium">
+                        <span key={label} className="border border-[var(--ink)] px-1.5 py-0.5 text-[10px] font-medium">
                           {label}
                         </span>
                       ))}
@@ -205,8 +205,8 @@ function Walkthrough({ title }: { title: string }) {
               role="tab"
               aria-selected={index === active}
               className={cn(
-                "shrink-0 border-[3px] border-[#16140f] px-3 py-2 text-left text-sm font-semibold shadow-[3px_3px_0_#16140f] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0473fd]",
-                index === active ? "bg-[#0473fd] text-white" : "bg-[#fffdf8] text-[#16140f]",
+                "shrink-0 border-[3px] border-[var(--ink)] px-3 py-2 text-left text-sm font-semibold shadow-[3px_3px_0_var(--shadow)] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0473fd]",
+                index === active ? "bg-[#0473fd] text-white" : "bg-[var(--paper)] text-[var(--ink)]",
               )}
               onClick={() => setActive(index)}
             >
@@ -216,7 +216,7 @@ function Walkthrough({ title }: { title: string }) {
           ))}
         </div>
         <div className="ink-card p-5" role="tabpanel">
-          <p className="text-sm leading-relaxed text-[#3f3a32]">{step.body}</p>
+          <p className="text-sm leading-relaxed text-[var(--ink-soft)]">{step.body}</p>
           {"href" in step && step.href ? (
             <Link href={step.href} className={cn(arrowPillClass, "mt-4")}>
               {step.hrefLabel}
@@ -234,7 +234,7 @@ function NeverList({ title }: { title: string }) {
       <h2 className="font-spray text-3xl text-foreground sm:text-4xl">{title}</h2>
       <ul className="mt-4 grid gap-3">
         {NEVER.map((item) => (
-          <li key={item} className="ink-card px-4 py-3 text-base font-semibold text-[#16140f]">
+          <li key={item} className="ink-card px-4 py-3 text-base font-semibold text-[var(--ink)]">
             {item}
           </li>
         ))}
@@ -257,7 +257,7 @@ function Faq({ title }: { title: string }) {
               <h3>
                 <button
                   type="button"
-                  className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-base font-semibold text-[#16140f] outline-none focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-[#0473fd]"
+                  className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-base font-semibold text-[var(--ink)] outline-none focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-[#0473fd]"
                   aria-expanded={on}
                   aria-controls={panelId}
                   onClick={() => setOpen(on ? null : index)}
@@ -268,7 +268,7 @@ function Faq({ title }: { title: string }) {
                   </span>
                 </button>
               </h3>
-              <div id={panelId} role="region" hidden={!on} className="px-4 pb-4 text-sm leading-relaxed text-[#3f3a32]">
+              <div id={panelId} role="region" hidden={!on} className="px-4 pb-4 text-sm leading-relaxed text-[var(--ink-soft)]">
                 {item.a}
               </div>
             </div>
@@ -283,7 +283,7 @@ function Oss({ title }: { title: string }) {
   return (
     <section className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
       <h2 className="font-spray text-3xl text-foreground sm:text-4xl">{title}</h2>
-      <div className="ink-card mt-4 p-5 text-sm leading-relaxed text-[#3f3a32]">
+      <div className="ink-card mt-4 p-5 text-sm leading-relaxed text-[var(--ink-soft)]">
         <p>
           The source is AGPL-3.0. Copyright 2026 Nishal K and Anan Shaji (NKcodex / DuoMatter). A separate commercial license is offered by contacting nishal@nishal.dev. That commercial text is not in this repository.
         </p>
@@ -294,10 +294,10 @@ function Oss({ title }: { title: string }) {
           <a className={arrowPillClass} href="https://github.com/nishal21/firstpr">
             Source on GitHub
           </a>
-          <Link className={cn(arrowPillClass, "bg-[#16140f]")} href="/privacy">
+          <Link className={cn(arrowPillClass, "bg-[var(--fill)] text-[var(--fill-foreground)]")} href="/privacy">
             Privacy
           </Link>
-          <Link className={cn(arrowPillClass, "bg-[#16140f]")} href="/terms">
+          <Link className={cn(arrowPillClass, "bg-[var(--fill)] text-[var(--fill-foreground)]")} href="/terms">
             Terms
           </Link>
         </p>

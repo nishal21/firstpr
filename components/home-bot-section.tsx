@@ -14,14 +14,14 @@ export function HomeBotSection() {
       <div className="ink-card p-6 sm:p-8">
         <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between md:gap-10">
           <div className="min-w-0 max-w-xl">
-            <span className="inline-flex size-11 items-center justify-center border-2 border-[#16140f] bg-[#0473fd] text-white">
+            <span className="inline-flex size-11 items-center justify-center border-2 border-[var(--ink)] bg-[#0473fd] text-white">
               <Bot className="size-5" aria-hidden />
             </span>
-            <h2 className="mt-5 text-2xl font-semibold tracking-tight text-[#16140f] md:text-3xl">
+            <h2 className="mt-5 text-2xl font-semibold tracking-tight text-[var(--ink)] md:text-3xl">
               {t("bot.heading")}
             </h2>
-            <p className="mt-3 text-sm leading-relaxed text-[#3f3a32] sm:text-base">{t("bot.body")}</p>
-            <p className="mt-2 text-sm text-[#3f3a32]">
+            <p className="mt-3 text-sm leading-relaxed text-[var(--ink-soft)] sm:text-base">{t("bot.body")}</p>
+            <p className="mt-2 text-sm text-[var(--ink-soft)]">
               <Link href="/privacy" className="underline-offset-2 hover:underline">
                 Privacy
               </Link>
@@ -30,12 +30,12 @@ export function HomeBotSection() {
                 Terms
               </Link>
             </p>
-            <div className="font-plex mt-5 flex flex-wrap gap-2 text-xs text-[#16140f] sm:text-sm">
-              <span className="inline-flex items-center gap-1.5 border-2 border-[#16140f] bg-[#fffdf8] px-2.5 py-1.5 shadow-[2px_2px_0_#16140f]">
+            <div className="font-plex mt-5 flex flex-wrap gap-2 text-xs text-[var(--ink)] sm:text-sm">
+              <span className="inline-flex items-center gap-1.5 border-2 border-[var(--ink)] bg-[var(--paper)] px-2.5 py-1.5 shadow-[2px_2px_0_var(--shadow)]">
                 <MessageSquareText className="size-3.5 text-[#0473fd]" aria-hidden />
                 /firstpr explain
               </span>
-              <span className="inline-flex items-center gap-1.5 border-2 border-[#16140f] bg-[#fffdf8] px-2.5 py-1.5 shadow-[2px_2px_0_#16140f]">
+              <span className="inline-flex items-center gap-1.5 border-2 border-[var(--ink)] bg-[var(--paper)] px-2.5 py-1.5 shadow-[2px_2px_0_var(--shadow)]">
                 <GitPullRequestArrow className="size-3.5 text-[#0473fd]" aria-hidden />
                 /firstpr review
               </span>
@@ -45,7 +45,7 @@ export function HomeBotSection() {
             href={BOT_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex min-h-12 w-full shrink-0 items-center justify-center gap-2 border-[3px] border-[#16140f] bg-[#0473fd] px-4 text-sm font-semibold text-white shadow-[4px_4px_0_#16140f] outline-none transition-[transform,box-shadow] duration-100 ease-linear active:translate-x-[3px] active:translate-y-[3px] active:shadow-[1px_1px_0_#16140f] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[#16140f] sm:w-auto"
+            className="inline-flex min-h-12 w-full shrink-0 items-center justify-center gap-2 border-[3px] border-[var(--ink)] bg-[#0473fd] px-4 text-sm font-semibold text-white shadow-[4px_4px_0_var(--shadow)] outline-none transition-[transform,box-shadow] duration-100 ease-linear active:translate-x-[3px] active:translate-y-[3px] active:shadow-[1px_1px_0_var(--shadow)] focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-[var(--ink)] sm:w-auto"
           >
             {t("bot.cta")}
             <ArrowBubble />

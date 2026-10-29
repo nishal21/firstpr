@@ -45,7 +45,7 @@ export function SiteHeader() {
   }, [menuOpen]);
 
   return (
-    <header id="top" className="sticky top-0 z-50 border-b-[3px] border-[#16140f] bg-background dark:border-[#f4efe6]">
+    <header id="top" className="sticky top-0 z-50 border-b-[3px] border-[var(--ink)] bg-background">
       <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-1.5 px-3 sm:gap-2 sm:px-6">
         <Link
           href="/"
@@ -79,7 +79,7 @@ export function SiteHeader() {
           <button
             type="button"
             onClick={() => setOpen(true)}
-            className="inline-flex min-h-11 items-center gap-3 border-[3px] border-[#16140f] bg-[#fffdf8] px-3 text-[#16140f] shadow-[3px_3px_0_#16140f] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0473fd]"
+            className="inline-flex min-h-11 items-center gap-3 border-[3px] border-[var(--ink)] bg-[var(--paper)] px-3 text-[var(--ink)] shadow-[3px_3px_0_var(--shadow)] outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0473fd]"
           >
             <Search className="size-4" aria-hidden />
             <span>{t("nav.search")}</span>

@@ -640,7 +640,7 @@ export function SiteSearch({
             ) : null}
             <button
               type="submit"
-              className="inline-flex size-11 shrink-0 items-center justify-center border-[3px] border-[#16140f] bg-[#0473fd] text-white outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#16140f]"
+              className="inline-flex size-11 shrink-0 items-center justify-center border-[3px] border-[var(--ink)] bg-[#0473fd] text-white outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ink)]"
               aria-label={t("search.go")}
             >
             <ArrowRight className="size-4" aria-hidden />
@@ -661,7 +661,7 @@ export function SiteSearch({
                 inputRef.current?.focus();
               }}
               className={cn(
-                "search-chip inline-flex min-h-9 items-center px-2.5 text-xs outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#16140f]",
+                "search-chip inline-flex min-h-9 items-center px-2.5 text-xs outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ink)]",
                 chip.query === "" && "search-chip-diff",
               )}
             >

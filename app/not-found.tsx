@@ -40,10 +40,10 @@ export default function NotFound() {
         <Link href="/" className={arrowPillClass}>
           {t("error.notFound.home")}
         </Link>
-        <Link href="/#match" className={cn(arrowPillClass, "bg-[#16140f]")}>
+        <Link href="/#match" className={cn(arrowPillClass, "bg-[var(--fill)] text-[var(--fill-foreground)]")}>
           {t("nav.findIssue")}
         </Link>
-        <Link href="/review" className={cn(arrowPillClass, "bg-[#16140f]")}>
+        <Link href="/review" className={cn(arrowPillClass, "bg-[var(--fill)] text-[var(--fill-foreground)]")}>
           {t("nav.review")}
         </Link>
       </div>

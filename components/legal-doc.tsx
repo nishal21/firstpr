@@ -15,11 +15,11 @@ export function LegalDoc({
       <p className="font-plex text-xs tracking-wide text-muted-foreground">Last updated: 29 October 2026</p>
       <h1 className="mt-3 text-4xl font-semibold tracking-tight text-foreground">{title}</h1>
       <nav aria-label="On this page" className="ink-card mt-6 p-4">
-        <p className="font-plex text-[11px] tracking-[0.16em] text-[#3f3a32] uppercase">On this page</p>
+        <p className="font-plex text-[11px] tracking-[0.16em] text-[var(--ink-soft)] uppercase">On this page</p>
         <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm">
           {toc.map((item) => (
             <li key={item.id}>
-              <a className="text-[#16140f] underline-offset-2 hover:underline" href={`#${item.id}`}>
+              <a className="text-[var(--ink)] underline-offset-2 hover:underline" href={`#${item.id}`}>
                 {item.label}
               </a>
             </li>

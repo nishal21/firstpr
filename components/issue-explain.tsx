@@ -208,7 +208,7 @@ export function IssueExplain({
     <PageIntro
       eyebrow={
         <>
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/15 bg-white/80 px-3 py-1 text-accent-foreground backdrop-blur">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/15 bg-white/80 px-3 py-1 text-accent-foreground backdrop-blur dark:border-[var(--ink)] dark:bg-[var(--paper)] dark:text-[var(--ink)]">
             <BookOpenText className="size-4 text-primary" aria-hidden />
             {t("steps.step", { n: 2 })} · {t("flow.explain")}
           </span>
@@ -237,7 +237,7 @@ export function IssueExplain({
             <Badge
               key={label}
               variant="secondary"
-              className="rounded-md border border-border bg-white/80 font-normal text-xs text-foreground"
+              className="rounded-md border border-border bg-white/80 font-normal text-xs text-foreground dark:border-[var(--ink)] dark:bg-[var(--paper)] dark:text-[var(--ink)]"
             >
               {label}
             </Badge>
@@ -245,7 +245,7 @@ export function IssueExplain({
         </div>
       ) : null}
     </PageIntro>
-    <section className="relative mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6 md:space-y-8 md:py-12">
+    <section className="relative mx-auto max-w-5xl space-y-6 px-4 pt-6 pb-8 sm:px-6 md:space-y-8 md:pt-8 md:pb-12">
       <SavedResultDot
         show={fromCache}
         className="pointer-events-none absolute right-4 top-4 size-1.5 rounded-full bg-muted-foreground/40 sm:right-6"

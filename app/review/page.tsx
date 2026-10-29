@@ -123,7 +123,7 @@ export default function ReviewPage() {
     <>
     <PageIntro
       eyebrow={
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/15 bg-white/80 px-3 py-1 text-accent-foreground backdrop-blur">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/15 bg-white/80 px-3 py-1 text-accent-foreground backdrop-blur dark:border-[var(--ink)] dark:bg-[var(--paper)] dark:text-[var(--ink)]">
           <GitPullRequestArrow className="size-4 text-primary" aria-hidden />
           {t("steps.step", { n: 3 })} · {t("flow.review")}
         </span>

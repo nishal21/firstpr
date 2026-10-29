@@ -15,8 +15,8 @@ export function PageIntro({
   className?: string;
 }) {
   return (
-    <div className={cn("merge-hero relative border-b-[3px] border-[#16140f]", className)}>
-      <div className="relative mx-auto max-w-5xl px-4 pt-8 pb-8 sm:px-6 md:pt-14 md:pb-12">
+    <div className={cn("merge-hero relative border-b-[3px] border-[var(--ink)]", className)}>
+      <div className="relative mx-auto max-w-5xl px-4 pt-8 pb-6 sm:px-6 md:pt-10 md:pb-8">
         {eyebrow ? (
           <div className="flex min-w-0 flex-wrap items-center gap-2 text-sm text-muted-foreground">
             {eyebrow}

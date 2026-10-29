@@ -51,7 +51,7 @@ export default function ErrorPage({
         <button type="button" onClick={reset} className={arrowPillClass}>
           {t("error.crash.retry")}
         </button>
-        <Link href="/" className={cn(arrowPillClass, "bg-[#16140f]")}>
+        <Link href="/" className={cn(arrowPillClass, "bg-[var(--fill)] text-[var(--fill-foreground)]")}>
           {t("error.crash.home")}
         </Link>
       </div>
