@@ -85,6 +85,10 @@ On Vercel, set all of the above in the project environment, then redeploy so the
 
 The sync route reads open, unassigned issues labeled `good first issue` or `help wanted`, writes `objectID`, title, repo, url, labels, language, stars, `created_at`, `updated_at`, comments, and assignee status, and deletes ids GitHub now reports as closed or assigned. `vercel.json` schedules that route once a day at 03:00 UTC (`0 3 * * *`). Vercel sends `Authorization: Bearer $CRON_SECRET` when `CRON_SECRET` is set.
 
+Set `GITHUB_SYNC_TOKEN` (a fine-grained, read-only public token) so that sync has its own GitHub rate limit. The sync client is separate from the site client. If `GITHUB_SYNC_TOKEN` is unset, the sync uses `GITHUB_TOKEN`.
+
+Explain, issue, repo, review, and the search fallback use a FirstPRbot installation token when `GITHUB_APP_ID` and `GITHUB_APP_PRIVATE_KEY` are both set. There is no installation-id variable; the app lists its installations and uses the first one. That token is cached until five minutes before it expires. If the app env is unset, or the installation token cannot be minted, those pages use `GITHUB_TOKEN`. An installation token only sees repositories that installation can access.
+
 First sync, after the variables exist:
 
 ```bash

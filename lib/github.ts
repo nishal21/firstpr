@@ -1,3 +1,4 @@
+import { createAppAuth } from "@octokit/auth-app";
 import { Octokit } from "@octokit/rest";
 import { unstable_cache } from "next/cache";
 import { algoliaIndexedCount } from "@/lib/algolia-search";
@@ -5,7 +6,7 @@ import { cached } from "@/lib/cache";
 import { retryDelayMs } from "@/lib/github-rate";
 import type { AlgoliaIssueRecord } from "@/lib/algolia-record";
 import { issueObjectId } from "@/lib/algolia-plan";
-import { env, getEnv } from "@/lib/env";
+import { getEnv } from "@/lib/env";
 
 export type GitHubErrorCode = "rate_limited" | "not_found" | "github_error";
 
@@ -76,26 +77,229 @@ const MAX_PATCH_CHARS = 8000;
 const CLOSE_KEYWORD_RE =
   /\b(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\s+#(\d+)/gi;
 
-let octokit: Octokit | null = null;
+let siteOctokit: Octokit | null = null;
+let syncOctokit: Octokit | null = null;
+let syncAuth = "";
 let missingTokenWarned = false;
 
-function getOctokit(): Octokit {
-  if (octokit) return octokit;
+const INSTALL_SKEW_MS = 5 * 60 * 1000;
+const INSTALL_COOLDOWN_MS = 60_000;
+const ETAG_LIMIT = 400;
 
-  const token = env.GITHUB_TOKEN;
-  if (!token) {
-    if (!missingTokenWarned) {
+type InstallToken = { token: string; expiresAt: number };
+type EtagHit = { etag: string; data: unknown; url: string };
+type RequestOptions = {
+  method?: string;
+  url?: string;
+  baseUrl?: string;
+  headers?: { [header: string]: string | number | undefined };
+  per_page?: unknown;
+  page?: unknown;
+  [key: string]: unknown;
+};
+type EtagResponse = {
+  data: unknown;
+  url: string;
+  headers: { etag?: string | number };
+};
+
+let installToken: InstallToken | null = null;
+let installInflight: Promise<string | undefined> | null = null;
+let installCooldownUntil = 0;
+const etagStore = new Map<string, EtagHit>();
+
+const ETAG_PATHS = [
+  /^\/repos\/[^/]+\/[^/]+$/,
+  /^\/repos\/[^/]+\/[^/]+\/issues\/\d+$/,
+  /^\/repos\/[^/]+\/[^/]+\/issues\/\d+\/comments$/,
+];
+
+function normalizeAppKey(privateKey: string): string {
+  return privateKey
+    .replace(/^["']|["']$/g, "")
+    .replace(/\\n/g, "\n")
+    .replace(/\r\n/g, "\n")
+    .trim();
+}
+
+function fillRoute(url: string, options: RequestOptions): string {
+  return url.replace(/\{([^}]+)\}/g, (_, name: string) => {
+    const value = options[name];
+    return value == null ? `{${name}}` : encodeURIComponent(String(value));
+  });
+}
+
+function requestPath(options: RequestOptions): string | null {
+  if (!options.url) return null;
+  const filled = fillRoute(options.url, options);
+  if (filled.startsWith("http://") || filled.startsWith("https://")) {
+    try {
+      return new URL(filled).pathname;
+    } catch {
+      return null;
+    }
+  }
+  const path = filled.split("?")[0] ?? filled;
+  if (path.startsWith("/")) return path;
+  if (options.baseUrl) {
+    try {
+      return new URL(path, options.baseUrl).pathname;
+    } catch {
+      return null;
+    }
+  }
+  return path.startsWith("/") ? path : null;
+}
+
+function etagKey(options: RequestOptions): string | null {
+  const method = (options.method ?? "GET").toUpperCase();
+  if (method !== "GET") return null;
+  const path = requestPath(options);
+  if (!path || !ETAG_PATHS.some((pattern) => pattern.test(path))) return null;
+  const pageBits = [options.per_page, options.page].filter((value) => value != null);
+  return pageBits.length > 0 ? `${path}?${pageBits.join(":")}` : path;
+}
+
+function headerValue(headers: unknown, name: string): string | undefined {
+  if (!headers || typeof headers !== "object") return undefined;
+  if (typeof (headers as Headers).get === "function") {
+    return (headers as Headers).get(name) ?? undefined;
+  }
+  const record = headers as Record<string, string | number | undefined>;
+  const value = record[name] ?? record[name.toLowerCase()];
+  return value == null ? undefined : String(value);
+}
+
+function rememberEtag(key: string, hit: EtagHit): void {
+  if (etagStore.has(key)) etagStore.delete(key);
+  etagStore.set(key, hit);
+  if (etagStore.size <= ETAG_LIMIT) return;
+  const oldest = etagStore.keys().next().value;
+  if (oldest) etagStore.delete(oldest);
+}
+
+function isNotModified(err: unknown): err is { status: number; response?: { headers?: unknown; url?: string } } {
+  return Boolean(err) && typeof err === "object" && (err as { status?: number }).status === 304;
+}
+
+async function withEtag<O extends RequestOptions, R extends EtagResponse>(
+  request: (options: O) => R | Promise<R>,
+  options: O,
+): Promise<R> {
+  const key = etagKey(options);
+  const hit = key ? etagStore.get(key) : undefined;
+  if (hit) {
+    options.headers = { ...(options.headers ?? {}), "if-none-match": hit.etag };
+  }
+  try {
+    const response = await request(options);
+    const etag = headerValue(response.headers, "etag");
+    if (key && etag) {
+      rememberEtag(key, { etag, data: response.data, url: response.url });
+    }
+    return response;
+  } catch (err) {
+    if (key && hit && isNotModified(err)) {
+      const cached = {
+        ...(err.response ?? {}),
+        data: hit.data,
+        status: 200,
+        url: err.response?.url ?? hit.url,
+        headers: err.response?.headers ?? {},
+      };
+      return cached as unknown as R;
+    }
+    throw err;
+  }
+}
+
+/** Installation token for site reads. Cached until shortly before expiry. */
+async function resolveSiteToken(): Promise<string | undefined> {
+  const current = getEnv();
+  const appId = current.GITHUB_APP_ID;
+  const privateKey = current.GITHUB_APP_PRIVATE_KEY;
+  if (!appId || !privateKey) return current.GITHUB_TOKEN;
+
+  if (installToken && installToken.expiresAt - Date.now() > INSTALL_SKEW_MS) {
+    return installToken.token;
+  }
+  if (Date.now() < installCooldownUntil) return current.GITHUB_TOKEN;
+
+  if (!installInflight) {
+    installInflight = mintInstallationToken(appId, privateKey)
+      .catch((err: unknown) => {
+        installCooldownUntil = Date.now() + INSTALL_COOLDOWN_MS;
+        const message = err instanceof Error ? err.message : "unknown error";
+        console.warn(
+          `GitHub App installation token unavailable (${message}); using GITHUB_TOKEN.`,
+        );
+        return undefined;
+      })
+      .finally(() => {
+        installInflight = null;
+      });
+  }
+
+  const minted = await installInflight;
+  if (!minted) installCooldownUntil = Date.now() + INSTALL_COOLDOWN_MS;
+  return minted ?? current.GITHUB_TOKEN;
+}
+
+async function mintInstallationToken(
+  appId: string,
+  privateKey: string,
+): Promise<string | undefined> {
+  const auth = createAppAuth({
+    appId,
+    privateKey: normalizeAppKey(privateKey),
+  });
+  const appAuth = await auth({ type: "app" });
+  const appClient = new Octokit({ auth: appAuth.token });
+  const { data } = await appClient.rest.apps.listInstallations({ per_page: 100 });
+  const installation = data[0];
+  if (!installation) return undefined;
+  const installed = await auth({
+    type: "installation",
+    installationId: installation.id,
+  });
+  const expiresAt = Date.parse(installed.expiresAt);
+  if (!Number.isFinite(expiresAt)) return undefined;
+  installToken = { token: installed.token, expiresAt };
+  installCooldownUntil = 0;
+  return installed.token;
+}
+
+/** Site traffic: FirstPRbot installation token, else GITHUB_TOKEN. */
+function getOctokit(): Octokit {
+  if (siteOctokit) return siteOctokit;
+  siteOctokit = new Octokit();
+  siteOctokit.hook.wrap("request", async (request, options) => {
+    const token = await resolveSiteToken();
+    if (!token && !missingTokenWarned) {
       console.warn(
-        "GITHUB_TOKEN is missing; GitHub API calls will be unauthenticated (low rate limits).",
+        "No GitHub App installation token or GITHUB_TOKEN; GitHub API calls will be unauthenticated (low rate limits).",
       );
       missingTokenWarned = true;
     }
-    octokit = new Octokit();
-  } else {
-    octokit = new Octokit({ auth: token });
-  }
+    const headers = { ...options.headers };
+    if (token) headers.authorization = `token ${token}`;
+    return withEtag(request, { ...options, headers });
+  });
+  return siteOctokit;
+}
 
-  return octokit;
+function syncToken(): string | undefined {
+  const current = getEnv();
+  return current.GITHUB_SYNC_TOKEN || current.GITHUB_TOKEN;
+}
+
+/** Algolia sync only. Never the site singleton. */
+function getSyncOctokit(): Octokit {
+  const token = syncToken() ?? "";
+  if (syncOctokit && syncAuth === token) return syncOctokit;
+  syncAuth = token;
+  syncOctokit = token ? new Octokit({ auth: token }) : new Octokit();
+  return syncOctokit;
 }
 
 function headerRemaining(
@@ -805,7 +1009,7 @@ async function loadRepoMeta(
   pairs: { owner: string; repo: string }[],
 ): Promise<Map<string, RepoMeta>> {
   const meta = new Map<string, RepoMeta>();
-  const client = getOctokit();
+  const client = getSyncOctokit();
   for (let offset = 0; offset < pairs.length; offset += REPO_BATCH) {
     const slice = pairs.slice(offset, offset + REPO_BATCH);
     const fields = slice
@@ -848,7 +1052,7 @@ async function searchIndexPage(q: string, page: number) {
   for (let attempt = 0; attempt < 2; attempt += 1) {
     try {
       return await queuedSearch(() =>
-        getOctokit().search.issuesAndPullRequests({
+        getSyncOctokit().search.issuesAndPullRequests({
           q,
           sort: "updated",
           order: "desc",
@@ -871,8 +1075,11 @@ async function searchIssuePages(
   q: string,
   pages: number,
 ): Promise<{ items: AlgoliaIssueRecord[]; complete: boolean; rateLimited: boolean }> {
-  if (!getEnv().GITHUB_TOKEN) {
-    throw new GitHubError("GITHUB_TOKEN is required to sync the issue index", "github_error");
+  if (!syncToken()) {
+    throw new GitHubError(
+      "GITHUB_SYNC_TOKEN or GITHUB_TOKEN is required to sync the issue index",
+      "github_error",
+    );
   }
   const drafts: AlgoliaIssueRecord[] = [];
   let complete = false;
