@@ -51,6 +51,18 @@ The PR summary is written for the maintainer first:
 - up to three next steps for the contributor (never the fix itself)
 - the full score in a collapsed `<details>` block, plus a link to the PR on the FirstPR review page
 
+It also sets `firstpr/` labels, each backed by a fact GitHub reports, with a "Labels" section in the comment that says why:
+
+| Label | When |
+| --- | --- |
+| `firstpr/size: XS` `S` `M` `L` `XL` | Lines added + deleted, not counting lockfiles, `vendor/`, `node_modules/` or generated files (`*.min.js`, `*.map`, `*.pb.go`, ...): under 10, under 30, under 100, under 500, 500+ |
+| `firstpr/docs only`, `tests only`, `ci only`, `deps only` | Every changed file is docs (`*.md`, `*.rst`, `docs/`), tests, under `.github/workflows/`, or package manifests plus at least one lockfile |
+| `firstpr/linked issue`, `no linked issue` | GitHub's own closing-issue link for the PR (not a text match) |
+| `firstpr/checks passing`, `checks failing` | Every check run and status on the latest commit has finished; pending means no label |
+| `firstpr/first-time contributor` | GitHub's author association is `FIRST_TIME_CONTRIBUTOR` or `FIRST_TIMER` |
+
+If a fact is missing or unclear (a truncated file list, checks still running, a PR to a non-default branch), the label is left off and the comment says so. FirstPRbot only touches `firstpr/` labels it added itself: a label a maintainer added or removed stays that way. Check labels refresh when checks finish if the App gets **Checks: read** and the **Check suite** and **Status** events; otherwise on the next push or `/firstpr recheck`. Try `node --env-file=.env scripts/verify-auto-labels-live.ts owner/repo#123` to see the labels for a real PR without writing anything.
+
 Older score cards from before this format are collapsed as outdated. Try `node scripts/verify-bot-comment.ts out/` to render three sample comments.
 
 #### Optional `.github/firstpr.yml`
@@ -61,6 +73,7 @@ Read from the default branch, so a PR can't change it for itself. Every key is o
 enabled: true              # false stops FirstPRbot commenting on this repo
 minimize_old: true         # collapse score cards from the old multi-comment format
 require_linked_issue: true # false: a PR without "Fixes #N" can still be "Ready for review"
+auto_labels: true          # false, or pick groups: size, area, linked_issue, checks, first_time
 labels:                    # off unless you name a label
   first_timer: first-timer # added to PRs from first-time contributors
   needs_issue: needs-issue # added while no issue is linked, removed once one is

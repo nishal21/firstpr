@@ -6,6 +6,12 @@ import {
   parseBotConfig,
   type BotConfig,
 } from "@/lib/bot-config";
+import {
+  computeAutoLabels,
+  formatLabelsBlock,
+  replaceLabelsBlock,
+} from "@/lib/auto-labels";
+import { loadLabelFacts, syncAutoLabels } from "@/lib/auto-labels-github";
 import { explainIssueCached } from "@/lib/explain";
 import { getEnv } from "@/lib/env";
 import {
@@ -310,6 +316,38 @@ async function syncLabels(
   }
 }
 
+function ownAppId(): number | null {
+  const id = Number(getEnv().GITHUB_APP_ID);
+  return Number.isFinite(id) && id > 0 ? id : null;
+}
+
+/**
+ * Set the fact-based `firstpr/` labels and return the comment's Labels
+ * section. Null when auto labels are off or the facts couldn't be read;
+ * label trouble never stops the summary comment.
+ */
+async function applyAutoLabels(
+  octokit: InstallationOctokit,
+  owner: string,
+  repo: string,
+  number: number,
+  config: BotConfig,
+  expectedSha?: string,
+): Promise<string[] | null> {
+  if (config.autoLabels.size === 0) return null;
+  try {
+    const loaded = await loadLabelFacts(octokit, owner, repo, number);
+    if (!loaded.open) return null;
+    if (expectedSha && loaded.facts.headSha !== expectedSha) return null;
+    const result = computeAutoLabels(loaded.facts, config.autoLabels);
+    const outcome = await syncAutoLabels(octokit, loaded, result, ownAppId());
+    return formatLabelsBlock(result, outcome);
+  } catch (err) {
+    console.warn("[labels] skipped:", httpStatus(err) ?? (err as Error)?.message);
+    return null;
+  }
+}
+
 /** One check at a time per PR on this instance, so two pushes can't race. */
 const prQueues = new Map<string, Promise<void>>();
 
@@ -356,6 +394,8 @@ async function runPrCheck(
         console.log(`[webhook] skip draft ${owner}/${repo}#${number}`);
         return;
       }
+
+      const labelsBlock = await applyAutoLabels(octokit, owner, repo, number, config, pr.headSha);
 
       const [{ data: base }, linkedIssue] = await Promise.all([
         octokit.rest.repos.getBranch({ owner, repo, branch: pr.baseRef }),
@@ -407,6 +447,7 @@ async function runPrCheck(
         linkedIssue,
         files,
         requireLinkedIssue: config.requireLinkedIssue,
+        labelsBlock: labelsBlock ?? undefined,
         review: result,
       });
 
@@ -434,6 +475,78 @@ async function runPrCheck(
       }
     }
   });
+}
+
+/**
+ * Checks finished on a commit: refresh the labels and only the Labels
+ * section of the existing summary. No new review, no new comment.
+ */
+async function refreshLabels(
+  octokit: InstallationOctokit,
+  owner: string,
+  repo: string,
+  number: number,
+  sha: string,
+): Promise<void> {
+  return queueForPr(`${owner}/${repo}#${number}`, async () => {
+    const config = await loadBotConfig(octokit, owner, repo);
+    if (!config.enabled || config.autoLabels.size === 0) return;
+    const comments = (await octokit.paginate(octokit.rest.issues.listComments, {
+      owner,
+      repo,
+      issue_number: number,
+      per_page: 100,
+    })) as ListedComment[];
+    const existing = comments
+      .filter(isOwnComment)
+      .find((c) => c.body?.includes(PR_COMMENT_MARKER));
+    // Only PRs FirstPRbot already summarised (so drafts stay untouched).
+    if (!existing?.body || replaceLabelsBlock(existing.body, []) === null) return;
+
+    const block = await applyAutoLabels(octokit, owner, repo, number, config, sha);
+    if (!block) return;
+    const next = replaceLabelsBlock(existing.body, block);
+    if (next && next.trim() !== existing.body.trim()) {
+      await octokit.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body: next });
+    }
+    console.log(`[labels] refreshed ${owner}/${repo}#${number} for ${sha.slice(0, 7)}`);
+  });
+}
+
+/** Open PRs whose head is `sha`. Fork PRs aren't in check payloads, so look. */
+async function openPrsForSha(
+  octokit: InstallationOctokit,
+  owner: string,
+  repo: string,
+  sha: string,
+): Promise<number[]> {
+  const found: number[] = [];
+  let pages = 0;
+  for await (const page of octokit.paginate.iterator(octokit.rest.pulls.list, {
+    owner,
+    repo,
+    state: "open",
+    per_page: 100,
+  })) {
+    for (const pr of page.data) if (pr.head.sha === sha) found.push(pr.number);
+    if (++pages >= 3) break;
+  }
+  return found;
+}
+
+async function refreshLabelsForSha(
+  octokit: InstallationOctokit,
+  owner: string,
+  repo: string,
+  sha: string,
+  knownPrs: number[],
+): Promise<void> {
+  try {
+    const numbers = knownPrs.length > 0 ? knownPrs : await openPrsForSha(octokit, owner, repo, sha);
+    for (const n of [...new Set(numbers)]) await refreshLabels(octokit, owner, repo, n, sha);
+  } catch (err) {
+    console.warn("[labels] refresh failed:", httpStatus(err) ?? (err as Error)?.message);
+  }
 }
 
 function registerHandlers(app: App<{ Octokit: typeof Octokit }>): void {
@@ -557,6 +670,33 @@ function registerHandlers(app: App<{ Octokit: typeof Octokit }>): void {
       );
     },
   );
+
+  // Needs the App subscribed to "Check suite" and "Status" events, and
+  // Checks: read. Without them labels still update on every push.
+  app.webhooks.on("check_suite.completed", async ({ octokit, payload }) => {
+    const repoId = payload.repository.id;
+    const prs = (payload.check_suite.pull_requests ?? [])
+      .filter((p) => p.base?.repo?.id === repoId)
+      .map((p) => p.number);
+    await refreshLabelsForSha(
+      octokit,
+      payload.repository.owner.login,
+      payload.repository.name,
+      payload.check_suite.head_sha,
+      prs,
+    );
+  });
+
+  app.webhooks.on("status", async ({ octokit, payload }) => {
+    if (payload.state === "pending") return;
+    await refreshLabelsForSha(
+      octokit,
+      payload.repository.owner.login,
+      payload.repository.name,
+      payload.sha,
+      [],
+    );
+  });
 
   app.webhooks.onError((error) => {
     console.error("[webhook] handler error:", error);

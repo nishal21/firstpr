@@ -6,6 +6,8 @@
  * ignored, and a missing or broken file falls back to the defaults.
  */
 
+import { AUTO_LABEL_GROUPS, type AutoLabelGroup } from "./auto-labels.ts";
+
 export type BotConfig = {
   /** Set to false to stop FirstPRbot commenting on this repo. */
   enabled: boolean;
@@ -18,6 +20,8 @@ export type BotConfig = {
     firstTimer: string;
     needsIssue: string;
   };
+  /** Fact-based `firstpr/` label groups to apply. Empty set means off. */
+  autoLabels: ReadonlySet<AutoLabelGroup>;
 };
 
 export const BOT_CONFIG_PATH = ".github/firstpr.yml";
@@ -27,6 +31,7 @@ export const DEFAULT_BOT_CONFIG: BotConfig = {
   minimizeOld: true,
   requireLinkedIssue: true,
   labels: { firstTimer: "", needsIssue: "" },
+  autoLabels: new Set(AUTO_LABEL_GROUPS),
 };
 
 function unquote(raw: string): string {
@@ -53,6 +58,26 @@ function toLabel(raw: string): string {
   const v = unquote(raw);
   if (!v || v === "~" || v.toLowerCase() === "null") return "";
   return v.length <= 50 && !/[\r\n,]/.test(v) ? v : "";
+}
+
+/**
+ * `auto_labels: true | false` or a comma list of groups, e.g.
+ * `auto_labels: size, checks`. Unknown names are ignored; a list with no
+ * known group turns auto labels off. An empty value keeps the default.
+ */
+function toAutoLabels(raw: string, fallback: ReadonlySet<AutoLabelGroup>): ReadonlySet<AutoLabelGroup> {
+  const v = unquote(raw).trim();
+  if (!v) return fallback;
+  const lower = v.toLowerCase();
+  if (["true", "yes", "on", "all"].includes(lower)) return new Set(AUTO_LABEL_GROUPS);
+  if (["false", "no", "off", "none", "[]"].includes(lower)) return new Set();
+  const picked = new Set<AutoLabelGroup>();
+  for (const part of lower.replace(/^\[|\]$/g, "").split(",")) {
+    const name = unquote(part).trim().replace(/_/g, "-").replace(/^first-?timer?$/, "first-time");
+    const group = AUTO_LABEL_GROUPS.find((g) => g === name || (g === "linked-issue" && name === "linked"));
+    if (group) picked.add(group);
+  }
+  return picked;
 }
 
 export function parseBotConfig(text: string | null | undefined): BotConfig {
@@ -85,6 +110,8 @@ export function parseBotConfig(text: string | null | undefined): BotConfig {
       config.minimizeOld = toBool(value, config.minimizeOld);
     else if (key === "require_linked_issue")
       config.requireLinkedIssue = toBool(value, config.requireLinkedIssue);
+    else if (key === "auto_labels")
+      config.autoLabels = toAutoLabels(value, config.autoLabels);
     else if (key === "labels") inLabels = value.trim() === "";
   }
   return config;

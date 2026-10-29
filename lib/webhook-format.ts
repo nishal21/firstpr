@@ -94,6 +94,8 @@ export type PrCommentInput = {
   } | null;
   files: { filename: string; additions: number; deletions: number }[];
   requireLinkedIssue: boolean;
+  /** Pre-rendered "Labels" section from `formatLabelsBlock`; omit when auto labels are off. */
+  labelsBlock?: string[];
   review: {
     score: number;
     checklist: {
@@ -413,6 +415,7 @@ export function formatPrComment(input: PrCommentInput): string {
     "",
     ...checklistTable(input),
     "",
+    ...(input.labelsBlock && input.labelsBlock.length > 0 ? [...input.labelsBlock, ""] : []),
     "#### What a maintainer should look at",
     "",
     ...maintainerFocus(input),
