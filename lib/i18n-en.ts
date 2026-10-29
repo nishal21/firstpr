@@ -26,16 +26,21 @@ export const en = {
   "bot.cta": "About FirstPRbot",
 
   "error.notFound.code": "404",
-  "error.notFound.title": "Page not found",
+  "error.notFound.title": "Branch not found",
   "error.notFound.body":
-    "That link does not match a FirstPR page. Go home and pick Match, Explain, or Review.",
+    "This link went stale, or the page was never pushed. Search for a repo or an issue, or start from one of these.",
   "error.notFound.home": "Home",
+  "error.notFound.stamp": "Closed",
+  "error.notFound.cmdOut": "error: pathspec did not match any page",
   "error.crash.eyebrow": "Something went wrong",
-  "error.crash.title": "We hit a snag",
+  "error.crash.title": "Merge conflict on our side",
   "error.crash.body":
     "Try again in a moment. Your work is still on GitHub. FirstPR failed to load this page.",
   "error.crash.retry": "Retry",
   "error.crash.home": "Home",
+  "error.crash.code": "Oops",
+  "error.crash.stamp": "Conflict",
+  "error.crash.cmdOut": "CONFLICT: this page failed to load",
 
   "hero.eyebrow": "FirstPR never writes your code.",
   "hero.title": "Your first PR, written by you, ready to merge.",

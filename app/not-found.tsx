@@ -1,53 +1,42 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { ErrorScene } from "@/components/error-scene";
 import { useT } from "@/components/language-provider";
-import { arrowPillClass } from "@/components/ui/arrow-pill";
-import { cn } from "@/lib/utils";
+import { SiteSearch } from "@/components/site-search";
+
+function shortPath(path: string) {
+  return path.length > 36 ? `${path.slice(0, 35)}…` : path;
+}
 
 export default function NotFound() {
   const t = useT();
+  const path = usePathname() || "/";
 
   return (
-    <section className="mx-auto flex w-full max-w-lg flex-col items-start gap-4 px-4 py-12 sm:px-6">
-      <div className="ink-card w-full p-5">
-      <Link
-        href="/"
-        className="inline-flex items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
-      >
-        <Image
-          src="/brand/logo-mark-192.png"
-          alt=""
-          width={28}
-          height={28}
-          className="size-7"
-        />
-        <Image
-          src="/brand/wordmark-light.png"
-          alt="FirstPR"
-          width={120}
-          height={24}
-          className="h-6 w-auto"
-        />
-      </Link>
-      <p className="text-sm font-medium text-primary">{t("error.notFound.code")}</p>
-      <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-        {t("error.notFound.title")}
-      </h1>
-      <p className="text-muted-foreground">{t("error.notFound.body")}</p>
-      <div className="flex flex-wrap gap-3 pt-1">
-        <Link href="/" className={arrowPillClass}>
+    <ErrorScene
+      code={t("error.notFound.code")}
+      stamp={t("error.notFound.stamp")}
+      command={`git checkout ${shortPath(path)}`}
+      output={t("error.notFound.cmdOut")}
+      title={t("error.notFound.title")}
+      body={t("error.notFound.body")}
+    >
+      <div className="err-search">
+        <SiteSearch />
+      </div>
+      <nav className="err-actions" aria-label={t("error.notFound.title")}>
+        <Link href="/" className="sticker-pill">
           {t("error.notFound.home")}
         </Link>
-        <Link href="/#match" className={cn(arrowPillClass, "bg-[var(--fill)] text-[var(--fill-foreground)]")}>
+        <Link href="/#match" className="sticker-pill">
           {t("nav.findIssue")}
         </Link>
-        <Link href="/review" className={cn(arrowPillClass, "bg-[var(--fill)] text-[var(--fill-foreground)]")}>
+        <Link href="/review" className="sticker-pill">
           {t("nav.review")}
         </Link>
-      </div>
-      </div>
-    </section>
+      </nav>
+    </ErrorScene>
   );
 }

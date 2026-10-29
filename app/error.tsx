@@ -1,11 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
+import { ErrorScene } from "@/components/error-scene";
 import { useT } from "@/components/language-provider";
-import { arrowPillClass } from "@/components/ui/arrow-pill";
-import { cn } from "@/lib/utils";
 
 export default function ErrorPage({
   error,
@@ -21,41 +19,25 @@ export default function ErrorPage({
   }, [error]);
 
   return (
-    <section className="mx-auto flex w-full max-w-lg flex-col items-start gap-4 px-4 py-12 sm:px-6">
-      <div className="ink-card w-full space-y-3 p-5">
-      <Link
-        href="/"
-        className="inline-flex items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
-      >
-        <Image
-          src="/brand/logo-mark-192.png"
-          alt=""
-          width={28}
-          height={28}
-          className="size-7"
-        />
-        <Image
-          src="/brand/wordmark-light.png"
-          alt="FirstPR"
-          width={120}
-          height={24}
-          className="h-6 w-auto"
-        />
-      </Link>
-      <p className="text-sm font-medium text-primary">{t("error.crash.eyebrow")}</p>
-      <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-        {t("error.crash.title")}
-      </h1>
-      <p className="text-muted-foreground">{t("error.crash.body")}</p>
-      <div className="flex flex-wrap gap-3 pt-1">
-        <button type="button" onClick={reset} className={arrowPillClass}>
+    <ErrorScene
+      code={t("error.crash.code")}
+      stamp={t("error.crash.stamp")}
+      command="git merge main"
+      output={t("error.crash.cmdOut")}
+      title={t("error.crash.title")}
+      body={t("error.crash.body")}
+    >
+      <div className="err-actions">
+        <button type="button" onClick={reset} className="sticker-pill">
           {t("error.crash.retry")}
         </button>
-        <Link href="/" className={cn(arrowPillClass, "bg-[var(--fill)] text-[var(--fill-foreground)]")}>
+        <Link href="/" className="sticker-pill">
           {t("error.crash.home")}
         </Link>
+        <Link href="/#match" className="sticker-pill">
+          {t("nav.findIssue")}
+        </Link>
       </div>
-      </div>
-    </section>
+    </ErrorScene>
   );
 }

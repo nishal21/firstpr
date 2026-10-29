@@ -607,6 +607,155 @@ footer:not([data-motion="off"]) .footer-ticker-track {
   }
 }
 
+/* 404 / crash scene: the same blue wall as the footer, so the page and the
+   footer read as one piece. The footer ticker becomes the seam between them. */
+body:has(.err-scene) main {
+  display: flex;
+  flex-direction: column;
+  background: #0473fd;
+}
+
+body:has(.err-scene) .footer-wordwrap,
+body:has(.err-scene) .footer-stamp {
+  display: none;
+}
+
+body:has(.err-scene) .footer-body {
+  padding-top: 1.75rem;
+}
+
+.err-scene {
+  flex: 1;
+  background: #0473fd;
+  color: #16140f;
+  padding: 2.25rem 20px 3.5rem;
+}
+
+.err-inner {
+  display: flex;
+  width: 100%;
+  max-width: 64rem;
+  margin: 0 auto;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.err-cmd {
+  margin: 0;
+  max-width: 100%;
+  border: 3px solid #16140f;
+  background: #16140f;
+  color: #f4efe6;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  box-shadow: 4px 4px 0 #f4efe6;
+}
+
+.err-prompt {
+  color: #8fc1ff;
+}
+
+.err-out {
+  display: block;
+  color: #ffb4a8;
+}
+
+.err-code-wrap {
+  position: relative;
+  align-self: stretch;
+  margin-top: 1rem;
+}
+
+.err-code {
+  margin: 0;
+  color: #f4efe6;
+  font-size: clamp(9rem, 38vw, 24rem);
+  line-height: 0.82;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  -webkit-text-stroke: 3px #16140f;
+  paint-order: stroke fill;
+  text-shadow: 8px 8px 0 #16140f;
+}
+
+.err-stamp {
+  position: absolute;
+  top: 38%;
+  left: clamp(9rem, 40vw, 26rem);
+  margin: 0;
+  border: 3px solid #b42318;
+  background: #f4efe6;
+  color: #b42318;
+  padding: 0.15rem 0.7rem 0.25rem;
+  font-size: clamp(1.6rem, 5vw, 3.2rem);
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  box-shadow: 4px 4px 0 #16140f;
+  transform: rotate(-8deg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .err-stamp {
+    animation: footer-stamp 420ms cubic-bezier(0.2, 1.3, 0.4, 1) 200ms both;
+  }
+}
+
+.err-title {
+  margin: 1.75rem 0 0;
+  font-size: clamp(2.2rem, 6vw, 3.6rem);
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+.err-body {
+  margin: 0.75rem 0 0;
+  max-width: 36rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.err-search {
+  width: 100%;
+  max-width: 42rem;
+  margin-top: 1.5rem;
+}
+
+.err-search > div {
+  margin: 0;
+}
+
+.err-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+@media (max-width: 767px) {
+  .err-scene {
+    padding: 1.5rem 16px 2.5rem;
+  }
+
+  .err-code {
+    font-size: calc((100vw - 32px) / 2.25);
+    -webkit-text-stroke-width: 2.5px;
+    text-shadow: 5px 5px 0 #16140f;
+  }
+
+  .err-stamp {
+    top: auto;
+    bottom: -0.6rem;
+    left: auto;
+    right: 0;
+  }
+}
+
 .search-popover {
   position: fixed;
   z-index: 80;

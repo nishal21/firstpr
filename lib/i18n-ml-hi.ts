@@ -28,16 +28,21 @@ export const ml: Record<I18nKey, string> = {
   "bot.cta": "FirstPRbot-നെക്കുറിച്ച്",
 
   "error.notFound.code": "404",
-  "error.notFound.title": "പേജ് കണ്ടെത്തിയില്ല",
+  "error.notFound.title": "ബ്രാഞ്ച് കണ്ടെത്തിയില്ല",
   "error.notFound.body":
-    "ഈ ലിങ്ക് FirstPR പേജുമായി പൊരുത്തപ്പെടുന്നില്ല. ഹോമിലേക്ക് പോയി Match, Explain, അല്ലെങ്കിൽ Review തിരഞ്ഞെടുക്കുക.",
+    "ഈ ലിങ്ക് പഴയതായി, അല്ലെങ്കിൽ ഈ പേജ് ഒരിക്കലും പുഷ് ചെയ്തിട്ടില്ല. ഒരു റിപ്പോ അല്ലെങ്കിൽ ഇഷ്യൂ തിരയുക, അല്ലെങ്കിൽ ഇവയിൽ ഒന്നിൽ നിന്ന് തുടങ്ങുക.",
   "error.notFound.home": "ഹോം",
+  "error.notFound.stamp": "അടച്ചു",
+  "error.notFound.cmdOut": "പിശക്: ഈ പാത്ത് ഒരു പേജുമായും ചേരുന്നില്ല",
   "error.crash.eyebrow": "എന്തോ തെറ്റി",
-  "error.crash.title": "പ്രശ്നം ഉണ്ടായി",
+  "error.crash.title": "ഞങ്ങളുടെ ഭാഗത്ത് മെർജ് കോൺഫ്ലിക്റ്റ്",
   "error.crash.body":
     "ഒരു നിമിഷം കഴിഞ്ഞ് വീണ്ടും ശ്രമിക്കുക. നിങ്ങളുടെ ജോലി GitHub-ൽ തന്നെയുണ്ട്. FirstPR ഈ പേജ് ലോഡ് ചെയ്യാനായില്ല.",
   "error.crash.retry": "വീണ്ടും ശ്രമിക്കുക",
   "error.crash.home": "ഹോം",
+  "error.crash.code": "അയ്യോ",
+  "error.crash.stamp": "കോൺഫ്ലിക്റ്റ്",
+  "error.crash.cmdOut": "കോൺഫ്ലിക്റ്റ്: ഈ പേജ് ലോഡ് ആയില്ല",
 
   "hero.eyebrow": "FirstPR നിങ്ങളുടെ കോഡ് എഴുതില്ല.",
   "hero.title": "നിങ്ങളുടെ ആദ്യ PR, നിങ്ങൾ എഴുതിയത്, merge ചെയ്യാൻ തയ്യാർ.",
@@ -352,16 +357,21 @@ export const hi: Record<I18nKey, string> = {
   "bot.cta": "FirstPRbot के बारे में",
 
   "error.notFound.code": "404",
-  "error.notFound.title": "पेज नहीं मिला",
+  "error.notFound.title": "ब्रांच नहीं मिली",
   "error.notFound.body":
-    "यह लिंक FirstPR पेज से मेल नहीं खाता। होम पर जाकर Match, Explain, या Review चुनें।",
+    "यह लिंक पुराना हो गया, या यह पेज कभी पुश ही नहीं हुआ। कोई रिपो या इश्यू खोजें, या इनमें से किसी एक से शुरू करें।",
   "error.notFound.home": "होम",
+  "error.notFound.stamp": "बंद",
+  "error.notFound.cmdOut": "त्रुटि: यह पाथ किसी पेज से मेल नहीं खाता",
   "error.crash.eyebrow": "कुछ गलत हो गया",
-  "error.crash.title": "समस्या आई",
+  "error.crash.title": "हमारी तरफ मर्ज कॉन्फ्लिक्ट",
   "error.crash.body":
     "थोड़ी देर बाद फिर कोशिश करें। आपका काम GitHub पर ही है। FirstPR यह पेज लोड नहीं कर सका।",
   "error.crash.retry": "फिर कोशिश करें",
   "error.crash.home": "होम",
+  "error.crash.code": "उफ़",
+  "error.crash.stamp": "कॉन्फ्लिक्ट",
+  "error.crash.cmdOut": "कॉन्फ्लिक्ट: यह पेज लोड नहीं हुआ",
 
   "hero.eyebrow": "FirstPR आपका कोड नहीं लिखता।",
   "hero.title": "आपका पहला PR, आपके लिखे हुए, merge के लिए तैयार।",
