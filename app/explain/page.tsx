@@ -18,7 +18,7 @@ function RedirectExplain() {
   }, [router, owner, repo, issue]);
 
   return (
-    <section className="mx-auto max-w-5xl px-4 py-10 text-sm text-slate-500 sm:px-6">
+    <section className="mx-auto max-w-5xl px-4 py-10 text-sm text-muted-foreground sm:px-6">
       Opening explanation…
     </section>
   );
@@ -28,7 +28,7 @@ export default function ExplainPage() {
   return (
     <Suspense
       fallback={
-        <section className="mx-auto max-w-5xl px-4 py-10 text-sm text-slate-500 sm:px-6">
+        <section className="mx-auto max-w-5xl px-4 py-10 text-sm text-muted-foreground sm:px-6">
           Loading…
         </section>
       }

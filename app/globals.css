@@ -641,6 +641,14 @@ html[data-hero-search="open"] .glimpse-card {
   box-shadow: 4px 4px 0 #16140f;
 }
 
+.ink-card .text-foreground,
+.ink-card .text-muted-foreground,
+.ink-card h1,
+.ink-card h2,
+.ink-card p {
+  color: #16140f;
+}
+
 main .rounded-xl.bg-card,
 main .rounded-2xl.bg-card,
 main .rounded-xl.bg-muted {

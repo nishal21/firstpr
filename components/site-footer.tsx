@@ -75,6 +75,13 @@ export function SiteFooter() {
         { href: "#top", label: t("footer.backToTop") },
       ],
     },
+    {
+      label: t("footer.colLegal"),
+      links: [
+        { href: "/privacy", label: t("footer.privacy") },
+        { href: "/terms", label: t("footer.terms") },
+      ],
+    },
   ];
 
   return (
@@ -92,7 +99,7 @@ export function SiteFooter() {
         <p className="footer-stamp font-spray" aria-hidden>
           ✓ {t("footer.stamp")}
         </p>
-        <nav aria-label={t("footer.nav")} className="grid gap-6 sm:grid-cols-3">
+        <nav aria-label={t("footer.nav")} className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {groups.map((group) => (
             <div key={group.label}>
               <p className="font-plex mb-2 text-[11px] tracking-[0.16em] uppercase">{group.label}</p>

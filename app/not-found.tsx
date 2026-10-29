@@ -3,14 +3,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useT } from "@/components/language-provider";
-import { buttonVariants } from "@/components/ui/button";
+import { arrowPillClass } from "@/components/ui/arrow-pill";
 import { cn } from "@/lib/utils";
 
 export default function NotFound() {
   const t = useT();
 
   return (
-    <section className="mx-auto flex w-full max-w-lg flex-col items-start gap-4 px-4 py-16 sm:px-6 md:py-20">
+    <section className="mx-auto flex w-full max-w-lg flex-col items-start gap-4 px-4 py-12 sm:px-6">
+      <div className="ink-card w-full p-5">
       <Link
         href="/"
         className="inline-flex items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
@@ -36,33 +37,16 @@ export default function NotFound() {
       </h1>
       <p className="text-muted-foreground">{t("error.notFound.body")}</p>
       <div className="flex flex-wrap gap-3 pt-1">
-        <Link
-          href="/"
-          className={cn(
-            buttonVariants(),
-            "inline-flex h-11 min-h-11 items-center rounded-xl bg-primary text-primary-foreground hover:bg-primary/90",
-          )}
-        >
+        <Link href="/" className={arrowPillClass}>
           {t("error.notFound.home")}
         </Link>
-        <Link
-          href="/#match"
-          className={cn(
-            buttonVariants({ variant: "outline" }),
-            "inline-flex h-11 min-h-11 items-center rounded-xl border-border",
-          )}
-        >
+        <Link href="/#match" className={cn(arrowPillClass, "bg-[#16140f]")}>
           {t("nav.findIssue")}
         </Link>
-        <Link
-          href="/review"
-          className={cn(
-            buttonVariants({ variant: "outline" }),
-            "inline-flex h-11 min-h-11 items-center rounded-xl border-border",
-          )}
-        >
+        <Link href="/review" className={cn(arrowPillClass, "bg-[#16140f]")}>
           {t("nav.review")}
         </Link>
+      </div>
       </div>
     </section>
   );

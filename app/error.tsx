@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useT } from "@/components/language-provider";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { arrowPillClass } from "@/components/ui/arrow-pill";
 import { cn } from "@/lib/utils";
 
 export default function ErrorPage({
@@ -21,7 +21,8 @@ export default function ErrorPage({
   }, [error]);
 
   return (
-    <section className="mx-auto flex w-full max-w-lg flex-col items-start gap-4 px-4 py-16 sm:px-6 md:py-20">
+    <section className="mx-auto flex w-full max-w-lg flex-col items-start gap-4 px-4 py-12 sm:px-6">
+      <div className="ink-card w-full space-y-3 p-5">
       <Link
         href="/"
         className="inline-flex items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
@@ -47,22 +48,13 @@ export default function ErrorPage({
       </h1>
       <p className="text-muted-foreground">{t("error.crash.body")}</p>
       <div className="flex flex-wrap gap-3 pt-1">
-        <Button
-          type="button"
-          onClick={reset}
-          className="h-11 min-h-11 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
-        >
+        <button type="button" onClick={reset} className={arrowPillClass}>
           {t("error.crash.retry")}
-        </Button>
-        <Link
-          href="/"
-          className={cn(
-            buttonVariants({ variant: "outline" }),
-            "inline-flex h-11 min-h-11 items-center rounded-xl border-border",
-          )}
-        >
+        </button>
+        <Link href="/" className={cn(arrowPillClass, "bg-[#16140f]")}>
           {t("error.crash.home")}
         </Link>
+      </div>
       </div>
     </section>
   );

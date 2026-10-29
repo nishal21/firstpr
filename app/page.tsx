@@ -2,6 +2,7 @@ import { LandingSteps } from "@/components/flow-steps";
 import { HomeBotSection } from "@/components/home-bot-section";
 import { HomeHero } from "@/components/home-hero";
 import { HomeMatchSection } from "@/components/home-match-section";
+import { HomeMore, HomeTail } from "@/components/home-more";
 import { FadeUp } from "@/components/ui/words-pull-up";
 import { countOpenGoodFirstIssues } from "@/lib/github";
 
@@ -38,11 +39,12 @@ export default async function Home({ searchParams }: HomeProps) {
   return (
     <>
       <HomeHero openIssues={openIssues} />
-      <section className="mx-auto max-w-5xl px-4 py-10 sm:px-6 md:py-14">
+      <section className="mx-auto max-w-5xl px-4 py-6 sm:px-6 md:py-8">
         <FadeUp inView>
           <LandingSteps />
         </FadeUp>
       </section>
+      <HomeMore />
       <HomeBotSection />
       <HomeMatchSection
         initialUser={one(sp.user)}
@@ -50,6 +52,7 @@ export default async function Home({ searchParams }: HomeProps) {
         topicQuery={one(sp.q)}
         topicLang={one(sp.lang)}
       />
+      <HomeTail />
     </>
   );
 }

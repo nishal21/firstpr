@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { useT } from "@/components/language-provider";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { arrowPillClass } from "@/components/ui/arrow-pill";
 
 export function InvalidIssueMessage() {
   const t = useT();
@@ -14,13 +13,7 @@ export function InvalidIssueMessage() {
         {t("error.notFound.title")}
       </h1>
       <p className="text-muted-foreground">{t("explain.invalidNumber")}</p>
-      <Link
-        href="/"
-        className={cn(
-          buttonVariants(),
-          "inline-flex h-11 min-h-11 items-center rounded-xl bg-primary text-primary-foreground hover:bg-primary/90",
-        )}
-      >
+      <Link href="/" className={arrowPillClass}>
         {t("error.notFound.home")}
       </Link>
     </section>

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Bot, GitPullRequestArrow, MessageSquareText } from "lucide-react";
 import { useT } from "@/components/language-provider";
 import { ArrowBubble } from "@/components/ui/arrow-pill";
@@ -20,6 +21,15 @@ export function HomeBotSection() {
               {t("bot.heading")}
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-[#3f3a32] sm:text-base">{t("bot.body")}</p>
+            <p className="mt-2 text-sm text-[#3f3a32]">
+              <Link href="/privacy" className="underline-offset-2 hover:underline">
+                Privacy
+              </Link>
+              {" · "}
+              <Link href="/terms" className="underline-offset-2 hover:underline">
+                Terms
+              </Link>
+            </p>
             <div className="font-plex mt-5 flex flex-wrap gap-2 text-xs text-[#16140f] sm:text-sm">
               <span className="inline-flex items-center gap-1.5 border-2 border-[#16140f] bg-[#fffdf8] px-2.5 py-1.5 shadow-[2px_2px_0_#16140f]">
                 <MessageSquareText className="size-3.5 text-[#0473fd]" aria-hidden />
