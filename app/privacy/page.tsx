@@ -44,7 +44,7 @@ export default function PrivacyPage() {
       </LegalSection>
       <LegalSection id="why" title="Why">
         <p>
-          The data is used to match public beginner issues, explain an issue, score a pull request, and, if the GitHub App is installed, post that same guide or score on GitHub. Search suggestions call GitHub’s public search. Recent searches and language and theme stay on your device so the page can remember them.
+          The data is used to match public beginner issues, explain an issue, score a pull request, and, if the GitHub App is installed, post that same guide or score on GitHub. When the Algolia search key is set, the words in the search box are sent from the browser to Algolia. When it is not set, search suggestions call GitHub’s API from the server. Recent searches and language and theme stay on your device so the page can remember them.
         </p>
       </LegalSection>
       <LegalSection id="where" title="Where it is processed">
@@ -62,12 +62,13 @@ export default function PrivacyPage() {
           <li>OpenAI, at api.openai.com unless OPENAI_BASE_URL is set to another host. Explain, hints, review, difficulty, and the file-pick fallback send the text those tasks need. Logs record the task name, model name, token counts, and duration, not the prompt.</li>
           <li>Neysa Gemma and Neysa Qwen, only if those keys and URLs are set. They are asked to pick files from path lists and short previews.</li>
           <li>SerpAPI’s Google search, only if SERPAPI_KEY is set. The query is a short topic derived from the issue, not your GitHub password or token.</li>
+          <li>Algolia, only if ALGOLIA_APP_ID, NEXT_PUBLIC_ALGOLIA_APP_ID, and NEXT_PUBLIC_ALGOLIA_SEARCH_KEY are set. The browser sends the search text to that Algolia application. A scheduled job uses the admin key on the server to store public issue fields: title, repository, URL, labels, language, star count, created and updated times, comment count, and whether the issue is assigned. The admin key is not sent to the browser. If those variables are absent, this call is not made.</li>
           <li>Vercel, as the host of the public deployment. This repo does not install Vercel Analytics.</li>
         </ul>
       </LegalSection>
       <LegalSection id="retention" title="Retention">
         <p>
-          The server cache is an in-memory map. The default lifetime is ten minutes, and the map is discarded when the process stops. This code does not set a retention period for host logs. Console logs can include webhook event names, repository coordinates, error messages, and model token counts. Demo JSON files under data/demo are written only when RECORD_DEMO=1 and the process is not production.
+          The server cache is an in-memory map. The default lifetime is ten minutes, and the map is discarded when the process stops. This code does not set a retention period for host logs. Console logs can include webhook event names, repository coordinates, error messages, and model token counts. Demo JSON files under data/demo are written only when RECORD_DEMO=1 and the process is not production. When Algolia is configured, indexed issues stay until a later sync deletes ones GitHub reports as closed or assigned. This app does not send the five recent-search strings to Algolia except when you type them again.
         </p>
         <p>Browser storage stays until you clear it. Recent searches hold at most five strings. You can clear them from the search menu.</p>
       </LegalSection>

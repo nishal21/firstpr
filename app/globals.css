@@ -527,6 +527,24 @@ footer[data-inview="true"]:not([data-motion="off"]) .footer-ticker-track {
   box-shadow: 6px 6px 0 #f4efe6;
 }
 
+.algolia-logo {
+  height: 14px;
+  width: auto;
+}
+
+.algolia-logo-word {
+  fill: #36395a;
+}
+
+.algolia-logo-mark {
+  fill: #003dff;
+}
+
+.dark .algolia-logo-word,
+.dark .algolia-logo-mark {
+  fill: #fff;
+}
+
 .search-popover-list {
   min-height: 0;
   flex: 1 1 auto;

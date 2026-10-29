@@ -17,7 +17,10 @@ import {
   UserRound,
 } from "lucide-react";
 import { useT } from "@/components/language-provider";
+import { SearchByAlgolia } from "@/components/search-by-algolia";
 import { SearchKeycaps } from "@/components/search-keycaps";
+import { algoliaSearchEnabled, searchAlgoliaIssues } from "@/lib/algolia-search";
+import type { HighlightPart } from "@/lib/algolia-plan";
 import {
   parseOmniQuery,
   queryLooksLikeGitHubUrl,
@@ -33,6 +36,8 @@ type LiveIssue = {
   title: string;
   labels?: string[];
   createdAt?: string;
+  titleParts?: HighlightPart[];
+  detailParts?: HighlightPart[];
 };
 
 type RowKind =
@@ -54,6 +59,8 @@ type Row = {
   labels?: string[];
   createdAt?: string;
   query?: string;
+  titleParts?: HighlightPart[];
+  detailParts?: HighlightPart[];
 };
 
 const RECENT_KEY = "firstpr-recent-searches";
@@ -250,6 +257,22 @@ function RowIcon({ kind }: { kind: RowKind }) {
   }
 }
 
+function Marked({ parts }: { parts: HighlightPart[] }) {
+  return (
+    <>
+      {parts.map((part, index) =>
+        part.mark ? (
+          <mark key={index} className="bg-transparent font-semibold text-primary">
+            {part.text}
+          </mark>
+        ) : (
+          <span key={index}>{part.text}</span>
+        ),
+      )}
+    </>
+  );
+}
+
 function Highlight({ text, query }: { text: string; query: string }) {
   const needle = query.trim();
   if (needle.length < 2) return text;
@@ -371,6 +394,8 @@ export function SiteSearch({
           detail: `${issue.owner}/${issue.repo}`,
           labels: issue.labels,
           createdAt: issue.createdAt,
+          titleParts: issue.titleParts,
+          detailParts: issue.detailParts,
           group: "live" as const,
         };
       })
@@ -424,10 +449,21 @@ export function SiteSearch({
           ? `&lang=${encodeURIComponent(topic.language)}`
           : "";
       setSearching(true);
-      fetch(`/api/search?q=${encodeURIComponent(trimmed)}${lang}`, {
-        signal: controller.signal,
-      })
-        .then(async (res) => {
+      const algolia = algoliaSearchEnabled()
+        ? searchAlgoliaIssues(trimmed, topic && topic.flow === "match-topic" ? topic.language : undefined).catch(
+            (err: unknown) => {
+              if (err instanceof DOMException && err.name === "AbortError") throw err;
+              return null;
+            },
+          )
+        : Promise.resolve(null);
+      algolia
+        .then(async (hits) => {
+          if (controller.signal.aborted) return null;
+          if (hits) return { issues: hits as LiveIssue[], error: null };
+          const res = await fetch(`/api/search?q=${encodeURIComponent(trimmed)}${lang}`, {
+            signal: controller.signal,
+          });
           const json = (await res.json()) as { issues?: LiveIssue[]; error?: string };
           if (!res.ok || json.error === "generic") {
             return { issues: [] as LiveIssue[], error: "generic" as const };
@@ -438,6 +474,7 @@ export function SiteSearch({
           return { issues: Array.isArray(json.issues) ? json.issues : [], error: null };
         })
         .then((json) => {
+          if (!json || controller.signal.aborted) return;
           setLive(json.issues);
           setSearchError(json.error);
           setSettledFor(trimmed);
@@ -717,7 +754,11 @@ export function SiteSearch({
                             <span className="min-w-0 flex-1">
                               <span className="flex items-start justify-between gap-2">
                                 <span className="text-sm leading-5 font-medium break-words">
-                                  <Highlight text={row.title} query={trimmed} />
+                                  {row.titleParts ? (
+                                    <Marked parts={row.titleParts} />
+                                  ) : (
+                                    <Highlight text={row.title} query={trimmed} />
+                                  )}
                                 </span>
                                 {age ? (
                                   <span className="shrink-0 text-[11px] text-muted-foreground">{age}</span>
@@ -727,7 +768,11 @@ export function SiteSearch({
                                 <span className="mt-0.5 flex flex-wrap items-center gap-1.5">
                                   {row.detail ? (
                                     <span className="text-xs text-muted-foreground">
-                                      <Highlight text={row.detail} query={trimmed} />
+                                      {row.detailParts ? (
+                                        <Marked parts={row.detailParts} />
+                                      ) : (
+                                        <Highlight text={row.detail} query={trimmed} />
+                                      )}
                                     </span>
                                   ) : null}
                                   {row.labels?.slice(0, 2).map((label) => (
@@ -748,11 +793,22 @@ export function SiteSearch({
                   );
                 })}
               </ul>
-              <div className="flex shrink-0 items-center gap-3 border-t border-border px-3 py-2 text-[11px] text-muted-foreground">
+              <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 border-t border-border px-3 py-2 text-[11px] text-muted-foreground">
                 <span>{t("search.keys")}</span>
                 <span>{t("search.keyOpen")}</span>
                 <span>{t("search.keyClose")}</span>
-                <span className="ml-auto hidden sm:inline">{t("search.slash")}</span>
+                <span className="hidden sm:inline">{t("search.slash")}</span>
+                {algoliaSearchEnabled() ? (
+                  <a
+                    href="https://www.algolia.com/?utm_medium=AOS-referral"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Search by Algolia"
+                    className="ml-auto inline-flex items-center"
+                  >
+                    <SearchByAlgolia />
+                  </a>
+                ) : null}
               </div>
             </div>,
             document.body,

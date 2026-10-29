@@ -38,6 +38,7 @@ const LIBS = [
   ["Octokit", "MIT", "https://github.com/octokit/octokit.js"],
   ["OpenAI Node SDK", "Apache-2.0", "https://github.com/openai/openai-node"],
   ["Zod", "MIT", "https://github.com/colinhacks/zod"],
+  ["Algolia JavaScript client", "MIT", "https://github.com/algolia/algoliasearch-client-javascript"],
   ["Base UI", "MIT", "https://base-ui.com"],
   ["next-themes", "MIT", "https://github.com/pacocoursey/next-themes"],
   ["Sonner", "MIT", "https://github.com/emilkowalski/sonner"],
@@ -127,8 +128,12 @@ export default function CreditsPage() {
         <h2 className="text-xl font-semibold">Data and hosting</h2>
         <ul className="mt-3 list-disc space-y-2 pl-5 text-base leading-relaxed">
           <li>GitHub’s API for public issues, pull requests, and search. FirstPRbot uses the GitHub App webhook.</li>
+          <li>
+            Algolia, on the Algolia for Open Source plan, when the search keys are set. The index stores public issue
+            fields. The “Search by Algolia” mark in the dropdown links to Algolia.
+          </li>
           <li>The public site is hosted on Vercel (firstpr-coral.vercel.app).</li>
-          <li>This version does not use Algolia, and it does not connect to Neon or Postgres.</li>
+          <li>This version does not connect to Neon or Postgres.</li>
         </ul>
       </section>
 

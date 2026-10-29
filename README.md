@@ -67,6 +67,38 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+### Issue search (Algolia)
+
+Optional. If these are unset, the search box keeps using GitHub through `/api/search`.
+
+| Variable | Where it is read | What to set |
+| --- | --- | --- |
+| `ALGOLIA_APP_ID` | server, index sync | Application ID. The approved Algolia for Open Source app is `VD6Y3O5GB7`. |
+| `NEXT_PUBLIC_ALGOLIA_APP_ID` | browser | The same application ID. The dropdown calls Algolia directly, so the browser needs it. |
+| `ALGOLIA_ADMIN_KEY` | server only | Admin API key used to write the index. Do not prefix it with `NEXT_PUBLIC_` and do not commit it. |
+| `NEXT_PUBLIC_ALGOLIA_SEARCH_KEY` | browser | Search-only API key. |
+| `ALGOLIA_INDEX_NAME` | server | Index name. Defaults to `firstpr_issues`. |
+| `NEXT_PUBLIC_ALGOLIA_INDEX_NAME` | browser | Only if the index is not `firstpr_issues`. Must match `ALGOLIA_INDEX_NAME`. |
+| `CRON_SECRET` | server | Bearer token for `/api/cron/sync-issues`. |
+
+On Vercel, set all of the above in the project environment, then redeploy so the `NEXT_PUBLIC_` values are in the client bundle.
+
+The sync route reads open, unassigned issues labeled `good first issue` or `help wanted`, writes `objectID`, title, repo, url, labels, language, stars, `created_at`, `updated_at`, comments, and assignee status, and deletes ids GitHub now reports as closed or assigned. `vercel.json` schedules that route every 6 hours (`0 */6 * * *`). Vercel sends `Authorization: Bearer $CRON_SECRET` when `CRON_SECRET` is set.
+
+First sync, after the variables exist:
+
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" https://firstpr-coral.vercel.app/api/cron/sync-issues
+```
+
+Locally, with `npm run dev` and the same variables in `.env.local`:
+
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" http://localhost:3000/api/cron/sync-issues
+```
+
+A successful body looks like `{ "ok": true, "indexed": 600, "removed": 0, "complete": false }`. `complete: false` means this run indexed a capped window (6 pages of 100, spaced for GitHub’s search limit) and only removed recently closed or assigned issues. Do not commit real keys.
+
 Offline-style demo (uses committed fixtures under `data/demo/`):
 
 ```bash

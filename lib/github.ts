@@ -1,6 +1,8 @@
 import { Octokit } from "@octokit/rest";
 import { cached } from "@/lib/cache";
-import { env } from "@/lib/env";
+import type { AlgoliaIssueRecord } from "@/lib/algolia-record";
+import { issueObjectId } from "@/lib/algolia-plan";
+import { env, getEnv } from "@/lib/env";
 
 export type GitHubErrorCode = "rate_limited" | "not_found" | "github_error";
 
@@ -701,6 +703,169 @@ export async function getPullFiles(
       }));
     }),
   );
+}
+
+const OPEN_ISSUE_QUERY =
+  'is:issue is:open no:assignee (label:"good first issue" OR label:"help wanted")';
+const STALE_ISSUE_QUERY =
+  'is:issue (label:"good first issue" OR label:"help wanted") (is:closed OR assignee:*)';
+const INDEX_PAGE_SIZE = 100;
+const INDEX_OPEN_PAGES = 6;
+const INDEX_STALE_PAGES = 2;
+const REPO_BATCH = 30;
+
+export type IssueIndexFetch = {
+  records: AlgoliaIssueRecord[];
+  complete: boolean;
+};
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+function repoFromApiUrl(repositoryUrl: string): { owner: string; repo: string } | null {
+  const match = repositoryUrl.match(/\/repos\/([^/]+)\/([^/]+)$/i);
+  if (!match) return null;
+  const owner = match[1];
+  const repo = match[2];
+  if (!owner || !repo || !/^[A-Za-z0-9_.-]+$/.test(owner) || !/^[A-Za-z0-9_.-]+$/.test(repo)) {
+    return null;
+  }
+  return { owner, repo };
+}
+
+type RepoMeta = { stars: number; language: string; isPrivate: boolean };
+
+type RepoNode = {
+  stargazerCount?: number;
+  isPrivate?: boolean;
+  primaryLanguage?: { name?: string | null } | null;
+} | null;
+
+async function loadRepoMeta(
+  pairs: { owner: string; repo: string }[],
+): Promise<Map<string, RepoMeta>> {
+  const meta = new Map<string, RepoMeta>();
+  const client = getOctokit();
+  for (let offset = 0; offset < pairs.length; offset += REPO_BATCH) {
+    const slice = pairs.slice(offset, offset + REPO_BATCH);
+    const fields = slice
+      .map((pair, index) => {
+        const owner = JSON.stringify(pair.owner);
+        const repo = JSON.stringify(pair.repo);
+        return `r${index}: repository(owner: ${owner}, name: ${repo}) { stargazerCount isPrivate primaryLanguage { name } }`;
+      })
+      .join("\n");
+    try {
+      const response = await client.request("POST /graphql", {
+        query: `query { ${fields} }`,
+      });
+      const payload = response.data as {
+        data?: Record<string, RepoNode | null>;
+      } & Record<string, RepoNode | null>;
+      const data = payload.data ?? payload;
+      slice.forEach((pair, index) => {
+        const node = data?.[`r${index}`];
+        if (!node) return;
+        meta.set(`${pair.owner}/${pair.repo}`, {
+          stars: typeof node.stargazerCount === "number" ? node.stargazerCount : 0,
+          language: node.primaryLanguage?.name ?? "",
+          isPrivate: Boolean(node.isPrivate),
+        });
+      });
+    } catch (err) {
+      rethrowGitHub(err);
+    }
+    if (offset + REPO_BATCH < pairs.length) await wait(400);
+  }
+  return meta;
+}
+
+async function searchIssuePages(
+  q: string,
+  pages: number,
+): Promise<{ items: AlgoliaIssueRecord[]; complete: boolean }> {
+  if (!getEnv().GITHUB_TOKEN) {
+    throw new GitHubError("GITHUB_TOKEN is required to sync the issue index", "github_error");
+  }
+  const client = getOctokit();
+  const drafts: AlgoliaIssueRecord[] = [];
+  let complete = false;
+
+  for (let page = 1; page <= pages; page += 1) {
+    if (page > 1) await wait(2100);
+    const { data, headers } = await gh(() =>
+      client.search.issuesAndPullRequests({
+        q,
+        sort: "updated",
+        order: "desc",
+        per_page: INDEX_PAGE_SIZE,
+        page,
+      }),
+    );
+    const remaining = Number(headerRemaining(headers));
+    for (const issue of data.items) {
+      if ("pull_request" in issue && issue.pull_request) continue;
+      const repo = repoFromApiUrl(issue.repository_url);
+      if (!repo) continue;
+      const assignees = issue.assignees ?? [];
+      const assigned = Boolean(issue.assignee) || assignees.length > 0;
+      const labels = (issue.labels ?? [])
+        .map((label) => (typeof label === "string" ? label : (label.name ?? "")))
+        .filter(Boolean)
+        .slice(0, 8);
+      const created = Date.parse(issue.created_at);
+      const updated = Date.parse(issue.updated_at);
+      if (Number.isNaN(created) || Number.isNaN(updated)) continue;
+      drafts.push({
+        objectID: issueObjectId(repo.owner, repo.repo, issue.number),
+        title: issue.title,
+        repo: `${repo.owner}/${repo.repo}`,
+        url: issue.html_url,
+        labels,
+        language: "",
+        stars: 0,
+        created_at: Math.floor(created / 1000),
+        updated_at: Math.floor(updated / 1000),
+        comments: issue.comments,
+        assignee: assigned ? "assigned" : "none",
+      });
+    }
+    const shortPage = data.items.length < INDEX_PAGE_SIZE;
+    if (shortPage && !data.incomplete_results) {
+      complete = true;
+      break;
+    }
+    if (Number.isFinite(remaining) && remaining < 2) break;
+  }
+
+  return { items: drafts, complete };
+}
+
+/** Open, unassigned good-first-issue and help-wanted issues for the Algolia index. */
+export async function listOpenIssuesForIndex(): Promise<IssueIndexFetch> {
+  const { items, complete } = await searchIssuePages(OPEN_ISSUE_QUERY, INDEX_OPEN_PAGES);
+  const open = items.filter((item) => item.assignee === "none");
+  const repos = new Map<string, { owner: string; repo: string }>();
+  for (const item of open) {
+    const [owner, repo] = item.repo.split("/");
+    if (owner && repo) repos.set(item.repo, { owner, repo });
+  }
+  const meta = await loadRepoMeta([...repos.values()]);
+  const records = open.flatMap((item) => {
+    const info = meta.get(item.repo);
+    if (info?.isPrivate) return [];
+    return [{ ...item, stars: info?.stars ?? 0, language: info?.language ?? "" }];
+  });
+  return { records, complete };
+}
+
+/** Object IDs GitHub now reports as closed or assigned, so the index can drop them. */
+export async function listStaleIssueObjectIds(): Promise<string[]> {
+  const { items } = await searchIssuePages(STALE_ISSUE_QUERY, INDEX_STALE_PAGES);
+  return [...new Set(items.map((item) => item.objectID))];
 }
 
 export async function getRateLimit(): Promise<RateLimitInfo> {
