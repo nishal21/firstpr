@@ -56,7 +56,7 @@ export function SiteFooter() {
       label: t("footer.colProduct"),
       links: [
         { href: "/", label: t("nav.findIssue") },
-        { href: "/issue/nishal21/NekoDroid/4", label: t("nav.explain") },
+        { href: "/explain", label: t("nav.explain") },
         { href: "/review", label: t("nav.review") },
       ],
     },

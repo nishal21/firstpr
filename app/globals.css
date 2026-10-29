@@ -919,3 +919,75 @@ main .rounded-2xl.bg-card textarea:focus-visible {
   }
 }
 
+
+/* Tool pages (Explain, Review): sticker fields, segmented tabs and check chips. */
+.sticker-field {
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.sticker-field::placeholder {
+  color: #6b655a;
+}
+
+.dark .sticker-field::placeholder {
+  color: var(--ink-soft);
+}
+
+.sticker-field:focus-visible {
+  outline: 2px solid #0473fd;
+  outline-offset: 2px;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.sticker-seg {
+  display: inline-flex;
+  border: 3px solid var(--ink);
+  background: var(--paper);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.sticker-seg-option {
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 600;
+  outline: none;
+}
+
+.sticker-seg-option + .sticker-seg-option {
+  border-left: 3px solid var(--ink);
+}
+
+.sticker-seg-option[aria-selected="true"] {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.sticker-seg-option:focus-visible {
+  outline: 2px solid #0473fd;
+  outline-offset: -5px;
+}
+
+.check-chip {
+  display: inline-flex;
+  min-height: 2rem;
+  align-items: center;
+  gap: 0.35rem;
+  border: 2px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  padding: 0.15rem 0.6rem;
+  font-family: var(--font-plex), ui-monospace, monospace;
+  font-size: 0.78rem;
+  line-height: 1.2;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.ink-card p.text-destructive {
+  color: var(--destructive);
+}

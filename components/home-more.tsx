@@ -28,9 +28,9 @@ const WALK = [
     id: "understand",
     kicker: "2 · Understand",
     title: "Read the real files",
-    body: "Explain summarizes issue #4 and cites files that exist in that repo. It does not invent a patch.",
-    href: "/issue/nishal21/NekoDroid/4",
-    hrefLabel: "Open NekoDroid #4",
+    body: "Paste an issue link and Explain summarizes it, citing files that exist in that repo. It does not invent a patch.",
+    href: "/explain",
+    hrefLabel: "Open explain",
   },
   {
     id: "write",

@@ -1,39 +1,134 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { FileSearch, ListChecks, MapPin, ScanSearch } from "lucide-react";
+import { useT } from "@/components/language-provider";
+import { ToolIntro } from "@/components/tool-intro";
+import { ArrowBubble, arrowPillClass } from "@/components/ui/arrow-pill";
+import { Input } from "@/components/ui/input";
+import { parseGitHubInput } from "@/lib/parse-github-input";
+import { cn } from "@/lib/utils";
 
-function RedirectExplain() {
+const EXAMPLE = "nishal21/NekoDroid#4";
+
+type IssueRef = { owner: string; repo: string; number: number };
+
+/** An issue link, owner/repo#N, or owner/repo/issues/N. PR links come back as "pull". */
+function readIssueRef(raw: string): IssueRef | "pull" | null {
+  const text = raw.trim();
+  const short = text.match(/^([A-Za-z0-9-]{1,39})\/([A-Za-z0-9_.-]{1,100})(?:#|\/issues\/)(\d{1,9})$/);
+  if (short) return { owner: short[1], repo: short[2], number: Number(short[3]) };
+  const parsed = parseGitHubInput(text);
+  if (parsed.kind === "issue") return { owner: parsed.owner, repo: parsed.repo, number: parsed.number };
+  if (parsed.kind === "pull") return "pull";
+  return null;
+}
+
+function issuePath(ref: IssueRef): string {
+  return `/issue/${encodeURIComponent(ref.owner)}/${encodeURIComponent(ref.repo)}/${ref.number}`;
+}
+
+function ExplainEntry() {
+  const t = useT();
   const router = useRouter();
   const params = useSearchParams();
-  const owner = params.get("owner")?.trim() || "nishal21";
-  const repo = params.get("repo")?.trim() || "NekoDroid";
-  const issue = params.get("issue")?.trim() || "4";
+  const owner = params.get("owner")?.trim();
+  const repo = params.get("repo")?.trim();
+  const issue = params.get("issue")?.trim();
+  const deepPath =
+    owner && repo && issue && /^\d+$/.test(issue)
+      ? issuePath({ owner, repo, number: Number(issue) })
+      : null;
+  const [value, setValue] = useState("");
+  const [problem, setProblem] = useState<"invalid" | "pull" | null>(null);
 
+  // Old /explain?owner=&repo=&issue= links still open that issue. Nothing else runs on its own.
   useEffect(() => {
-    router.replace(
-      `/issue/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/${encodeURIComponent(issue)}`,
-    );
-  }, [router, owner, repo, issue]);
+    if (deepPath) router.replace(deepPath);
+  }, [router, deepPath]);
+
+  function submit() {
+    const ref = readIssueRef(value);
+    if (ref === "pull") return setProblem("pull");
+    if (!ref) return setProblem("invalid");
+    setProblem(null);
+    router.push(issuePath(ref));
+  }
+
+  if (deepPath) return null;
 
   return (
-    <section className="mx-auto max-w-5xl px-4 py-10 text-sm text-muted-foreground sm:px-6">
-      Opening explanation…
-    </section>
+    <>
+      <ToolIntro
+        icon={ScanSearch}
+        step={`${t("steps.step", { n: 2 })} · ${t("nav.explain")}`}
+        title={t("explain.entryTitle")}
+        subtitle={t("explain.entryLead")}
+        chipsLabel={t("explain.getsLabel")}
+        chips={[
+          { icon: FileSearch, label: t("explain.getSummary") },
+          { icon: MapPin, label: t("explain.getFiles") },
+          { icon: ListChecks, label: t("explain.getChecklist") },
+        ]}
+      />
+      <section className="mx-auto max-w-5xl px-4 py-8 sm:px-6 md:py-12">
+        <form
+          className="ink-card min-w-0 p-4 sm:p-6"
+          onSubmit={(e) => {
+            e.preventDefault();
+            submit();
+          }}
+        >
+          <label className="block text-sm font-semibold text-foreground">
+            {t("explain.entryLabel")}
+            <Input
+              className="sticker-field mt-1.5 min-h-11 h-11 w-full rounded-none text-base md:text-sm"
+              placeholder={t("explain.entryPlaceholder")}
+              value={value}
+              onChange={(e) => {
+                setValue(e.target.value);
+                setProblem(null);
+              }}
+              autoComplete="off"
+              spellCheck={false}
+              aria-invalid={problem ? true : undefined}
+            />
+          </label>
+          {problem ? (
+            <p className="mt-2 text-sm text-destructive" role="alert">
+              {problem === "pull" ? t("explain.entryIsPull") : t("explain.entryInvalid")}
+            </p>
+          ) : null}
+          <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <button type="submit" className={cn(arrowPillClass, "w-full sm:w-auto")} disabled={!value.trim()}>
+              {t("explain.entrySubmit")}
+              <ArrowBubble />
+            </button>
+            <p className="text-sm text-foreground/70">
+              {t("explain.entryExample")}{" "}
+              <button
+                type="button"
+                className="inline-flex min-h-11 items-center font-mono text-primary hover:underline"
+                onClick={() => {
+                  setValue(EXAMPLE);
+                  setProblem(null);
+                }}
+              >
+                {EXAMPLE}
+              </button>
+            </p>
+          </div>
+        </form>
+      </section>
+    </>
   );
 }
 
 export default function ExplainPage() {
   return (
-    <Suspense
-      fallback={
-        <section className="mx-auto max-w-5xl px-4 py-10 text-sm text-muted-foreground sm:px-6">
-          Loading…
-        </section>
-      }
-    >
-      <RedirectExplain />
+    <Suspense fallback={null}>
+      <ExplainEntry />
     </Suspense>
   );
 }

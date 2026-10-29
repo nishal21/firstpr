@@ -13,12 +13,13 @@ import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
   { href: "/", key: "nav.findIssue" as const },
-  { href: "/issue/nishal21/NekoDroid/4", key: "nav.explain" as const },
+  { href: "/explain", key: "nav.explain" as const },
   { href: "/review", key: "nav.review" as const },
 ];
 
 function linkActive(pathname: string, href: string): boolean {
   if (href === "/") return pathname === "/";
+  if (href === "/explain" && pathname.startsWith("/issue/")) return true;
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
