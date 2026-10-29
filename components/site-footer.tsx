@@ -129,7 +129,7 @@ export function SiteFooter() {
         </nav>
         <div className="footer-tools flex flex-wrap items-center gap-3">
           <ThemeToggle className="sticker-pill" />
-          <LangToggle buttonClassName="sticker-pill" variant="sticker" />
+          <LangToggle buttonClassName="sticker-pill" placement="up" />
         </div>
         <p className="font-plex text-[11px] tracking-wide">{t("footer.colophon")}</p>
       </div>

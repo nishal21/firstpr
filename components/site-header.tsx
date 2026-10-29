@@ -100,7 +100,7 @@ export function SiteHeader() {
               </Link>
             );
           })}
-          <LangToggle variant="sticker" placement="down" />
+          <LangToggle align="end" />
         </nav>
 
         {/* Mobile: lang + menu — no overflow-hidden so LangToggle portal stays free */}
@@ -113,7 +113,7 @@ export function SiteHeader() {
           >
             <Search className="size-5" aria-hidden />
           </button>
-          <LangToggle compact variant="sticker" placement="down" />
+          <LangToggle compact align="end" />
           <button
             type="button"
             className="inline-flex size-11 items-center justify-center rounded-xl text-foreground outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/40"

@@ -14,37 +14,32 @@ function subscribeReady() {
 type MenuPos = {
   top?: number;
   bottom?: number;
-  left?: number;
-  right?: number;
-  width?: number;
+  left: number;
+  width: number;
   maxHeight: number;
 };
 
 /** Keep the menu this far from every viewport edge. */
 const EDGE = 8;
 
+/** Rough height of the two-column menu, used to decide which way it fits. */
+const MENU_HEIGHT = 400;
+
 export function LangToggle({
   className,
   compact = false,
   buttonClassName,
-  variant = "menu",
-  placement = "up",
+  placement = "down",
+  align = "start",
 }: {
   className?: string;
   compact?: boolean;
   buttonClassName?: string;
-  /**
-   * "menu" is the plain dropdown. "sticker" is the cream two-column picker
-   * used in the header and footer.
-   */
-  variant?: "menu" | "sticker";
-  /**
-   * Sticker only. "up" opens above the trigger, start-aligned (footer).
-   * "down" opens below it, end-aligned (header).
-   */
+  /** Which side of the trigger the menu opens on. "down" flips up when there is no room below. */
   placement?: "up" | "down";
+  /** Line the menu up with the trigger's left ("start") or right ("end") edge. */
+  align?: "start" | "end";
 }) {
-  const sticker = variant === "sticker";
   const { lang, setLang, t, ready } = useLanguage();
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<MenuPos | null>(null);
@@ -63,46 +58,29 @@ export function LangToggle({
     }
     function place() {
       const rect = buttonRef.current!.getBoundingClientRect();
-      const gap = 4;
-      if (sticker) {
-        const width = Math.min(320, window.innerWidth - EDGE * 2);
-        const maxLeft = window.innerWidth - EDGE - width;
-        if (placement === "down") {
-          // Open downward, end-aligned to the trigger, clamped on screen.
-          const top = rect.bottom + gap + 2;
-          setPos({
-            top,
-            left: Math.min(Math.max(EDGE, rect.right - width), maxLeft),
-            width,
-            maxHeight: Math.max(160, window.innerHeight - top - EDGE),
-          });
-          return;
-        }
-        // Open upward, start-aligned to the trigger, clamped on screen.
-        const left = Math.min(Math.max(EDGE, rect.left), maxLeft);
-        setPos({
-          bottom: window.innerHeight - rect.top + gap + 2,
-          left,
-          width,
-          maxHeight: Math.max(160, rect.top - gap - 2 - EDGE),
-        });
-        return;
-      }
-      const spaceBelow = window.innerHeight - rect.bottom - gap - 8;
-      const spaceAbove = rect.top - gap - 8;
-      const openUp = spaceBelow < 240 && spaceAbove > spaceBelow;
-      const maxHeight = Math.min(380, Math.max(180, openUp ? spaceAbove : spaceBelow));
-      if (openUp) {
+      const gap = 6;
+      const width = Math.min(320, window.innerWidth - EDGE * 2);
+      const wantLeft = align === "end" ? rect.right - width : rect.left;
+      const left = Math.min(Math.max(EDGE, wantLeft), window.innerWidth - EDGE - width);
+      const spaceBelow = window.innerHeight - rect.bottom - gap - EDGE;
+      const spaceAbove = rect.top - gap - EDGE;
+      const up =
+        placement === "up"
+          ? !(spaceAbove < MENU_HEIGHT && spaceBelow > spaceAbove)
+          : spaceBelow < MENU_HEIGHT && spaceAbove > spaceBelow;
+      if (up) {
         setPos({
           bottom: window.innerHeight - rect.top + gap,
-          right: Math.max(8, window.innerWidth - rect.right),
-          maxHeight,
+          left,
+          width,
+          maxHeight: Math.max(160, spaceAbove),
         });
       } else {
         setPos({
           top: rect.bottom + gap,
-          right: Math.max(8, window.innerWidth - rect.right),
-          maxHeight,
+          left,
+          width,
+          maxHeight: Math.max(160, spaceBelow),
         });
       }
     }
@@ -113,7 +91,7 @@ export function LangToggle({
       window.removeEventListener("resize", place);
       window.removeEventListener("scroll", place, true);
     };
-  }, [open, sticker, placement]);
+  }, [open, placement, align]);
 
   useEffect(() => {
     if (!open) return;
@@ -150,16 +128,10 @@ export function LangToggle({
               top: pos.top,
               bottom: pos.bottom,
               left: pos.left,
-              right: pos.right,
               width: pos.width,
               maxHeight: pos.maxHeight,
             }}
-            className={cn(
-              "fixed z-[200] overflow-y-auto overscroll-contain text-sm",
-              sticker
-                ? "lang-sticker-menu grid grid-cols-2 gap-1 p-2"
-                : "w-56 rounded-md border border-border bg-card py-1 shadow-lg [scrollbar-gutter:stable]",
-            )}
+            className="lang-sticker-menu fixed z-[200] grid grid-cols-2 gap-1 overflow-y-auto overscroll-contain p-2 text-sm"
           >
             {UI_LANGS.map((code) => {
               const selected = code === lang;
@@ -169,26 +141,18 @@ export function LangToggle({
                     type="button"
                     onClick={() => pick(code)}
                     className={cn(
-                      sticker
-                        ? "lang-sticker-option flex min-h-10 w-full items-center justify-between gap-2 px-2.5 py-1.5 text-left outline-none"
-                        : "flex min-h-11 w-full items-center justify-between gap-3 px-3 py-2 text-left text-foreground outline-none hover:bg-muted focus-visible:bg-muted",
-                      selected && (sticker ? "is-selected" : "bg-muted text-foreground"),
+                      "lang-sticker-option flex min-h-10 w-full items-center justify-between gap-2 px-2.5 py-1.5 text-left outline-none",
+                      selected && "is-selected",
                     )}
                   >
                     <span
                       lang={code}
-                      className={cn(
-                        sticker ? "min-w-0 leading-tight [overflow-wrap:anywhere]" : "whitespace-nowrap",
-                        uiLangFontClass(code),
-                      )}
+                      className={cn("min-w-0 leading-tight [overflow-wrap:anywhere]", uiLangFontClass(code))}
                     >
                       {UI_LANG_NATIVE[code]}
                     </span>
                     {selected ? (
-                      <Check
-                        className={cn("size-3.5 shrink-0", sticker ? "text-current" : "text-primary")}
-                        aria-hidden
-                      />
+                      <Check className="size-3.5 shrink-0 text-current" aria-hidden />
                     ) : (
                       <span className="size-3.5 shrink-0" aria-hidden />
                     )}
