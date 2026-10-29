@@ -20,9 +20,18 @@ export const en = {
   "footer.colTeam": "Team",
   "footer.license": "AGPL-3.0",
 
-  "bot.heading": "Use it on GitHub",
-  "bot.body":
-    "FirstPRbot brings Match → Explain → Review into GitHub comments. Install it, then /firstpr explain on a good first issue, or /firstpr review on a PR for the mentor-ready score card.",
+  "bot.kicker": "FirstPRbot · GitHub App",
+  "bot.heading": "One quiet comment on every PR",
+  "bot.body": "Install FirstPRbot and each pull request gets a single summary a maintainer can read in ten seconds. It edits itself on every push instead of piling up new comments.",
+  "bot.pointsHeading": "What maintainers get",
+  "bot.point1Title": "A verdict up top",
+  "bot.point1Body": "Ready for review, needs a few changes, or not linked to an issue. Nothing to decode.",
+  "bot.point2Title": "The checks you'd do by hand",
+  "bot.point2Body": "Linked issue, assignee, CONTRIBUTING.md, tests, scope and first-time contributor in one short table.",
+  "bot.point3Title": "Where to look first",
+  "bot.point3Body": "Up to three files or lines worth reading, plus next steps for the contributor that never write the fix.",
+  "bot.previewLabel": "Example FirstPRbot comment on a pull request",
+  "bot.previewCaption": "Sample comment. Turn it off any time with enabled: false in .github/firstpr.yml.",
   "bot.cta": "About FirstPRbot",
 
   "error.notFound.code": "404",
