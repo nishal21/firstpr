@@ -37,12 +37,36 @@ flowchart LR
 
 Install [FirstPRbot](https://github.com/apps/firstprbot) on a repo:
 
-| Where | Command | What you get |
-| --- | --- | --- |
-| Issue comment | `/firstpr explain` | Plain-English guide, file permalinks, done-when list, level-1 hint |
-| PR comment | `/firstpr review` | Mentor-ready score card (same checklist as the site) |
+| Where | What happens |
+| --- | --- |
+| PR opened, reopened, marked ready, pushed to, or its description edited | One summary comment, edited in place on later pushes (edits don't email watchers). Drafts are skipped. |
+| PR comment `/firstpr recheck` (or `/firstpr review`) | Re-runs the check now, drafts included |
+| Issue comment `/firstpr explain` | Plain-English guide, file permalinks, done-when list, level-1 hint |
 
-Opening or pushing to a PR also posts a score card automatically. FirstPRbot never writes the fix.
+The PR summary is written for the maintainer first:
+
+- a one-line verdict: **Ready for review**, **Needs a few changes**, or **Not linked to an issue**
+- a short table: linked issue, good-first-issue label, assigned to the author, CONTRIBUTING.md, tests, scope, first-time contributor
+- what a maintainer should look at (up to three files or lines)
+- up to three next steps for the contributor (never the fix itself)
+- the full score in a collapsed `<details>` block, plus a link to the PR on the FirstPR review page
+
+Older score cards from before this format are collapsed as outdated. Try `node scripts/verify-bot-comment.ts out/` to render three sample comments.
+
+#### Optional `.github/firstpr.yml`
+
+Read from the default branch, so a PR can't change it for itself. Every key is optional.
+
+```yaml
+enabled: true              # false stops FirstPRbot commenting on this repo
+minimize_old: true         # collapse score cards from the old multi-comment format
+require_linked_issue: true # false: a PR without "Fixes #N" can still be "Ready for review"
+labels:                    # off unless you name a label
+  first_timer: first-timer # added to PRs from first-time contributors
+  needs_issue: needs-issue # added while no issue is linked, removed once one is
+```
+
+FirstPRbot never writes the fix.
 
 ## Tech stack
 

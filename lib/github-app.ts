@@ -1,58 +1,152 @@
 import { App } from "@octokit/app";
 import { Octokit } from "@octokit/rest";
+import {
+  BOT_CONFIG_PATH,
+  DEFAULT_BOT_CONFIG,
+  parseBotConfig,
+  type BotConfig,
+} from "@/lib/bot-config";
 import { explainIssueCached } from "@/lib/explain";
 import { getEnv } from "@/lib/env";
 import {
-  getBranchSha,
-  getContributing,
-  getIssue,
   type GoodFirstIssue,
   type PullFile,
   type PullRequestInfo,
 } from "@/lib/github";
 import { getHint } from "@/lib/hints";
-import { formatReviewMarkdown, reviewPr } from "@/lib/review";
-import { formatExplainWebhookComment } from "@/lib/webhook-format";
-
-const CLOSE_KEYWORD_RE =
-  /\b(?:close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\s+#(\d+)/gi;
+import { parseLinkedIssueNumbers } from "@/lib/linked-issues";
+import { reviewPr } from "@/lib/review";
+import {
+  firstPrSiteOrigin,
+  formatExplainWebhookComment,
+  formatPrComment,
+  formatPrCommentError,
+  LEGACY_PR_COMMENT_PREFIXES,
+  PR_COMMENT_MARKER,
+} from "@/lib/webhook-format";
 
 const MAX_PATCH_CHARS = 8000;
+const MAX_TREE_PATHS = 20_000;
+
+/** Author associations GitHub gives people with no merged work in the repo. */
+const FIRST_TIME_ASSOCIATIONS = new Set([
+  "FIRST_TIME_CONTRIBUTOR",
+  "FIRST_TIMER",
+  "NONE",
+]);
 
 type InstallationOctokit = InstanceType<typeof Octokit>;
 
 let appInstance: App<{ Octokit: typeof Octokit }> | null = null;
 let handlersRegistered = false;
 
-function parseLinkedIssueNumbers(body: string | null): number[] {
-  if (!body) return [];
-  const nums = new Set<number>();
-  CLOSE_KEYWORD_RE.lastIndex = 0;
-  let m: RegExpExecArray | null;
-  while ((m = CLOSE_KEYWORD_RE.exec(body)) !== null) {
-    const n = Number(m[1]);
-    if (Number.isFinite(n) && n > 0) nums.add(n);
-  }
-  return [...nums];
-}
-
 function isBotSender(sender: { type?: string } | null | undefined): boolean {
   return sender?.type === "Bot";
 }
 
-async function loadLinkedIssue(
+function httpStatus(err: unknown): number | undefined {
+  const s = (err as { status?: unknown })?.status;
+  return typeof s === "number" ? s : undefined;
+}
+
+/** Read a text file through the installation token; null if it isn't there. */
+async function readRepoFile(
+  octokit: InstallationOctokit,
   owner: string,
   repo: string,
-  pr: PullRequestInfo,
-): Promise<GoodFirstIssue | null> {
-  const n = pr.linkedIssueNumbers[0];
-  if (!n) return null;
+  path: string,
+  ref?: string,
+): Promise<string | null> {
   try {
-    return await getIssue(owner, repo, n);
+    const { data } = await octokit.rest.repos.getContent({ owner, repo, path, ref });
+    if (Array.isArray(data) || data.type !== "file" || !("content" in data)) {
+      return null;
+    }
+    return Buffer.from(data.content, "base64").toString("utf8");
   } catch {
     return null;
   }
 }
+
+async function loadBotConfig(
+  octokit: InstallationOctokit,
+  owner: string,
+  repo: string,
+): Promise<BotConfig> {
+  // Default branch only, so a PR can't switch the bot off for itself.
+  const text = await readRepoFile(octokit, owner, repo, BOT_CONFIG_PATH);
+  return text ? parseBotConfig(text) : DEFAULT_BOT_CONFIG;
+}
+
+async function loadContributing(
+  octokit: InstallationOctokit,
+  owner: string,
+  repo: string,
+  ref: string,
+): Promise<string | null> {
+  for (const path of ["CONTRIBUTING.md", ".github/CONTRIBUTING.md", "docs/CONTRIBUTING.md"]) {
+    const text = await readRepoFile(octokit, owner, repo, path, ref);
+    if (text !== null) return text;
+  }
+  return null;
+}
+
+async function loadRepoPaths(
+  octokit: InstallationOctokit,
+  owner: string,
+  repo: string,
+  sha: string,
+): Promise<string[] | undefined> {
+  try {
+    const { data } = await octokit.rest.git.getTree({
+      owner,
+      repo,
+      tree_sha: sha,
+      recursive: "true",
+    });
+    return (data.tree ?? [])
+      .filter((e) => e.type === "blob" && e.path)
+      .map((e) => e.path as string)
+      .slice(0, MAX_TREE_PATHS);
+  } catch {
+    return undefined;
+  }
+}
+
+async function loadLinkedIssue(
+  octokit: InstallationOctokit,
+  owner: string,
+  repo: string,
+  n: number | undefined,
+): Promise<GoodFirstIssue | null> {
+  if (!n) return null;
+  try {
+    const { data } = await octokit.rest.issues.get({ owner, repo, issue_number: n });
+    if (data.pull_request) return null; // `Fixes #N` pointing at another PR
+    return {
+      number: data.number,
+      title: data.title,
+      body: data.body ?? null,
+      labels: data.labels
+        .map((l) => (typeof l === "string" ? l : (l.name ?? "")))
+        .filter(Boolean),
+      assignees: (data.assignees ?? []).map((a) => a.login),
+      htmlUrl: data.html_url,
+      createdAt: data.created_at,
+      comments: data.comments,
+      state: data.state === "closed" ? "closed" : "open",
+    };
+  } catch {
+    return null;
+  }
+}
+
+type PrBundle = {
+  pr: PullRequestInfo;
+  files: PullFile[];
+  firstTimeContributor: boolean;
+  draft: boolean;
+};
 
 /** Fresh PR + files via the installation Octokit (avoids GITHUB_TOKEN cache). */
 async function loadPrBundle(
@@ -60,10 +154,10 @@ async function loadPrBundle(
   owner: string,
   repo: string,
   number: number,
-): Promise<{ pr: PullRequestInfo; files: PullFile[] }> {
-  const [{ data: prData }, { data: filesData }] = await Promise.all([
+): Promise<PrBundle> {
+  const [{ data: prData }, filesData] = await Promise.all([
     octokit.rest.pulls.get({ owner, repo, pull_number: number }),
-    octokit.rest.pulls.listFiles({
+    octokit.paginate(octokit.rest.pulls.listFiles, {
       owner,
       repo,
       pull_number: number,
@@ -82,7 +176,7 @@ async function loadPrBundle(
     changedFiles: prData.changed_files,
     htmlUrl: prData.html_url,
     headSha: prData.head.sha,
-    linkedIssueNumbers: parseLinkedIssueNumbers(prData.body),
+    linkedIssueNumbers: parseLinkedIssueNumbers(prData.body, owner, repo),
   };
 
   const files: PullFile[] = filesData.map((file) => ({
@@ -97,7 +191,12 @@ async function loadPrBundle(
       : null,
   }));
 
-  return { pr, files };
+  return {
+    pr,
+    files,
+    firstTimeContributor: FIRST_TIME_ASSOCIATIONS.has(prData.author_association),
+    draft: Boolean(prData.draft),
+  };
 }
 
 async function postComment(
@@ -115,81 +214,226 @@ async function postComment(
   });
 }
 
-/** Run mentor-ready review and post one score-card comment (no line comments). */
-async function postPrReviewComment(
+type ListedComment = {
+  id: number;
+  node_id: string;
+  body?: string;
+  user: { login: string; type?: string } | null;
+  performed_via_github_app?: { id: number } | null;
+};
+
+function isOwnComment(c: ListedComment): boolean {
+  const appId = Number(getEnv().GITHUB_APP_ID);
+  if (c.performed_via_github_app && Number.isFinite(appId)) {
+    return c.performed_via_github_app.id === appId;
+  }
+  return c.user?.type === "Bot" && /^firstpr/i.test(c.user.login);
+}
+
+/**
+ * Create or edit the one FirstPRbot summary on a PR. Edits don't email
+ * watchers, so new pushes stay quiet. Older score cards from before the
+ * marker are collapsed as outdated when `minimize_old` is on.
+ */
+async function upsertPrComment(
+  octokit: InstallationOctokit,
+  owner: string,
+  repo: string,
+  number: number,
+  body: string,
+  config: BotConfig,
+): Promise<void> {
+  const comments = (await octokit.paginate(octokit.rest.issues.listComments, {
+    owner,
+    repo,
+    issue_number: number,
+    per_page: 100,
+  })) as ListedComment[];
+
+  const own = comments.filter(isOwnComment);
+  const existing = own.find((c) => c.body?.includes(PR_COMMENT_MARKER));
+
+  if (existing) {
+    if (existing.body?.trim() !== body.trim()) {
+      await octokit.rest.issues.updateComment({
+        owner,
+        repo,
+        comment_id: existing.id,
+        body,
+      });
+    }
+  } else {
+    await postComment(octokit, owner, repo, number, body);
+  }
+
+  if (!config.minimizeOld) return;
+  const legacy = own.filter((c) =>
+    LEGACY_PR_COMMENT_PREFIXES.some((p) => c.body?.trimStart().startsWith(p)),
+  );
+  for (const c of legacy) {
+    try {
+      await octokit.graphql(
+        `mutation($id: ID!) { minimizeComment(input: { subjectId: $id, classifier: OUTDATED }) { clientMutationId } }`,
+        { id: c.node_id },
+      );
+    } catch (err) {
+      console.warn("[webhook] could not minimize old comment:", httpStatus(err) ?? err);
+    }
+  }
+}
+
+/** Add or drop the optional labels from `.github/firstpr.yml`. */
+async function syncLabels(
+  octokit: InstallationOctokit,
+  owner: string,
+  repo: string,
+  number: number,
+  config: BotConfig,
+  state: { firstTimer: boolean; noIssue: boolean },
+): Promise<void> {
+  const add: string[] = [];
+  if (config.labels.firstTimer && state.firstTimer) add.push(config.labels.firstTimer);
+  if (config.labels.needsIssue && state.noIssue) add.push(config.labels.needsIssue);
+  try {
+    if (add.length > 0) {
+      await octokit.rest.issues.addLabels({ owner, repo, issue_number: number, labels: add });
+    }
+    if (config.labels.needsIssue && !state.noIssue) {
+      await octokit.rest.issues
+        .removeLabel({ owner, repo, issue_number: number, name: config.labels.needsIssue })
+        .catch((err) => {
+          if (httpStatus(err) !== 404) throw err;
+        });
+    }
+  } catch (err) {
+    console.warn("[webhook] label sync failed:", httpStatus(err) ?? err);
+  }
+}
+
+/** One check at a time per PR on this instance, so two pushes can't race. */
+const prQueues = new Map<string, Promise<void>>();
+
+function queueForPr(key: string, run: () => Promise<void>): Promise<void> {
+  const prev = prQueues.get(key) ?? Promise.resolve();
+  const next = prev.then(run, run).finally(() => {
+    if (prQueues.get(key) === next) prQueues.delete(key);
+  });
+  prQueues.set(key, next);
+  return next;
+}
+
+/**
+ * Review a PR and keep its single summary comment up to date.
+ * `requested` is true for `/firstpr review|recheck`, which also runs on
+ * drafts and reports failures in the comment instead of only the logs.
+ */
+async function runPrCheck(
   octokit: InstallationOctokit,
   owner: string,
   repo: string,
   number: number,
   reason: string,
+  requested: boolean,
 ): Promise<void> {
-  console.log(`[webhook] review PR ${owner}/${repo}#${number} (${reason})`);
-
-  try {
-    const { pr, files } = await loadPrBundle(octokit, owner, repo, number);
-
-    let contributing: string | null = null;
-    let treeSha: string | undefined;
-    try {
-      const baseSha = await getBranchSha(owner, repo, pr.baseRef);
-      treeSha = baseSha;
-      contributing = await getContributing(owner, repo, baseSha);
-    } catch {
-      contributing = null;
-      treeSha = pr.headSha;
+  return queueForPr(`${owner}/${repo}#${number}`, async () => {
+    console.log(`[webhook] check PR ${owner}/${repo}#${number} (${reason})`);
+    const config = await loadBotConfig(octokit, owner, repo);
+    if (!config.enabled) {
+      console.log(`[webhook] skip ${owner}/${repo}: disabled in ${BOT_CONFIG_PATH}`);
+      return;
     }
 
-    const linkedIssue = await loadLinkedIssue(owner, repo, pr);
-
-    const result = await reviewPr({
-      pr,
-      files,
-      contributing,
-      linkedIssue,
-      pastedDiff: false,
-      owner,
-      repo,
-      prNumber: number,
-      treeSha,
-    });
-
-    const body = formatReviewMarkdown({
-      ...result,
-      line_comments: [],
-    });
-
-    const site = `https://firstpr-coral.vercel.app/review`;
-    const withFooter = [
-      body,
-      "",
-      "---",
-      `_Triggered by ${reason}. Re-run anytime with_ \`/firstpr review\`.`,
-      `_Full Review UI:_ ${site}`,
-    ].join("\n");
-
-    await postComment(octokit, owner, repo, number, withFooter);
-    console.log(`[webhook] posted review on ${owner}/${repo}#${number}`);
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.error(`[webhook] review failed:`, message);
+    let prUrl = `https://github.com/${owner}/${repo}/pull/${number}`;
     try {
-      await postComment(
+      const { pr, files, firstTimeContributor, draft } = await loadPrBundle(
         octokit,
         owner,
         repo,
         number,
-        [
-          "FirstPR hit an error while reviewing this PR.",
-          "",
-          `\`\`\`\n${message.slice(0, 500)}\n\`\`\``,
-          "",
-          "Try again with `/firstpr review` on this PR.",
-        ].join("\n"),
       );
-    } catch (postErr) {
-      console.error("[webhook] could not post error comment:", postErr);
+      prUrl = pr.htmlUrl;
+      if (draft && !requested) {
+        console.log(`[webhook] skip draft ${owner}/${repo}#${number}`);
+        return;
+      }
+
+      const [{ data: base }, linkedIssue] = await Promise.all([
+        octokit.rest.repos.getBranch({ owner, repo, branch: pr.baseRef }),
+        loadLinkedIssue(octokit, owner, repo, pr.linkedIssueNumbers[0]),
+      ]);
+      const baseSha = base.commit.sha;
+      const [contributing, repoPaths] = await Promise.all([
+        loadContributing(octokit, owner, repo, baseSha),
+        loadRepoPaths(octokit, owner, repo, baseSha),
+      ]);
+
+      const result = await reviewPr({
+        pr,
+        files,
+        contributing,
+        linkedIssue,
+        pastedDiff: false,
+        owner,
+        repo,
+        prNumber: number,
+        treeSha: baseSha,
+        repoPaths: repoPaths ?? files.map((f) => f.filename),
+      });
+
+      // A newer push may have landed while the model was thinking; let its
+      // own event write the comment instead of overwriting it with old news.
+      const { data: latest } = await octokit.rest.pulls.get({
+        owner,
+        repo,
+        pull_number: number,
+      });
+      if (latest.head.sha !== pr.headSha) {
+        console.log(`[webhook] stale result for ${owner}/${repo}#${number}, skipping`);
+        return;
+      }
+
+      const body = formatPrComment({
+        owner,
+        repo,
+        number,
+        prUrl: pr.htmlUrl,
+        headSha: pr.headSha,
+        author: pr.user,
+        firstTimeContributor,
+        additions: pr.additions,
+        deletions: pr.deletions,
+        changedFiles: pr.changedFiles,
+        linkedIssueNumber: pr.linkedIssueNumbers[0] ?? null,
+        linkedIssue,
+        files,
+        requireLinkedIssue: config.requireLinkedIssue,
+        review: result,
+      });
+
+      await upsertPrComment(octokit, owner, repo, number, body, config);
+      await syncLabels(octokit, owner, repo, number, config, {
+        firstTimer: firstTimeContributor,
+        noIssue: !linkedIssue,
+      });
+      console.log(`[webhook] updated summary on ${owner}/${repo}#${number}`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error(`[webhook] check failed:`, message);
+      if (!requested) return;
+      try {
+        await upsertPrComment(
+          octokit,
+          owner,
+          repo,
+          number,
+          formatPrCommentError(prUrl),
+          config,
+        );
+      } catch (postErr) {
+        console.error("[webhook] could not post error comment:", postErr);
+      }
     }
-  }
+  });
 }
 
 function registerHandlers(app: App<{ Octokit: typeof Octokit }>): void {
@@ -202,9 +446,9 @@ function registerHandlers(app: App<{ Octokit: typeof Octokit }>): void {
       return;
     }
 
-    const commentBody = (payload.comment.body ?? "").trimStart();
-    const isExplain = commentBody.startsWith("/firstpr explain");
-    const isReview = commentBody.startsWith("/firstpr review");
+    const command = (payload.comment.body ?? "").trimStart().split(/\s/, 2).join(" ").toLowerCase();
+    const isExplain = command === "/firstpr explain";
+    const isReview = command === "/firstpr review" || command === "/firstpr recheck";
     if (!isExplain && !isReview) {
       console.log("[webhook] skip issue_comment: not a /firstpr command");
       return;
@@ -223,49 +467,22 @@ function registerHandlers(app: App<{ Octokit: typeof Octokit }>): void {
           repo,
           number,
           [
-            "FirstPR **review** runs on **pull requests**, not issues.",
+            "`/firstpr recheck` works on pull requests. On an issue, try `/firstpr explain` for a guide to where the fix goes.",
             "",
-            "On a PR comment:",
-            "```",
-            "/firstpr review",
-            "```",
-            "",
-            "For an issue guide, use `/firstpr explain` instead.",
+            "<sub>FirstPRbot</sub>",
           ].join("\n"),
         );
         return;
       }
-      await postPrReviewComment(
-        octokit,
-        owner,
-        repo,
-        number,
-        "`/firstpr review`",
-      );
+      await runPrCheck(octokit, owner, repo, number, command, true);
       return;
     }
 
     // /firstpr explain
     if (onPr) {
-      console.log(
-        `[webhook] /firstpr explain on PR ${owner}/${repo}#${number} — tip`,
-      );
-      await postComment(
-        octokit,
-        owner,
-        repo,
-        number,
-        [
-          "FirstPR **explain** only works on **issues**.",
-          "",
-          "For a mentor-ready score card on this PR, comment:",
-          "```",
-          "/firstpr review",
-          "```",
-          "",
-          `For an issue guide, open an issue and comment \`/firstpr explain\` (example: [#5](https://github.com/${owner}/${repo}/issues/5)).`,
-        ].join("\n"),
-      );
+      // The PR already has (or is about to get) its summary; just refresh it.
+      console.log(`[webhook] /firstpr explain on PR ${owner}/${repo}#${number}, rechecking`);
+      await runPrCheck(octokit, owner, repo, number, command, true);
       return;
     }
 
@@ -297,11 +514,12 @@ function registerHandlers(app: App<{ Octokit: typeof Octokit }>): void {
           repo,
           number,
           [
-            "FirstPR hit an error while explaining this issue.",
+            "FirstPRbot couldn't finish the guide for this issue. GitHub or the model didn't answer in time.",
             "",
-            `\`\`\`\n${message.slice(0, 500)}\n\`\`\``,
+            "Comment `/firstpr explain` again in a minute, or open the guide on the site: " +
+              `${firstPrSiteOrigin()}/issue/${owner}/${repo}/${number}`,
             "",
-            "_Check Vercel logs for `[webhook]` / OpenAI / GitHub App permissions (Issues: Read & write)._",
+            "<sub>FirstPRbot</sub>",
           ].join("\n"),
         );
       } catch (postErr) {
@@ -311,23 +529,31 @@ function registerHandlers(app: App<{ Octokit: typeof Octokit }>): void {
   });
 
   app.webhooks.on(
-    ["pull_request.opened", "pull_request.synchronize"],
+    [
+      "pull_request.opened",
+      "pull_request.reopened",
+      "pull_request.synchronize",
+      "pull_request.ready_for_review",
+      "pull_request.edited",
+    ],
     async ({ octokit, payload }) => {
       if (isBotSender(payload.sender)) {
         console.log("[webhook] skip pull_request: sender is Bot");
         return;
       }
+      // Title-only edits don't change anything the summary shows.
+      if (payload.action === "edited" && !("body" in (payload.changes ?? {}))) {
+        return;
+      }
+      if (payload.pull_request.state !== "open") return;
 
-      const owner = payload.repository.owner.login;
-      const repo = payload.repository.name;
-      const number = payload.pull_request.number;
-
-      await postPrReviewComment(
+      await runPrCheck(
         octokit,
-        owner,
-        repo,
-        number,
+        payload.repository.owner.login,
+        payload.repository.name,
+        payload.pull_request.number,
         `pull_request.${payload.action}`,
+        false,
       );
     },
   );
