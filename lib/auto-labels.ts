@@ -262,6 +262,13 @@ function nameList(paths: string[], max = 3): string {
   return paths.length > max ? `${shown} and ${paths.length - max} more` : shown;
 }
 
+/** "a", "b", "a" -> "a ×2", "b": same-named checks (e.g. a matrix) listed once. */
+function countNames(names: string[]): string[] {
+  const counts = new Map<string, number>();
+  for (const n of names) counts.set(n, (counts.get(n) ?? 0) + 1);
+  return [...counts].map(([n, k]) => (k > 1 ? `${n} ×${k}` : n));
+}
+
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
 function filesComplete(facts: LabelFacts): boolean {
@@ -305,16 +312,16 @@ function areaRule(facts: LabelFacts): AutoLabel | null {
   const paths = (f: LabelFile) => [f.filename, ...(f.previousFilename ? [f.previousFilename] : [])];
   const all = (pred: (p: string) => boolean) => facts.files.every((f) => paths(f).every(pred));
   const n = facts.files.length;
-  const files = plural(n, "changed file");
+  const files = n === 1 ? "the only changed file is" : `all ${n} changed files are`;
 
   if (all(isDocsPath)) {
-    return { def: AUTO_LABELS.docs, evidence: `all ${files} are docs: ${nameList(facts.files.map((f) => f.filename))}` };
+    return { def: AUTO_LABELS.docs, evidence: `${files} docs: ${nameList(facts.files.map((f) => f.filename))}` };
   }
   if (all(isTestPath)) {
-    return { def: AUTO_LABELS.tests, evidence: `all ${files} are tests: ${nameList(facts.files.map((f) => f.filename))}` };
+    return { def: AUTO_LABELS.tests, evidence: `${files} tests: ${nameList(facts.files.map((f) => f.filename))}` };
   }
   if (all(isCiPath)) {
-    return { def: AUTO_LABELS.ci, evidence: `all ${files} are under ${code(".github/workflows/")}` };
+    return { def: AUTO_LABELS.ci, evidence: `${files} under ${code(".github/workflows/")}` };
   }
   if (all((p) => isLockfile(p) || isManifest(p)) && facts.files.some((f) => isLockfile(f.filename))) {
     return {
@@ -404,9 +411,12 @@ function checksRule(facts: LabelFacts): AutoLabel | SkipNote {
   if (running > 0 || waitingSuites.length > 0) {
     const parts: string[] = [];
     if (running > 0) parts.push(`${running} of ${plural(total, "check")} still running on ${sha}`);
-    if (waitingSuites.length > 0) {
-      parts.push(`${plural(waitingSuites.length, "workflow")} waiting to start or for approval`);
+    const needApproval = waitingSuites.filter((s) => s.conclusion === "action_required").length;
+    const notStarted = waitingSuites.length - needApproval;
+    if (needApproval > 0) {
+      parts.push(`${plural(needApproval, "workflow run")} waiting for a maintainer to approve ${needApproval === 1 ? "it" : "them"}`);
     }
+    if (notStarted > 0) parts.push(`${plural(notStarted, "workflow")} queued but not started`);
     return { group: "checks", note: `No checks label yet: ${parts.join(", ")}.` };
   }
   if (total === 0) {
@@ -420,7 +430,7 @@ function checksRule(facts: LabelFacts): AutoLabel | SkipNote {
   if (failed.length > 0) {
     return {
       def: AUTO_LABELS.checksFailing,
-      evidence: `${failed.length} of ${plural(total, "check")} failed on [${sha}](${checksUrl}): ${nameList(failed)}`,
+      evidence: `${failed.length} of ${plural(total, "check")} failed on [${sha}](${checksUrl}): ${nameList(countNames(failed))}`,
     };
   }
 

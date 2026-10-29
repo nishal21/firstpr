@@ -121,6 +121,8 @@ expect("binary noted", evidence(bin, AUTO_LABELS.sizeXS.name).includes("1 file w
 const docsOnly = facts({ files: [f("README.md"), f("docs/setup.txt"), f("guide/intro.mdx"), f("CHANGELOG.rst")] });
 expect("docs-only", has(docsOnly, AUTO_LABELS.docs.name), names(docsOnly));
 expect("docs evidence", evidence(docsOnly, AUTO_LABELS.docs.name).startsWith("all 4 changed files are docs"));
+const oneDoc = facts({ files: [f("readme.md", 1)] });
+expect("single docs file evidence", evidence(oneDoc, AUTO_LABELS.docs.name) === "the only changed file is docs: `readme.md`", evidence(oneDoc, AUTO_LABELS.docs.name));
 expect("src/docs not docs", !has(facts({ files: [f("src/docs/model.ts")] }), AUTO_LABELS.docs.name));
 expect("docs + code mixed", !has(facts({ files: [f("README.md"), f("src/a.ts")] }), AUTO_LABELS.docs.name));
 expect("rename into docs from code", !has(facts({ files: [f("docs/a.md", 0, 0, "src/a.ts")] }), AUTO_LABELS.docs.name));
@@ -191,7 +193,19 @@ const waiting = facts({ checks: { ok: true, runs: [{ name: "lint", status: "comp
   { app: "github-actions", status: "completed", conclusion: "action_required", runCount: 0 },
 ] } });
 expect("approval-waiting workflow: no label", !names(waiting).some((n) => n.includes("checks")));
-expect("waiting note", notes(waiting).some((n) => n.includes("waiting to start or for approval")), notes(waiting));
+expect("waiting note", notes(waiting).includes("No checks label yet: 1 workflow run waiting for a maintainer to approve it."), notes(waiting));
+const queuedSuite = facts({ checks: { ok: true, runs: [{ name: "lint", status: "completed", conclusion: "success" }], statuses: [], suites: [
+  { app: "github-actions", status: "queued", conclusion: null, runCount: 0 },
+  { app: "github-actions", status: "completed", conclusion: "action_required", runCount: 0 },
+  { app: "github-actions", status: "completed", conclusion: "action_required", runCount: 0 },
+] } });
+expect("queued + approval note", notes(queuedSuite).includes("No checks label yet: 2 workflow runs waiting for a maintainer to approve them, 1 workflow queued but not started."), notes(queuedSuite));
+const dupFail = facts({ checks: { ok: true, runs: [
+  { name: "Unresolved review", status: "completed", conclusion: "failure" },
+  { name: "Unresolved review", status: "completed", conclusion: "failure" },
+  { name: "build", status: "completed", conclusion: "success" },
+], statuses: [], suites: [] } });
+expect("duplicate failing names counted once", evidence(dupFail, AUTO_LABELS.checksFailing.name) === "2 of 3 checks failed on [`abc1234`](https://github.com/acme/widgets/pull/7/checks): `Unresolved review ×2`", evidence(dupFail, AUTO_LABELS.checksFailing.name));
 const idleOtherApp = facts({ checks: { ok: true, runs: [{ name: "lint", status: "completed", conclusion: "success" }], statuses: [], suites: [
   { app: "some-app", status: "queued", conclusion: null, runCount: 0 },
 ] } });
