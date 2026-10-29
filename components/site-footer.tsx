@@ -126,25 +126,22 @@ export function SiteFooter() {
     >
       <div className="h-px bg-primary" />
       <div className="mx-auto max-w-6xl px-4 pt-8 pb-6 sm:px-8 md:pt-14">
-        <div className="footer-stage relative md:min-h-[26rem]">
-          <div ref={tiltRef} className="pointer-events-none absolute inset-0 hidden items-center justify-center md:flex">
+        <div className="relative z-10 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+          <h2 className="max-w-[10ch] text-[clamp(2.7rem,11vw,6.4rem)] leading-[0.88] font-semibold tracking-[-0.045em] text-primary">
+            {t("footer.ctaTitle")}
+          </h2>
+          <p className="text-[clamp(4.2rem,18vw,7.5rem)] leading-none font-semibold tracking-[-0.06em] text-primary md:pt-2">
+            ©26
+          </p>
+        </div>
+
+        <div className="footer-scene-slot footer-stage">
+          <div ref={tiltRef} className="pointer-events-none">
             <FooterMark />
           </div>
-          <div className="relative z-10 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
-            <h2 className="max-w-[9ch] text-[clamp(2.7rem,11vw,6.4rem)] leading-[0.88] font-semibold tracking-[-0.045em] text-primary">
-              {t("footer.ctaTitle")}
-            </h2>
-            <p className="text-[clamp(4.2rem,18vw,7.5rem)] leading-none font-semibold tracking-[-0.06em] text-primary md:pt-2">
-              ©26
-            </p>
-          </div>
         </div>
 
-        <div className="footer-stage mt-2 flex justify-center md:hidden">
-          <FooterMark />
-        </div>
-
-        <p className="relative z-10 mt-4 max-w-sm text-xl leading-tight font-semibold text-primary md:mt-2 md:text-3xl">
+        <p className="relative z-10 mt-2 max-w-sm text-xl leading-tight font-semibold text-primary md:text-3xl">
           {t("footer.tagline")}
         </p>
         <Link

@@ -267,3 +267,4 @@
 - Owner rejected Aperios. New reference is ++hellohello (https://www.hellohello.is/): giant line, giant ©26, 3D mark behind the type, full-width bar, link row.
 - Scene is `.footer-spin` / `.footer-tilt` in `app/globals.css`. Transform only. `data-inview` starts the spin; `data-hold` and `data-motion=off` stop it.
 - Do not add blur to chase Buzz. Do not put the marquee back.
+- The 3D mark lives in `.footer-scene-slot` under the headline, `overflow: hidden`, z-index 0. Do not absolute-position it over the h2. The headline and ©26 stay in the row above.

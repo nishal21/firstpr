@@ -256,3 +256,4 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - Reference: ++hellohello, https://www.hellohello.is/ (listed on footer.design/styles/animated). Huge blue line, ©26, a 3D cat and plus behind the type, full-width bar.
 - Motion is rotateX/rotateY only. The spin runs while the footer is on screen and pauses off-screen, in a hidden tab, and when reduced motion is on. Pointer tilt uses a cached box, no scroll listener.
 - Buzz was skipped because the word is a blur. Juggle’s gallery footer is not on the live page.
+- The cat sits in its own clipped row under the headline, so the type stays readable from 360 to 1440. The scene is dimmer than the words.
