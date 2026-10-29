@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { LEGACY_HOST, SITE_URL } from "./lib/site-url";
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -14,6 +15,19 @@ const nextConfig: NextConfig = {
     "/**/twitter-image*": ["./assets/og/**"],
   },
   partialPrefetching: false,
+  // Send the old Vercel host to the canonical domain, path and query intact.
+  // Cron and the GitHub webhook stay on the old host so existing callers keep working.
+  async redirects() {
+    if (new URL(SITE_URL).host === LEGACY_HOST) return [];
+    return [
+      {
+        source: "/:path((?!api/cron/|api/github/webhook).*)",
+        has: [{ type: "host", value: LEGACY_HOST.replace(/\./g, "\\.") }],
+        destination: `${SITE_URL}/:path`,
+        permanent: true,
+      },
+    ];
+  },
   turbopack: {
     rules: {
       "*.css": {

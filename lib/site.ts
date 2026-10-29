@@ -3,9 +3,9 @@
  * home page copy. Keep every line here true; answer engines quote it.
  */
 
-export const SITE_URL = (
-  process.env.NEXT_PUBLIC_SITE_URL?.trim() || "https://firstpr-coral.vercel.app"
-).replace(/\/+$/, "");
+import { SITE_URL } from "./site-url";
+
+export { SITE_URL };
 
 export const SITE_NAME = "FirstPR";
 export const REPO_URL = "https://github.com/nishal21/firstpr";

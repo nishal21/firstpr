@@ -27,7 +27,7 @@ export default function PrivacyPage() {
     <LegalDoc title="Privacy" toc={TOC}>
       <LegalSection id="who" title="Who operates FirstPR">
         <p>
-          FirstPR is operated by Nishal K and Anan Shaji (NKcodex / DuoMatter), based in India. Contact nishal@nishal.dev. The public site in this project is hosted at firstpr-coral.vercel.app. A self-hosted copy is operated by whoever runs that copy.
+          FirstPR is operated by Nishal K and Anan Shaji (NKcodex / DuoMatter), based in India. Contact nishal@nishal.dev. The public site in this project is hosted at firstpr.nishal.dev. A self-hosted copy is operated by whoever runs that copy.
         </p>
       </LegalSection>
       <LegalSection id="what" title="What is collected">

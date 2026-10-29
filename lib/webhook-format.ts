@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import type { ExplainIssueResult } from "@/lib/explain";
-
-const SITE_ORIGIN = "https://firstpr-coral.vercel.app";
+// Extension kept so scripts/verify-bot-comment.ts can load this file with plain node.
+import { SITE_URL as SITE_ORIGIN } from "./site-url.ts";
 
 /** Markdown reply for `/firstpr explain` on an issue. */
 export function formatExplainWebhookComment(

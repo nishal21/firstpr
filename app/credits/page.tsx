@@ -135,7 +135,7 @@ export default function CreditsPage() {
             Algolia, on the Algolia for Open Source plan, when the search keys are set. The index stores public issue
             fields. The “Search by Algolia” mark in the dropdown links to Algolia.
           </li>
-          <li>The public site is hosted on Vercel (firstpr-coral.vercel.app).</li>
+          <li>The public site is hosted on Vercel at firstpr.nishal.dev.</li>
           <li>This version does not connect to Neon or Postgres.</li>
         </ul>
       </section>

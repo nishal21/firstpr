@@ -4,7 +4,7 @@ Helps open-source beginners make their first PR themselves and get it merged.
 
 ## Demo
 
-- Live: [https://firstpr-coral.vercel.app](https://firstpr-coral.vercel.app)
+- Live: [https://firstpr.nishal.dev](https://firstpr.nishal.dev)
 - Source: [github.com/nishal21/firstpr](https://github.com/nishal21/firstpr) (AGPL-3.0)
 - Demo video: [Watch on Google Drive](https://drive.google.com/file/d/1j-9jqA8RFFG2Gsl4VTEkIREXvPalED7x/view?usp=sharing)
 - Deck: [PDF](https://drive.google.com/file/d/1qi0Pkamuqph0TfmOJxtF8G-e31sYm7u5/view?usp=sharing) / [Slides](https://docs.google.com/presentation/d/1mICDKYtFaKD-LwO3PneZDioJY5HwuI8x/edit?usp=sharing)
@@ -116,7 +116,7 @@ Explain, issue, repo, review, and the search fallback use a FirstPRbot installat
 First sync, after the variables exist:
 
 ```bash
-curl -H "Authorization: Bearer $CRON_SECRET" https://firstpr-coral.vercel.app/api/cron/sync-issues
+curl -H "Authorization: Bearer $CRON_SECRET" https://firstpr.nishal.dev/api/cron/sync-issues
 ```
 
 Locally, with `npm run dev` and the same variables in `.env.local`:
