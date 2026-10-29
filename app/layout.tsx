@@ -71,37 +71,29 @@ const notoArabic = Noto_Sans_Arabic({
 });
 
 const siteDescription =
-  "Find a beginner issue, see where to look, and check your PR before a maintainer does.";
+  "Find a beginner issue, see where to look, and check your PR before a maintainer does. FirstPR never writes the fix.";
+
+const siteUrl = "https://firstpr-coral.vercel.app";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://firstpr-coral.vercel.app"),
-  title: "FirstPR",
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: "FirstPR",
+    template: "%s · FirstPR",
+  },
   description: siteDescription,
+  applicationName: "FirstPR",
   openGraph: {
     title: "FirstPR",
     description: siteDescription,
-    url: "https://firstpr-coral.vercel.app",
-    images: [
-      {
-        url: "/brand/logo-full.png",
-        width: 1874,
-        height: 714,
-        alt: "FirstPR",
-      },
-    ],
+    url: siteUrl,
+    siteName: "FirstPR",
+    type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "FirstPR",
     description: siteDescription,
-    images: [
-      {
-        url: "/brand/logo-full.png",
-        width: 1874,
-        height: 714,
-        alt: "FirstPR",
-      },
-    ],
   },
 };
 
@@ -132,9 +124,36 @@ export default function RootLayout({
       )}
     >
       <body className="flex min-h-full flex-col overflow-x-hidden bg-background font-sans text-foreground">
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-[60] focus:rounded-full focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:text-white"
+        >
+          Skip to content
+        </a>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              name: "FirstPR",
+              applicationCategory: "DeveloperApplication",
+              operatingSystem: "Web",
+              url: siteUrl,
+              description: siteDescription,
+              offers: {
+                "@type": "Offer",
+                price: "0",
+                priceCurrency: "USD",
+              },
+            }),
+          }}
+        />
         <LanguageProvider>
           <SiteHeader />
-          <main className="flex-1">{children}</main>
+          <main id="main" className="flex-1">
+            {children}
+          </main>
           <SiteFooter />
         </LanguageProvider>
         <Toaster />

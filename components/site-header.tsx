@@ -10,13 +10,16 @@ import { useT } from "@/components/language-provider";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
-  { href: "/", key: "nav.findIssue" as const },
-  { href: "/issue/nishal21/NekoDroid/4", key: "nav.explain" as const },
+  { href: "/#match", key: "nav.findIssue" as const },
+  { href: "/#how", key: "nav.how" as const },
+  { href: "/bot", key: "nav.bot" as const },
   { href: "/review", key: "nav.review" as const },
+  { href: "/#pro", key: "nav.pro" as const },
 ];
 
 function linkActive(pathname: string, href: string): boolean {
-  if (href === "/") return pathname === "/";
+  if (href === "/#match") return pathname === "/";
+  if (href.startsWith("/#")) return false;
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
@@ -24,11 +27,13 @@ export function SiteHeader() {
   const t = useT();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuPath, setMenuPath] = useState(pathname);
   const menuId = useId();
 
-  useEffect(() => {
+  if (menuPath !== pathname) {
+    setMenuPath(pathname);
     setMenuOpen(false);
-  }, [pathname]);
+  }
 
   useEffect(() => {
     if (!menuOpen) return;

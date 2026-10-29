@@ -32,6 +32,16 @@ export function HomeBotSection() {
                 /firstpr review
               </span>
             </div>
+            <div className="mt-6 max-w-md space-y-2 text-sm" aria-label={t("bot.exampleLabel")}>
+              <p className="text-xs font-semibold tracking-[0.14em] text-slate-400 uppercase">
+                {t("bot.exampleLabel")}
+              </p>
+              <p className="rounded-xl bg-white/10 px-3 py-2 font-mono text-slate-100">/firstpr explain</p>
+              <p className="rounded-xl bg-white px-3 py-3 text-slate-700">
+                Look at <span className="font-mono text-xs">src/filter.tsx</span> lines 40–58.
+                Done when the menu opens from the keyboard. FirstPRbot will not write the patch.
+              </p>
+            </div>
           </div>
           <a
             href={BOT_URL}

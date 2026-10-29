@@ -387,16 +387,31 @@ export async function listGoodFirstIssues(
   );
 }
 
+export type LinkedPull = {
+  number: number;
+  title: string;
+  htmlUrl: string;
+  user: string | null;
+  state: "open" | "closed" | "merged";
+};
+
+export type IssueComment = {
+  user: string | null;
+  body: string;
+  createdAt: string;
+  isBot: boolean;
+};
+
 /**
- * True if an open PR is linked to this issue (timeline cross-reference).
- * On errors, returns false so Match still works.
+ * Pull requests that cross-reference this issue on the timeline.
+ * On errors, returns [] so Match still works.
  */
-export async function issueHasOpenLinkedPr(
+export async function listLinkedPulls(
   owner: string,
   repo: string,
   issueNumber: number,
-): Promise<boolean> {
-  return cached(`linked-pr:${owner}/${repo}:${issueNumber}`, async () => {
+): Promise<LinkedPull[]> {
+  return cached(`linked-pulls:${owner}/${repo}:${issueNumber}`, async () => {
     try {
       return await gh(async () => {
         const client = getOctokit();
@@ -407,14 +422,18 @@ export async function issueHasOpenLinkedPr(
           per_page: 100,
         });
 
+        const byUrl = new Map<string, LinkedPull>();
         for (const event of data) {
           const ev = event as {
             event?: string;
             source?: {
               issue?: {
+                number?: number;
+                title?: string;
                 state?: string;
-                pull_request?: unknown;
+                pull_request?: { merged_at?: string | null } | null;
                 html_url?: string;
+                user?: { login?: string | null } | null;
               };
             };
           };
@@ -423,18 +442,101 @@ export async function issueHasOpenLinkedPr(
           }
           const src = ev.source?.issue;
           if (!src) continue;
+          const htmlUrl = src.html_url ?? "";
           const isPr =
-            Boolean(src.pull_request) ||
-            (typeof src.html_url === "string" &&
-              /\/pull\/\d+/.test(src.html_url));
-          if (isPr && src.state === "open") return true;
+            Boolean(src.pull_request) || /\/pull\/\d+/.test(htmlUrl);
+          if (!isPr || !htmlUrl) continue;
+          const merged = Boolean(src.pull_request?.merged_at);
+          const state: LinkedPull["state"] = merged
+            ? "merged"
+            : src.state === "closed"
+              ? "closed"
+              : "open";
+          byUrl.set(htmlUrl, {
+            number: src.number ?? 0,
+            title: src.title ?? htmlUrl,
+            htmlUrl,
+            user: src.user?.login ?? null,
+            state,
+          });
         }
-        return false;
+        return [...byUrl.values()];
       });
     } catch {
-      return false;
+      return [];
     }
   });
+}
+
+/** True if an open PR is linked to this issue. */
+export async function issueHasOpenLinkedPr(
+  owner: string,
+  repo: string,
+  issueNumber: number,
+): Promise<boolean> {
+  const pulls = await listLinkedPulls(owner, repo, issueNumber);
+  return pulls.some((pull) => pull.state === "open");
+}
+
+export async function listIssueComments(
+  owner: string,
+  repo: string,
+  issueNumber: number,
+): Promise<IssueComment[]> {
+  return cached(`comments:${owner}/${repo}:${issueNumber}`, async () =>
+    gh(async () => {
+      const client = getOctokit();
+      const { data } = await client.issues.listComments({
+        owner,
+        repo,
+        issue_number: issueNumber,
+        per_page: 30,
+      });
+      return data.map((comment) => {
+        const login = comment.user?.login ?? null;
+        return {
+          user: login,
+          body: comment.body ?? "",
+          createdAt: comment.created_at,
+          isBot: Boolean(login && /\[bot\]$/i.test(login)),
+        };
+      });
+    }),
+  );
+}
+
+export type PullMergeState = {
+  state: "open" | "closed";
+  merged: boolean;
+  title: string;
+  htmlUrl: string;
+  user: string | null;
+  mergedAt: string | null;
+};
+
+export async function getPullMergeState(
+  owner: string,
+  repo: string,
+  number: number,
+): Promise<PullMergeState> {
+  return cached(`pr-merge:${owner}/${repo}:${number}`, async () =>
+    gh(async () => {
+      const client = getOctokit();
+      const { data } = await client.pulls.get({
+        owner,
+        repo,
+        pull_number: number,
+      });
+      return {
+        state: data.state === "closed" ? "closed" : "open",
+        merged: Boolean(data.merged),
+        title: data.title,
+        htmlUrl: data.html_url,
+        user: data.user?.login ?? null,
+        mergedAt: data.merged_at,
+      };
+    }),
+  );
 }
 
 export async function searchGoodFirstIssues(

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
+import { AlgoliaMark } from "@/components/algolia-mark";
 import { DifficultyBadge } from "@/components/difficulty-badge";
 import { useT } from "@/components/language-provider";
 import { SavedResultDot } from "@/components/saved-result-dot";
@@ -12,6 +13,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { friendlyErrorMessage } from "@/lib/api-errors";
+import { track } from "@/lib/analytics";
+import type { Availability } from "@/lib/availability";
+import { recordJourney } from "@/lib/journey";
 import { cn } from "@/lib/utils";
 
 type IssueCard = {
@@ -27,6 +31,7 @@ type IssueCard = {
   difficulty?: "easy" | "medium" | "hard";
   difficultyBadge?: string;
   difficultyReason?: string;
+  availability?: Availability;
 };
 
 type MatchResponse = {
@@ -41,7 +46,14 @@ type MatchResponse = {
 export function MatchForm() {
   const t = useT();
   const [username, setUsername] = useState("");
-  const [repo, setRepo] = useState("nishal21/NekoDroid");
+  const [repo, setRepo] = useState("");
+  const [query, setQuery] = useState("");
+  const [searchHits, setSearchHits] = useState<
+    { title: string; url: string; repo: string; number: number | null }[]
+  >([]);
+  const [searchProvider, setSearchProvider] = useState<"algolia" | "github" | null>(null);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [searching, setSearching] = useState(false);
   const [data, setData] = useState<MatchResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [fromCache, setFromCache] = useState(false);
@@ -55,11 +67,7 @@ export function MatchForm() {
   ] as const;
 
   useEffect(() => {
-    if (!pending) {
-      setStepIndex(0);
-      return;
-    }
-    setStepIndex(0);
+    if (!pending) return;
     const t1 = window.setTimeout(() => setStepIndex(1), 700);
     const t2 = window.setTimeout(() => setStepIndex(2), 1400);
     return () => {
@@ -69,6 +77,7 @@ export function MatchForm() {
   }, [pending]);
 
   function runMatch() {
+    setStepIndex(0);
     setError(null);
     setFromCache(false);
     startTransition(async () => {
@@ -92,6 +101,15 @@ export function MatchForm() {
         }
         setFromCache(res.headers.get("x-firstpr-source") === "cache");
         setData(json);
+        track("match");
+        if (json.picked) {
+          recordJourney({
+            kind: "match",
+            title: `${json.picked.owner}/${json.picked.repo}#${json.picked.number}`,
+            href: `/issue/${json.picked.owner}/${json.picked.repo}/${json.picked.number}`,
+            detail: json.picked.title,
+          });
+        }
       } catch {
         setData(null);
         setFromCache(false);
@@ -150,6 +168,86 @@ export function MatchForm() {
             )}
           </button>
         </div>
+        <button
+          type="button"
+          className="inline-flex min-h-11 w-fit items-center text-sm font-medium text-primary outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring/40"
+          onClick={() => setUsername("octocat")}
+        >
+          {t("match.sample")}
+        </button>
+      </form>
+
+      <form
+        className="rounded-xl border border-border bg-card p-5 shadow-sm"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (query.trim().length < 2 || searching) return;
+          setSearching(true);
+          setSearchError(null);
+          void fetch("/api/search", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ q: query.trim() }),
+          })
+            .then(async (res) => {
+              const json = (await res.json()) as {
+                hits?: typeof searchHits;
+                provider?: "algolia" | "github";
+                error?: string;
+                code?: string;
+              };
+              if (!res.ok) {
+                setSearchHits([]);
+                setSearchError(friendlyErrorMessage(json.code, json.error || t("match.failed")));
+                return;
+              }
+              setSearchProvider(json.provider ?? "github");
+              setSearchHits(json.hits ?? []);
+              track("search");
+            })
+            .catch(() => setSearchError(t("match.failed")))
+            .finally(() => setSearching(false));
+        }}
+      >
+        <label className="flex flex-col gap-1.5 text-sm text-muted-foreground">
+          {t("match.searchLabel")}
+          <span className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t("match.searchPlaceholder")}
+              className="min-h-11 h-11 rounded-xl"
+            />
+            <button type="submit" className={cn(arrowPillClass, "w-full sm:w-auto")} disabled={searching}>
+              {searching ? t("match.finding") : t("match.searchSubmit")}
+              <ArrowBubble />
+            </button>
+          </span>
+        </label>
+        {searchProvider === "algolia" ? (
+          <AlgoliaMark className="mt-3 inline-flex min-h-11 items-center gap-2" />
+        ) : (
+          <p className="mt-3 text-xs text-muted-foreground">{t("match.searchGithub")}</p>
+        )}
+        {searchError ? <p className="mt-3 text-sm text-red-700">{searchError}</p> : null}
+        {searchHits.length === 0 && searchProvider && !searchError && !searching ? (
+          <p className="mt-3 text-sm text-muted-foreground">{t("match.searchEmpty")}</p>
+        ) : null}
+        <ul className="mt-3 space-y-2">
+          {searchHits.map((hit) => (
+            <li key={hit.url}>
+              <a
+                href={hit.url}
+                target="_blank"
+                rel="noreferrer"
+                className="text-sm font-medium text-primary hover:underline"
+              >
+                {hit.repo ? `${hit.repo} · ` : ""}
+                {hit.title}
+              </a>
+            </li>
+          ))}
+        </ul>
       </form>
 
       {pending ? (
@@ -245,6 +343,11 @@ export function MatchForm() {
               <p className="break-words text-muted-foreground">
                 {data.picked.fitReason}
               </p>
+              {data.picked.availability?.status === "free" ? (
+                <p className="mt-2 text-sm text-emerald-700">{data.picked.availability.summary}</p>
+              ) : data.picked.availability ? (
+                <p className="mt-2 text-sm text-amber-800">{data.picked.availability.summary}</p>
+              ) : null}
               {data.picked.difficultyReason ? (
                 <p className="mt-1 text-xs text-muted-foreground">
                   {data.picked.difficultyReason}
@@ -260,18 +363,7 @@ export function MatchForm() {
             </article>
           ) : noIssues ? (
             <p className="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground shadow-sm break-words">
-              {t("match.noIssuesBefore")}
-              <Link
-                href="/"
-                className="font-medium text-primary hover:underline"
-                onClick={(e) => {
-                  e.preventDefault();
-                  setRepo("nishal21/NekoDroid");
-                }}
-              >
-                nishal21/NekoDroid
-              </Link>
-              {t("match.noIssuesAfter")}
+              {t("match.noIssues")}
             </p>
           ) : null}
 

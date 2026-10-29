@@ -16,6 +16,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { DifficultyBadge } from "@/components/difficulty-badge";
+import { IssueContext } from "@/components/issue-context";
 import { HintLadder } from "@/components/hint-ladder";
 import { useT } from "@/components/language-provider";
 import { PageIntro } from "@/components/page-intro";
@@ -250,6 +251,8 @@ export function IssueExplain({
         show={fromCache}
         className="pointer-events-none absolute right-4 top-4 size-1.5 rounded-full bg-muted-foreground/40 sm:right-6"
       />
+
+      <IssueContext owner={owner} repo={repo} number={number} />
 
       {limitsNotice ? (
         <div

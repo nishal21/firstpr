@@ -1,3 +1,4 @@
+import { inspectIssueAvailability, type Availability } from "@/lib/availability";
 import { assessDifficulty, difficultyBadgeLabel } from "@/lib/difficulty";
 import { env } from "@/lib/env";
 import {
@@ -23,6 +24,7 @@ export type ScoredIssue = GoodFirstIssue & {
   difficultyReason: string;
   /** UI label: Beginner-friendly | Stretch */
   difficultyBadge: string;
+  availability?: Availability;
 };
 
 export type SkippedIssue = GoodFirstIssue & {
@@ -318,10 +320,49 @@ export async function matchIssues(opts: {
     );
   });
 
+  // Claim check on the issues we might show. Linked PRs and assignees
+  // were already filtered; this catches "I'll take it" comments.
+  const head = scored.slice(0, 5);
+  const tail = scored.slice(5);
+  const checked = await Promise.all(
+    head.map(async (issue) => {
+      try {
+        const availability = await inspectIssueAvailability(
+          issue.owner,
+          issue.repo,
+          issue.number,
+        );
+        return { issue, availability };
+      } catch {
+        return { issue, availability: null };
+      }
+    }),
+  );
+
+  const visible: ScoredIssue[] = [];
+  for (const row of checked) {
+    const availability = row.availability;
+    if (
+      availability &&
+      (availability.status === "claimed" ||
+        availability.status === "assigned" ||
+        availability.status === "linked_pr" ||
+        availability.status === "closed")
+    ) {
+      skipped.push({ ...row.issue, reason: availability.summary });
+      continue;
+    }
+    visible.push(
+      availability ? { ...row.issue, availability } : row.issue,
+    );
+  }
+
+  const ranked = [...visible, ...tail];
+
   return {
     languages,
-    picked: scored[0] ?? null,
-    others: scored.slice(1),
+    picked: ranked[0] ?? null,
+    others: ranked.slice(1),
     skipped,
   };
 }

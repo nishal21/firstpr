@@ -130,6 +130,15 @@ We wrote the code with AI coding help in Cursor. We reviewed, tested, and debugg
 | Nishal K | Product, engineering, demo | [@nishal21](https://github.com/nishal21) |
 | Anan Shaji | Research, pitch, business | [@zenxrth](https://github.com/zenxrth) |
 
+## Also on the site
+
+- **Is this issue free?** Match and Explain check assignees, linked open pull requests, and recent first-person claims in comments.
+- **First-run estimate.** Explain reads the repo tree and README and lists setup steps. The minutes are a heuristic from those files, not a timed install.
+- **Journey.** This browser remembers issues you matched, explanations you opened, and scores you ran. Copy a link if you want to share that snapshot.
+- **Repo scorecard** at `/ready`. A maintainer checklist (license, CONTRIBUTING, templates, setup, open beginner issues) scored in code.
+
+Issue search uses Algolia when `NEXT_PUBLIC_ALGOLIA_APP_ID` and `NEXT_PUBLIC_ALGOLIA_SEARCH_KEY` are set, and GitHub search otherwise. The Search by Algolia mark is shown only when Algolia answers the query.
+
 ## License
 
 Dual-licensed under the [GNU Affero General Public License v3.0 (AGPL-3.0)](./LICENSE) (OSI-approved open-source license) and a separate Commercial License for proprietary, internal, or hosted commercial deployments without AGPLv3 source-disclosure obligations. Copyright (c) 2026 Nishal K and Anan Shaji (NKcodex / DuoMatter). For commercial licensing inquiries, contact `nishal@nishal.dev`.

@@ -245,6 +245,16 @@
 - Allows personal + other noncommercial; no commercial without separate deal
 - Touched: LICENSE, README, package.json license field, en/ml/hi/world footer strings
 
+## 2026-10-29 — Public overhaul
+- Landing is a real page: hero preview, contrast, Tan/Zhou/Sun 2020 stats (DOI 10.1145/3368089.3409746), how-it-works, FAQ, Pro teaser (not built), footer marquee. Brand stays #0473FD and Inter.
+- Nav Explain no longer points at NekoDroid. Match repo and Review PR URL start empty. `/explain` without query goes to `/#match`.
+- New, live GitHub data (no fixtures): `lib/availability.ts` (assignee, linked PR, 21-day first-person claim), `lib/setup-estimate.ts` (minutes are a file heuristic), `lib/ready-score.ts` (0–100 in code), `lib/journey.ts` (localStorage + `#j=` share).
+- Search: Algolia only when `NEXT_PUBLIC_ALGOLIA_APP_ID` and `NEXT_PUBLIC_ALGOLIA_SEARCH_KEY` are set; otherwise GitHub. Logo links to `https://www.algolia.com/?utm_medium=AOS-referral`.
+- OG image is `app/opengraph-image.tsx`. Dead `components/explain-client.tsx` is gone.
+- Unit check: `npx tsx scripts/verify-overhaul-units.ts`. `npm run build` passes. `npm run lint` still fails on older files (LangToggle, language-provider, lines.ts, serp.ts, review route prefer-const, global-error `<a>`).
+
 ## Next for another agent
-1. Deploy webhook; test `/firstpr review` on a NekoDroid PR
-2. Commit when asked (license + any leftover footer moon tweak)
+1. Fill an Algolia index named `good_first_issues` and set the search-only key on Vercel. Do not commit the key.
+2. Pro mode is a teaser only. Do not ship it until it can explain a normal issue without writing the patch.
+3. Translate the new `landing.*`, `ready.*`, `journey.*` keys. Malayalam and Hindi fall back to English via `fill()`.
+4. Auth and Neon are still not wired. Journey data stays in the browser on purpose.

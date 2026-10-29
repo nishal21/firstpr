@@ -21,6 +21,10 @@ const envSchema = z.object({
   DEMO_REPO: z.string().default("nishal21/NekoDroid"),
   DEMO_USERNAME: z.string().default("nishal21"),
   DEMO_MODE: z.string().default("auto"),
+  NEXT_PUBLIC_ALGOLIA_APP_ID: z.string().optional(),
+  NEXT_PUBLIC_ALGOLIA_SEARCH_KEY: z.string().optional(),
+  NEXT_PUBLIC_ALGOLIA_INDEX: z.string().default("good_first_issues"),
+  NEXT_PUBLIC_PLAUSIBLE_DOMAIN: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -55,6 +59,10 @@ function loadEnv(): Env {
     DEMO_REPO: readEnv("DEMO_REPO"),
     DEMO_USERNAME: readEnv("DEMO_USERNAME"),
     DEMO_MODE: readEnv("DEMO_MODE"),
+    NEXT_PUBLIC_ALGOLIA_APP_ID: readEnv("NEXT_PUBLIC_ALGOLIA_APP_ID"),
+    NEXT_PUBLIC_ALGOLIA_SEARCH_KEY: readEnv("NEXT_PUBLIC_ALGOLIA_SEARCH_KEY"),
+    NEXT_PUBLIC_ALGOLIA_INDEX: readEnv("NEXT_PUBLIC_ALGOLIA_INDEX"),
+    NEXT_PUBLIC_PLAUSIBLE_DOMAIN: readEnv("NEXT_PUBLIC_PLAUSIBLE_DOMAIN"),
   });
 
   if (!result.success) {

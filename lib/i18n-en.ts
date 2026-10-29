@@ -1,7 +1,13 @@
 export const en = {
   "nav.findIssue": "Find an issue",
   "nav.explain": "Explain",
+  "nav.how": "How it works",
+  "nav.bot": "Bot",
+  "nav.pro": "Pro",
+  "nav.ready": "Repo scorecard",
+  "nav.journey": "My journey",
   "nav.review": "Review my PR",
+  "nav.skip": "Skip to content",
   "nav.language": "Language",
   "nav.progress": "FirstPR progress",
   "nav.menuOpen": "Open menu",
@@ -65,7 +71,7 @@ export const en = {
   "match.username": "GitHub username",
   "match.usernamePlaceholder": "octocat",
   "match.repo": "Repo (optional)",
-  "match.repoPlaceholder": "NekoDroid or owner/repo",
+  "match.repoPlaceholder": "owner/repo",
   "match.submit": "Find my first issue",
   "match.finding": "Finding…",
   "match.retry": "Retry",
@@ -172,6 +178,143 @@ export const en = {
   "score.blocker": "blocker",
   "score.suggestion": "suggestion",
   "score.nit": "nit",
+
+  "hero.titleMark": "written by you",
+  "hero.proof1": "Real GitHub issues, not a fake board",
+  "hero.proof2": "Hints in three levels, never the patch",
+  "hero.proof3": "The score is a checklist in code, not a vibe",
+  "hero.preview": "Product preview",
+
+  "landing.contrastTitle": "Same issue. Two very different starts.",
+  "landing.contrastLead":
+    "A good-first-issue label does not tell you which file to open. FirstPR does, and it still refuses to write the fix.",
+  "landing.rawTitle": "On GitHub",
+  "landing.raw1": "A wall of labels and a body written for people who already know the repo",
+  "landing.raw2": "No map of the files that matter",
+  "landing.raw3": "Someone else may already have a PR open",
+  "landing.firstTitle": "In FirstPR",
+  "landing.first1": "A plain summary of what the issue is asking",
+  "landing.first2": "File and line links checked against the repo",
+  "landing.first3": "A done-when list, then hints if you are stuck",
+
+  "landing.researchTitle": "Why the first mile is where people quit",
+  "landing.researchBody":
+    "These numbers are from a published study of good first issues. They are not FirstPR user counts.",
+  "landing.stat1":
+    "40.9% of good first issues in the study were not solved by newcomers.",
+  "landing.stat2":
+    "58.4% of newcomers who did land a change through a good first issue never came back.",
+  "landing.statSource":
+    "Xin Tan, Minghui Zhou, and Zeyu Sun. A First Look at Good First Issues on GitHub. ESEC/FSE 2020. 9,368 issues.",
+  "landing.statLink": "Read the paper",
+
+  "landing.howTitle": "Three steps. You still write the code.",
+  "landing.audienceTitle": "Who it is for",
+  "landing.studentsTitle": "Final-year and placement students",
+  "landing.studentsBody":
+    "You need a real merged PR, not a tutorial repo. FirstPR picks a fit, shows the files, and checks the PR before a maintainer does.",
+  "landing.maintainersTitle": "Maintainers",
+  "landing.maintainersBody":
+    "Install FirstPRbot. /firstpr explain on an issue, /firstpr review on a PR. Fewer first PRs that miss the issue.",
+  "landing.maintainersCta": "Score my repo",
+
+  "landing.proBadge": "Planned",
+  "landing.proTitle": "Pro, for people who already ship code",
+  "landing.proBody":
+    "Free stays the good-first-issue path. Pro would explain a normal issue when you are new to a repo but not new to programming. It is not for sale yet, and there is no price until one is set.",
+
+  "landing.faqTitle": "Questions people ask before they trust it",
+  "faq.q1": "Does FirstPR write my code?",
+  "faq.a1": "No. Hints stop if you ask it to write the fix. The patch is yours.",
+  "faq.q2": "Do I need an account?",
+  "faq.a2": "No. Your journey card stays in this browser until you share a link.",
+  "faq.q3": "Does it work on private repos?",
+  "faq.a3": "No. Public repositories only.",
+  "faq.q4": "What is FirstPRbot?",
+  "faq.a4":
+    "A GitHub App. Comment /firstpr explain on an issue or /firstpr review on a pull request.",
+  "faq.q5": "Is the score from the AI?",
+  "faq.a5":
+    "No. The number is computed in code from a checklist. The model only fills in evidence.",
+  "faq.q6": "Which languages?",
+  "faq.a6":
+    "The interface has 15 languages. English, Malayalam, and Hindi were written by hand. The rest fall back toward English where a line is missing. Explanations are English.",
+
+  "landing.finalTitle": "Your first PR starts here.",
+  "landing.finalBody": "Pick a real issue. See the files. Check the PR before you ask for review.",
+
+  "match.sample": "Use sample username",
+  "match.noIssues":
+    "No open beginner issue matched. Leave the repo blank to search by the languages on your public profile, or try another owner/repo.",
+  "match.searchLabel": "Search beginner issues",
+  "match.searchPlaceholder": "docs, rust, accessibility…",
+  "match.searchSubmit": "Search",
+  "match.searchEmpty": "No matching open good-first issues.",
+  "match.searchGithub": "Searching GitHub. Algolia is used when the search-only key is set.",
+  "match.searchAlgolia": "Search by Algolia",
+  "match.free": "Looks free",
+
+  "availability.free": "Looks free",
+  "availability.assigned": "Assigned",
+  "availability.linked_pr": "PR already open",
+  "availability.claimed": "Someone claimed it",
+  "availability.closed": "Closed",
+  "availability.unknown": "Check incomplete",
+  "availability.title": "Is this issue free?",
+
+  "setup.title": "First-run estimate",
+  "setup.minutes": "About {low}–{high} min",
+  "setup.empty": "No setup steps stood out in the README. Read CONTRIBUTING before you clone.",
+
+  "ready.title": "Is this repo newcomer-ready?",
+  "ready.subtitle":
+    "A checklist scored in code from the public repo: license, contributing guide, templates, setup, and open beginner issues. Not a popularity contest.",
+  "ready.repo": "Public repo",
+  "ready.repoPlaceholder": "owner/repo",
+  "ready.submit": "Score this repo",
+  "ready.running": "Reading the repo…",
+  "ready.failed": "Could not score that repo",
+  "ready.outOf": "out of 100",
+  "ready.openIssues": "{n} open unassigned beginner issues",
+
+  "journey.title": "Your contributor journey",
+  "journey.subtitle":
+    "Saved in this browser when you match an issue, open an explanation, or score a PR. Nothing is uploaded until you copy a share link.",
+  "journey.empty":
+    "No steps yet. Find an issue, open the explanation, then come back. This page only shows what you did here.",
+  "journey.share": "Copy share link",
+  "journey.copied": "Link copied",
+  "journey.shared": "Shared snapshot",
+  "journey.sharedBody":
+    "This card was pasted from a link. It is a snapshot of someone else's browser history, not a live profile.",
+  "journey.mine": "This browser",
+  "journey.prLabel": "Check a pull request",
+  "journey.prPlaceholder": "https://github.com/owner/repo/pull/1",
+  "journey.prSubmit": "Check merge status",
+  "journey.merged": "Merged",
+  "journey.open": "Still open",
+  "journey.closed": "Closed without merge",
+  "journey.kind.match": "Matched",
+  "journey.kind.explain": "Explained",
+  "journey.kind.review": "Reviewed",
+  "journey.kind.pr": "Pull request",
+
+  "review.history": "Recent checks on this browser",
+  "review.historyEmpty": "Scores you run here show up in this list.",
+
+  "explain.share": "Copy link",
+  "explain.shared": "Link copied",
+
+  "bot.exampleLabel": "Example reply",
+  "bot.installTitle": "Install FirstPRbot",
+  "bot.installBody":
+    "Install the GitHub App on a public repo, then comment on an issue or pull request. FirstPRbot never writes the fix.",
+  "bot.step1": "Install the app from GitHub and grant it the repos you want.",
+  "bot.step2": "On a good first issue, comment /firstpr explain.",
+  "bot.step3": "On a pull request, comment /firstpr review, or open a PR and wait for the score card.",
+  "bot.step4": "If nothing is posted, check that the app is installed on that repo and the comment is exactly /firstpr explain or /firstpr review.",
+
+  "search.algoliaHome": "Search by Algolia",
 } as const;
 
 export type I18nKey = keyof typeof en;

@@ -1,6 +1,7 @@
 import type { I18nKey } from "@/lib/i18n-en";
+import { fill } from "@/lib/i18n-world";
 
-export const ml: Record<I18nKey, string> = {
+export const ml: Record<I18nKey, string> = fill({
   "nav.findIssue": "ഒരു issue കണ്ടെത്തുക",
   "nav.explain": "Explain",
   "nav.review": "എന്റെ PR Review ചെയ്യുക",
@@ -177,9 +178,9 @@ export const ml: Record<I18nKey, string> = {
   "score.blocker": "blocker",
   "score.suggestion": "suggestion",
   "score.nit": "nit",
-};
+});
 
-export const hi: Record<I18nKey, string> = {
+export const hi: Record<I18nKey, string> = fill({
   "nav.findIssue": "Issue खोजें",
   "nav.explain": "Explain",
   "nav.review": "मेरा PR Review करें",
@@ -355,5 +356,5 @@ export const hi: Record<I18nKey, string> = {
   "score.blocker": "blocker",
   "score.suggestion": "suggestion",
   "score.nit": "nit",
-};
+});
 

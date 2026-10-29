@@ -69,9 +69,12 @@ export function SiteFooter() {
   const t = useT();
   const narrow = useNarrow();
   const product: FooterLink[] = [
-    { href: "/", label: t("nav.findIssue") },
-    { href: "/issue/nishal21/NekoDroid/4", label: t("nav.explain") },
+    { href: "/#match", label: t("nav.findIssue") },
+    { href: "/#how", label: t("nav.how") },
+    { href: "/bot", label: t("nav.bot") },
     { href: "/review", label: t("nav.review") },
+    { href: "/ready", label: t("nav.ready") },
+    { href: "/journey", label: t("nav.journey") },
   ];
   const openSource: FooterLink[] = [
     { href: SOURCE_URL, label: t("footer.sourceLink"), external: true },
@@ -155,7 +158,16 @@ export function SiteFooter() {
 
           <p
             aria-hidden
-            className="pointer-events-none mt-16 text-center text-[23vw] leading-[0.8] font-semibold tracking-[-0.07em] text-white/90 select-none md:mt-20 md:text-[11.5rem]"
+            className="footer-marquee mt-14 text-sm font-medium tracking-[0.18em] text-slate-400 uppercase"
+          >
+            <span>
+              Match · Explain · Review · FirstPRbot · Match · Explain · Review · FirstPRbot ·
+            </span>
+          </p>
+
+          <p
+            aria-hidden
+            className="footer-wordmark pointer-events-none mt-6 text-center leading-[0.8] font-semibold tracking-[-0.07em] text-white/90 select-none"
           >
             FirstPR
           </p>

@@ -7,11 +7,15 @@ import { Suspense } from "react";
 function RedirectExplain() {
   const router = useRouter();
   const params = useSearchParams();
-  const owner = params.get("owner")?.trim() || "nishal21";
-  const repo = params.get("repo")?.trim() || "NekoDroid";
-  const issue = params.get("issue")?.trim() || "4";
+  const owner = params.get("owner")?.trim() ?? "";
+  const repo = params.get("repo")?.trim() ?? "";
+  const issue = params.get("issue")?.trim() ?? "";
 
   useEffect(() => {
+    if (!owner || !repo || !issue) {
+      router.replace("/#match");
+      return;
+    }
     router.replace(
       `/issue/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/${encodeURIComponent(issue)}`,
     );

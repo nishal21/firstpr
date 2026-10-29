@@ -238,5 +238,18 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - Footer col: “Source”; link label: “AGPL-3.0”
 - Noncommercial / personal OK; commercial needs separate grant from authors
 
+## 2026-10-29 — Landing and four live checks
+Done:
+- Rebuilt home, nav, footer, empty match/review defaults, OG/sitemap/robots
+- `/ready` scorecard, `/journey` local history, `/bot` install steps
+- Explain shows free-issue status and a setup estimate from the repo tree
+- Match drops issues with a recent first-person claim
+- `scripts/verify-overhaul-units.ts` passes; production build passes
+Not done:
+- Pro, accounts, Algolia index contents, Plausible (no domain set)
+- Full `npm run lint` (older errors listed in learning-journal.md)
+
 ## Next
-- Deploy; commit when asked
+- Index good-first issues in Algolia, then set the public search key in the host env
+- Keep Pro as a teaser until the explain path accepts non-beginner issues
+- Translate new UI strings for hi and ml before calling those pages done
