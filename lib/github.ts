@@ -470,6 +470,8 @@ export type TextSearchHit = {
   repo: string;
   number: number;
   title: string;
+  labels: string[];
+  createdAt: string;
 };
 
 /** Public good-first-issue search for the landing omnibox. Cached. No client keys. */
@@ -480,7 +482,7 @@ export async function searchBeginnerIssuesByText(
   const clean = text.replace(/[:"]/g, " ").replace(/\s+/g, " ").trim().slice(0, 80);
   if (clean.length < 2) return [];
   const lang = language?.replace(/[^\w#+.\s-]/g, "").trim();
-  const cacheKey = `text-gfi-v1:${(lang ?? "").toLowerCase()}:${clean.toLowerCase()}`;
+  const cacheKey = `text-gfi-v2:${(lang ?? "").toLowerCase()}:${clean.toLowerCase()}`;
 
   return cached(cacheKey, async () =>
     gh(async () => {
@@ -501,11 +503,17 @@ export async function searchBeginnerIssuesByText(
           /github\.com\/([^/]+)\/([^/]+)\/issues\/(\d+)/i,
         );
         if (!match) continue;
+        const labels = (issue.labels ?? [])
+          .map((label) => (typeof label === "string" ? label : (label.name ?? "")))
+          .filter(Boolean)
+          .slice(0, 3);
         hits.push({
           owner: match[1],
           repo: match[2],
           number: Number(match[3]),
           title: issue.title,
+          labels,
+          createdAt: issue.created_at,
         });
       }
       return hits;

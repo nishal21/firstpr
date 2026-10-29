@@ -264,3 +264,10 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - A comma sat in the suggestion list markup and showed as a speck left of the panel. Removed.
 - Theme: `.site-footer` tokens switch under `.dark`. No theme toggle in the app yet; the light gradient is the default.
 - Dropped Turion. Footer now follows Eclipse Space (https://www.eclipse.space/): one dotted ring, one cat in the middle, line and links under it.
+
+## 2026-10-29 — Search command menu
+- Hero suggestions are a command menu in `components/site-search.tsx`, still portaled to `document.body`.
+- Rows have an icon per type, matched text in the primary color, and issue repo, labels, and age. `/` focuses `#firstpr-search` (or opens the dialog). Arrows, Enter, and Esc work. The hint bar sits under the list.
+- Empty field shows Paste a link, Browse good first issues, By language, then recent searches (Clear writes `[]` to `firstpr-recent-searches`).
+- Open-issue skeletons stay up until `/api/search` settles, so the empty line does not flash. Hits now include `labels` and `createdAt` (`text-gfi-v2` cache key).
+- Under 640px the panel is a full-width sheet. Open/close animation is transform and opacity only. `.dark` uses the popover tokens.

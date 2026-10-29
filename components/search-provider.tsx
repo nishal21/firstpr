@@ -42,7 +42,24 @@ export function SearchProvider({ children }: { children: ReactNode }) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
         setOpen((value) => !value);
+        return;
       }
+      if (e.key !== "/" || e.metaKey || e.ctrlKey || e.altKey) return;
+      const target = e.target;
+      if (target instanceof HTMLElement) {
+        const tag = target.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || target.isContentEditable) {
+          return;
+        }
+      }
+      const hero = document.getElementById("firstpr-search");
+      if (hero instanceof HTMLInputElement) {
+        e.preventDefault();
+        hero.focus();
+        return;
+      }
+      e.preventDefault();
+      setOpen(true);
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);

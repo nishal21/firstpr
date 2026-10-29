@@ -4,7 +4,19 @@ import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncEx
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { ArrowRight } from "lucide-react";
+import {
+  ArrowRight,
+  BookOpen,
+  CircleDot,
+  Clock,
+  FolderGit2,
+  GitPullRequest,
+  Languages,
+  Link2,
+  ListChecks,
+  Search,
+  UserRound,
+} from "lucide-react";
 import { useT } from "@/components/language-provider";
 import {
   parseOmniQuery,
@@ -19,15 +31,29 @@ type LiveIssue = {
   repo: string;
   number: number;
   title: string;
+  labels?: string[];
+  createdAt?: string;
 };
+
+type RowKind =
+  | "paste"
+  | "browse"
+  | "language"
+  | "recent"
+  | "issue"
+  | SearchFlow["flow"];
 
 type Row = {
   key: string;
-  href: string;
-  badge: I18nKey;
+  kind: RowKind;
   title: string;
   detail?: string;
-  group: "understood" | "live" | "recent";
+  group: "quick" | "understood" | "live" | "recent";
+  href?: string;
+  badge?: I18nKey;
+  labels?: string[];
+  createdAt?: string;
+  query?: string;
 };
 
 const RECENT_KEY = "firstpr-recent-searches";
@@ -78,6 +104,13 @@ function readRecent(): string[] {
 function writeRecent(query: string) {
   const next = [query, ...readRecent().filter((item) => item !== query)].slice(0, 5);
   localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+  recentSource = undefined;
+  window.dispatchEvent(new Event(RECENT_EVENT));
+}
+
+function clearRecent() {
+  localStorage.setItem(RECENT_KEY, "[]");
+  recentSource = undefined;
   window.dispatchEvent(new Event(RECENT_EVENT));
 }
 
@@ -92,6 +125,8 @@ function subscribeRecent(onChange: () => void) {
 
 function groupLabel(group: Row["group"]): I18nKey {
   switch (group) {
+    case "quick":
+      return "search.groupQuick";
     case "understood":
       return "search.groupUnderstood";
     case "live":
@@ -185,6 +220,63 @@ function flowCopy(
   }
 }
 
+function RowIcon({ kind }: { kind: RowKind }) {
+  const className = "size-4";
+  switch (kind) {
+    case "paste":
+      return <Link2 className={className} aria-hidden />;
+    case "browse":
+      return <ListChecks className={className} aria-hidden />;
+    case "language":
+      return <Languages className={className} aria-hidden />;
+    case "recent":
+      return <Clock className={className} aria-hidden />;
+    case "issue":
+      return <CircleDot className={className} aria-hidden />;
+    case "explain":
+      return <BookOpen className={className} aria-hidden />;
+    case "review":
+      return <GitPullRequest className={className} aria-hidden />;
+    case "readiness":
+      return <FolderGit2 className={className} aria-hidden />;
+    case "match-user":
+      return <UserRound className={className} aria-hidden />;
+    case "match-topic":
+      return <Search className={className} aria-hidden />;
+    default: {
+      const exhaustive: never = kind;
+      return exhaustive;
+    }
+  }
+}
+
+function Highlight({ text, query }: { text: string; query: string }) {
+  const needle = query.trim();
+  if (needle.length < 2) return text;
+  const at = text.toLowerCase().indexOf(needle.toLowerCase());
+  if (at < 0) return text;
+  return (
+    <>
+      {text.slice(0, at)}
+      <mark className="bg-transparent font-semibold text-primary">
+        {text.slice(at, at + needle.length)}
+      </mark>
+      {text.slice(at + needle.length)}
+    </>
+  );
+}
+
+function issueAge(iso: string | undefined, today: string): string {
+  if (!iso) return "";
+  const then = Date.parse(iso);
+  if (Number.isNaN(then)) return "";
+  const days = Math.max(0, Math.floor((Date.now() - then) / 86_400_000));
+  if (days < 1) return today;
+  if (days < 30) return `${days}d`;
+  if (days < 365) return `${Math.floor(days / 30)}mo`;
+  return `${Math.floor(days / 365)}y`;
+}
+
 export function SiteSearch({
   variant = "hero",
   onNavigate,
@@ -197,7 +289,8 @@ export function SiteSearch({
   const listId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
   const anchorRef = useRef<HTMLDivElement>(null);
-  const panelRef = useRef<HTMLUListElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
   const mounted = useSyncExternalStore(subscribeMounted, () => true, () => false);
   const recent = useSyncExternalStore(subscribeRecent, readRecent, () => NO_RECENT);
   const [value, setValue] = useState("");
@@ -206,27 +299,63 @@ export function SiteSearch({
   const [placeholderIndex, setPlaceholderIndex] = useState(0);
   const [live, setLive] = useState<LiveIssue[]>([]);
   const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState<"rate" | "generic" | null>(null);
+  const [settledFor, setSettledFor] = useState<string | null>(null);
   const [trackedValue, setTrackedValue] = useState(value);
+  const [panelOn, setPanelOn] = useState(false);
+  const [closing, setClosing] = useState(false);
   const reduceMotion = useSyncExternalStore(subscribeMotion, motionNow, () => false);
   if (value !== trackedValue) {
     setTrackedValue(value);
     setActive(0);
     setLive([]);
     setSearching(false);
+    setSearchError(null);
+    setSettledFor(null);
   }
 
   const local = useMemo(() => parseOmniQuery(value), [value]);
+  const trimmed = value.trim();
 
   const rows: Row[] = useMemo(() => {
+    const quick: Row[] =
+      trimmed.length === 0
+        ? [
+            {
+              key: "quick:paste",
+              kind: "paste",
+              title: t("search.pasteLink"),
+              detail: t("search.pasteHint"),
+              group: "quick",
+            },
+            {
+              key: "quick:browse",
+              kind: "browse",
+              title: t("search.browseGfi"),
+              detail: t("hero.chipGfi"),
+              group: "quick",
+              href: "/?q=good%20first%20issue#match",
+              query: "good first issue",
+            },
+            {
+              key: "quick:language",
+              kind: "language",
+              title: t("search.byLanguage"),
+              detail: t("search.byLanguageHint"),
+              group: "quick",
+            },
+          ]
+        : [];
     const understood: Row[] = local.map((item) => {
       const copy = flowCopy(item, t);
       return {
         key: item.href,
+        kind: item.flow,
         href: item.href,
         badge: flowBadge(item.flow),
         title: copy.title,
         detail: copy.detail,
-        group: "understood",
+        group: "understood" as const,
       };
     });
     const seen = new Set(understood.map((row) => row.href));
@@ -235,59 +364,88 @@ export function SiteSearch({
         const href = `/issue/${encodeURIComponent(issue.owner)}/${encodeURIComponent(issue.repo)}/${issue.number}`;
         return {
           key: href,
+          kind: "issue" as const,
           href,
           badge: "flow.explain" as const,
           title: issue.title,
-          detail: `${issue.owner}/${issue.repo}#${issue.number}`,
+          detail: `${issue.owner}/${issue.repo}`,
+          labels: issue.labels,
+          createdAt: issue.createdAt,
           group: "live" as const,
         };
       })
       .filter((row) => !seen.has(row.href));
-    const current = value.trim();
     const recentRows: Row[] = recent
-      .filter((query) => query !== current)
+      .filter((query) => query !== trimmed)
       .map((query) => ({
         key: `recent:${query}`,
-        href: "",
-        badge: "search.groupRecent",
+        kind: "recent" as const,
         title: query,
+        query,
         group: "recent" as const,
       }));
-    return [...understood, ...liveRows, ...recentRows];
-  }, [live, local, recent, t, value]);
+    return [...quick, ...understood, ...liveRows, ...recentRows];
+  }, [live, local, recent, t, trimmed]);
+
+  if (rows.length > 0 && active >= rows.length) setActive(rows.length - 1);
+
+  const listOpen = (focused || variant === "dialog") && (rows.length > 0 || searching);
+  if (listOpen && !panelOn) {
+    setPanelOn(true);
+    if (closing) setClosing(false);
+  }
+  if (!listOpen && panelOn && reduceMotion) setPanelOn(false);
+  if (!listOpen && panelOn && !closing && !reduceMotion) setClosing(true);
 
   useEffect(() => {
-    if (reduceMotion || focused || value.trim()) return;
+    if (!closing) return;
+    const id = window.setTimeout(() => {
+      setPanelOn(false);
+      setClosing(false);
+    }, 140);
+    return () => window.clearTimeout(id);
+  }, [closing]);
+
+  useEffect(() => {
+    if (reduceMotion || focused || trimmed) return;
     const id = window.setInterval(() => {
       setPlaceholderIndex((index) => (index + 1) % PLACEHOLDERS.length);
     }, 2600);
     return () => window.clearInterval(id);
-  }, [focused, reduceMotion, value]);
+  }, [focused, reduceMotion, trimmed]);
 
   useEffect(() => {
-    const q = value.trim();
-    if (q.length < 2 || queryLooksLikeGitHubUrl(q)) return;
+    if (trimmed.length < 2 || queryLooksLikeGitHubUrl(trimmed)) return;
     const controller = new AbortController();
     const timer = window.setTimeout(() => {
-      const topic = parseOmniQuery(q).find((item) => item.flow === "match-topic");
+      const topic = parseOmniQuery(trimmed).find((item) => item.flow === "match-topic");
       const lang =
         topic && topic.flow === "match-topic" && topic.language
           ? `&lang=${encodeURIComponent(topic.language)}`
           : "";
       setSearching(true);
-      fetch(`/api/search?q=${encodeURIComponent(q)}${lang}`, {
+      fetch(`/api/search?q=${encodeURIComponent(trimmed)}${lang}`, {
         signal: controller.signal,
       })
         .then(async (res) => {
-          if (!res.ok) return { issues: [] as LiveIssue[] };
-          return (await res.json()) as { issues?: LiveIssue[] };
+          const json = (await res.json()) as { issues?: LiveIssue[]; error?: string };
+          if (!res.ok || json.error === "generic") {
+            return { issues: [] as LiveIssue[], error: "generic" as const };
+          }
+          if (json.error === "rate_limited") {
+            return { issues: [] as LiveIssue[], error: "rate" as const };
+          }
+          return { issues: Array.isArray(json.issues) ? json.issues : [], error: null };
         })
         .then((json) => {
-          setLive(Array.isArray(json.issues) ? json.issues : []);
+          setLive(json.issues);
+          setSearchError(json.error);
+          setSettledFor(trimmed);
         })
         .catch((err: unknown) => {
           if (err instanceof DOMException && err.name === "AbortError") return;
           setLive([]);
+          setSearchError("generic");
         })
         .finally(() => {
           if (!controller.signal.aborted) setSearching(false);
@@ -297,22 +455,45 @@ export function SiteSearch({
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [value]);
+  }, [trimmed]);
 
-  function go(href: string) {
-    const query = value.trim();
-    if (query) writeRecent(query);
+  useEffect(() => {
+    if (!panelOn) return;
+    document.getElementById(`${listId}-opt-${active}`)?.scrollIntoView({ block: "nearest" });
+  }, [active, listId, panelOn]);
+
+  function go(href: string, query?: string) {
+    const saved = (query ?? trimmed).trim();
+    if (saved) writeRecent(saved);
     onNavigate?.();
     router.push(href);
   }
 
+  async function pasteLink() {
+    try {
+      const text = (await navigator.clipboard.readText()).trim();
+      if (text) setValue(text.slice(0, 240));
+    } catch {
+      inputRef.current?.focus();
+    }
+  }
+
   function activate(row: Row) {
-    if (row.group === "recent") {
-      setValue(row.title);
+    if (row.kind === "paste") {
+      void pasteLink();
+      return;
+    }
+    if (row.kind === "language") {
+      setValue("python");
       inputRef.current?.focus();
       return;
     }
-    go(row.href);
+    if (row.kind === "recent" && row.query) {
+      setValue(row.query);
+      inputRef.current?.focus();
+      return;
+    }
+    if (row.href) go(row.href, row.query);
   }
 
   function submit() {
@@ -321,24 +502,28 @@ export function SiteSearch({
     activate(row);
   }
 
-  const listOpen =
-    (focused || variant === "dialog") &&
-    (rows.length > 0 || searching) &&
-    (value.trim().length > 0 || recent.length > 0);
   const placeholder = t(PLACEHOLDERS[placeholderIndex] ?? "hero.placeholderLang");
+  const showLiveStatus =
+    trimmed.length >= 2 && !queryLooksLikeGitHubUrl(trimmed) && !rows.some((row) => row.group === "live");
 
   useLayoutEffect(() => {
-    if (!listOpen) return;
+    if (!panelOn) return;
     const place = () => {
       const anchor = anchorRef.current;
       const panel = panelRef.current;
       if (!anchor || !panel) return;
       const rect = anchor.getBoundingClientRect();
-      const room = window.innerHeight - rect.bottom - 12;
+      const sheet = window.innerWidth < 640;
+      const room = window.innerHeight - rect.bottom - 16;
+      panel.dataset.sheet = sheet ? "true" : "false";
       panel.style.top = `${Math.round(rect.bottom + 8)}px`;
-      panel.style.left = `${Math.round(rect.left)}px`;
-      panel.style.width = `${Math.round(rect.width)}px`;
-      panel.style.maxHeight = `${Math.max(140, Math.min(360, room))}px`;
+      panel.style.left = sheet ? "0px" : `${Math.round(rect.left)}px`;
+      panel.style.width = sheet ? "100%" : `${Math.round(rect.width)}px`;
+      panel.style.maxHeight = "none";
+      const list = listRef.current;
+      if (list) {
+        list.style.maxHeight = `${Math.max(148, Math.min(sheet ? 340 : 380, room - 40))}px`;
+      }
     };
     place();
     window.addEventListener("resize", place);
@@ -347,7 +532,7 @@ export function SiteSearch({
       window.removeEventListener("resize", place);
       window.removeEventListener("scroll", place, true);
     };
-  }, [listOpen, rows.length]);
+  }, [panelOn, rows.length, searching]);
 
   return (
     <div ref={anchorRef} className={cn("relative w-full", variant === "hero" && "mx-auto max-w-2xl")}>
@@ -358,12 +543,12 @@ export function SiteSearch({
           submit();
         }}
       >
-        <label htmlFor={`${listId}-input`} className="sr-only">
+        <label htmlFor={variant === "hero" ? "firstpr-search" : `${listId}-input`} className="sr-only">
           {t("hero.searchLabel")}
         </label>
         <div
           className={cn(
-            "flex min-h-16 items-center gap-2 rounded-[1.25rem] border border-[#c5d7f2] bg-white py-2 pr-2 pl-3.5 shadow-[0_12px_40px_rgba(4,115,253,0.1)] focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/20",
+            "flex min-h-16 items-center gap-2 rounded-[1.25rem] border border-border bg-popover py-2 pr-2 pl-3.5 shadow-[0_12px_40px_rgba(4,115,253,0.1)] focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/20",
             variant === "dialog" && "min-h-[3.25rem] shadow-none",
           )}
         >
@@ -376,7 +561,7 @@ export function SiteSearch({
           />
           <input
             ref={inputRef}
-            id={`${listId}-input`}
+            id={variant === "hero" ? "firstpr-search" : `${listId}-input`}
             value={value}
             placeholder={placeholder}
             autoFocus={variant === "dialog"}
@@ -388,9 +573,7 @@ export function SiteSearch({
             aria-expanded={listOpen}
             aria-controls={listId}
             aria-autocomplete="list"
-            aria-activedescendant={
-              listOpen && rows[active] ? `${listId}-opt-${active}` : undefined
-            }
+            aria-activedescendant={listOpen && rows[active] ? `${listId}-opt-${active}` : undefined}
             onChange={(event) => setValue(event.target.value)}
             onFocus={() => {
               setFocused(true);
@@ -403,18 +586,21 @@ export function SiteSearch({
             onKeyDown={(event) => {
               if (event.key === "ArrowDown") {
                 event.preventDefault();
-                setActive((index) => Math.min(rows.length - 1, index + 1));
+                setActive((index) => (rows.length === 0 ? 0 : (index + 1) % rows.length));
               } else if (event.key === "ArrowUp") {
                 event.preventDefault();
-                setActive((index) => Math.max(0, index - 1));
-              } else if (event.key === "Escape") {
-                setValue("");
-                setLive([]);
+                setActive((index) => (rows.length === 0 ? 0 : (index - 1 + rows.length) % rows.length));
+              } else if (event.key === "Escape" && variant === "hero") {
+                event.preventDefault();
+                inputRef.current?.blur();
               }
             }}
             className="min-w-0 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground sm:text-lg"
           />
-          <kbd className="hidden shrink-0 items-center rounded-md border border-border bg-[#f4f7fb] px-1.5 py-0.5 font-sans text-[11px] font-medium text-muted-foreground sm:inline-flex">
+          <kbd className="hidden shrink-0 rounded-md border border-border bg-muted px-1.5 py-0.5 font-sans text-[11px] font-medium text-muted-foreground sm:inline-flex">
+            /
+          </kbd>
+          <kbd className="hidden shrink-0 items-center rounded-md border border-border bg-muted px-1.5 py-0.5 font-sans text-[11px] font-medium text-muted-foreground sm:inline-flex">
             {t("hero.kbd")}
           </kbd>
           <button
@@ -438,7 +624,7 @@ export function SiteSearch({
                 if (chip.query) setValue(chip.query);
                 inputRef.current?.focus();
               }}
-              className="inline-flex min-h-9 items-center rounded-full border border-[#c5d7f2] bg-white/90 px-3 text-sm text-foreground outline-none hover:border-primary hover:text-primary focus-visible:ring-2 focus-visible:ring-primary/30"
+              className="inline-flex min-h-9 items-center rounded-full border border-border bg-popover/90 px-3 text-sm text-foreground outline-none hover:border-primary hover:text-primary focus-visible:ring-2 focus-visible:ring-primary/30"
             >
               {t(chip.label)}
             </button>
@@ -446,57 +632,127 @@ export function SiteSearch({
         </div>
       ) : null}
 
-      {listOpen && mounted
+      {panelOn && mounted
         ? createPortal(
-        <ul
-          ref={panelRef}
-          id={listId}
-          role="listbox"
-          className="search-popover py-1"
-        >
-          {rows.map((row, index) => {
-            const showGroup = index === 0 || rows[index - 1]?.group !== row.group;
-            return (
-              <li key={row.key} role="presentation">
-                {showGroup ? (
-                  <p className="px-3 pt-2 pb-1 text-[10px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
-                    {t(groupLabel(row.group))}
-                  </p>
-                ) : null}
-                <button
-                  id={`${listId}-opt-${index}`}
-                  type="button"
-                  role="option"
-                  aria-selected={index === active}
-                  onMouseEnter={() => setActive(index)}
-                  onMouseDown={(event) => event.preventDefault()}
-                  onClick={() => activate(row)}
-                  className={cn(
-                    "flex w-full min-h-11 items-start gap-3 px-3 py-2.5 text-left outline-none",
-                    index === active ? "bg-accent" : "bg-white",
-                  )}
-                >
-                  <span className="mt-0.5 shrink-0 rounded-md bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold tracking-wide text-primary uppercase">
-                    {t(row.badge)}
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block text-sm font-medium break-words text-foreground">
-                      {row.title}
-                    </span>
-                    {row.detail ? (
-                      <span className="mt-0.5 block text-xs break-words text-muted-foreground">
-                        {row.detail}
-                      </span>
-                    ) : null}
-                  </span>
-                </button>
-              </li>
-            );
-          })}
-          {searching ? (
-            <li className="px-3 py-2 text-xs text-muted-foreground">{t("search.searching")}</li>
-          ) : null}
-        </ul>,
+            <div
+              ref={panelRef}
+              className="search-popover"
+              data-closing={closing ? "true" : "false"}
+            >
+              <ul
+                ref={listRef}
+                id={listId}
+                role="listbox"
+                aria-label={t("search.open")}
+                className="search-popover-list py-1"
+              >
+                {(["quick", "understood", "live", "recent"] as const).map((group) => {
+                  const items = rows
+                    .map((row, index) => ({ row, index }))
+                    .filter((item) => item.row.group === group);
+                  const pendingLive = group === "live" && showLiveStatus && settledFor !== trimmed;
+                  if (items.length === 0 && !pendingLive && !(group === "live" && showLiveStatus && settledFor === trimmed)) {
+                    return null;
+                  }
+                  return (
+                    <li key={group} role="presentation">
+                      <div className="flex items-center justify-between px-3 pt-2.5 pb-1">
+                        <p className="text-[10px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
+                          {t(groupLabel(group))}
+                        </p>
+                        {group === "recent" && items.length > 0 ? (
+                          <button
+                            type="button"
+                            className="text-[11px] font-medium text-muted-foreground outline-none hover:text-primary focus-visible:ring-2 focus-visible:ring-primary/30"
+                            onMouseDown={(event) => event.preventDefault()}
+                            onClick={clearRecent}
+                          >
+                            {t("search.clearRecent")}
+                          </button>
+                        ) : null}
+                      </div>
+                      {pendingLive ? (
+                        <div className="space-y-1.5 px-3 pb-2" aria-hidden>
+                          <div className="search-skel" />
+                          <div className="search-skel" />
+                          <div className="search-skel" />
+                        </div>
+                      ) : null}
+                      {group === "live" && showLiveStatus && settledFor === trimmed && searchError === "rate" ? (
+                        <p className="px-3 pb-2 text-sm text-muted-foreground">{t("search.errorRate")}</p>
+                      ) : null}
+                      {group === "live" && showLiveStatus && settledFor === trimmed && searchError === "generic" ? (
+                        <p className="px-3 pb-2 text-sm text-muted-foreground">{t("search.errorGeneric")}</p>
+                      ) : null}
+                      {group === "live" && showLiveStatus && settledFor === trimmed && !searchError ? (
+                        <p className="px-3 pb-2 text-sm text-muted-foreground">{t("search.emptyLive")}</p>
+                      ) : null}
+                      {items.map(({ row, index }) => {
+                        const age = issueAge(row.createdAt, t("search.ageToday"));
+                        return (
+                          <button
+                            key={row.key}
+                            id={`${listId}-opt-${index}`}
+                            type="button"
+                            role="option"
+                            aria-selected={index === active}
+                            onMouseEnter={() => setActive(index)}
+                            onMouseDown={(event) => event.preventDefault()}
+                            onClick={() => activate(row)}
+                            className={cn(
+                              "mx-1.5 flex w-[calc(100%-0.75rem)] min-h-11 items-start gap-2.5 rounded-lg px-2 py-2 text-left outline-none",
+                              index === active ? "bg-accent text-accent-foreground" : "text-foreground",
+                            )}
+                          >
+                            <span
+                              className={cn(
+                                "mt-0.5 grid size-7 shrink-0 place-items-center rounded-md",
+                                index === active ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary",
+                              )}
+                            >
+                              <RowIcon kind={row.kind} />
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              <span className="flex items-start justify-between gap-2">
+                                <span className="text-sm leading-5 font-medium break-words">
+                                  <Highlight text={row.title} query={trimmed} />
+                                </span>
+                                {age ? (
+                                  <span className="shrink-0 text-[11px] text-muted-foreground">{age}</span>
+                                ) : null}
+                              </span>
+                              {row.detail || (row.labels && row.labels.length > 0) ? (
+                                <span className="mt-0.5 flex flex-wrap items-center gap-1.5">
+                                  {row.detail ? (
+                                    <span className="text-xs text-muted-foreground">
+                                      <Highlight text={row.detail} query={trimmed} />
+                                    </span>
+                                  ) : null}
+                                  {row.labels?.slice(0, 2).map((label) => (
+                                    <span
+                                      key={label}
+                                      className="rounded-full bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary"
+                                    >
+                                      {label}
+                                    </span>
+                                  ))}
+                                </span>
+                              ) : null}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </li>
+                  );
+                })}
+              </ul>
+              <div className="flex shrink-0 items-center gap-3 border-t border-border px-3 py-2 text-[11px] text-muted-foreground">
+                <span>{t("search.keys")}</span>
+                <span>{t("search.keyOpen")}</span>
+                <span>{t("search.keyClose")}</span>
+                <span className="ml-auto hidden sm:inline">{t("search.slash")}</span>
+              </div>
+            </div>,
             document.body,
           )
         : null}

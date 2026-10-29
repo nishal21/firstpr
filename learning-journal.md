@@ -276,3 +276,14 @@
 - Suggestions are portaled to `document.body`. Do not put the list back inside `.hero-tint` (`overflow-hidden` clips it).
 - Do not leave a comma between the `<ul>` tag and `{rows.map}` in `site-search.tsx`. That comma rendered as a speck beside the panel.
 - `.dark .site-footer` retints the gradient. The site has no theme toggle yet.
+
+## 2026-10-29 — Search command menu
+- Keep routing in `lib/omnisearch.ts`. The menu only changes how rows look and which extra rows exist.
+- Do not render the suggestion list inside `.hero-tint`. It stays a portal. On viewports under 640px set `data-sheet` and `width: 100%`.
+- Put `max-height` on `.search-popover-list`, not the outer panel, or the key hint bar gets clipped. Parent `max-height` does not make a flex child shrink.
+- Do not show “No open beginner issues” until `settledFor === query`. The fetch is debounced 450ms; before that the list is empty on purpose.
+- `TextSearchHit` now has `labels` and `createdAt`. Cache key is `text-gfi-v2`. Old cached hits without those fields must not be read.
+- `/` is handled in `components/search-provider.tsx`. Ignore it inside inputs. Hero input id is `firstpr-search`.
+- Recent clear must set `recentSource = undefined` before the storage event, or `useSyncExternalStore` keeps the old array.
+- New copy goes in `lib/i18n-en.ts` and both dictionaries in `lib/i18n-ml-hi.ts`.
+- Next: if a phone sheet covers the field, anchor it to the input bottom, not the screen bottom. Do not open a pull request; push `redesign-footer-hero`.
