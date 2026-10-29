@@ -130,12 +130,6 @@ We wrote the code with AI coding help in Cursor. We reviewed, tested, and debugg
 | Nishal K | Product, engineering, demo | [@nishal21](https://github.com/nishal21) |
 | Anan Shaji | Research, pitch, business | [@zenxrth](https://github.com/zenxrth) |
 
-## Sponsors & Community Support
-
-- Security scanning by [Snyk](https://snyk.io)
-- Search powered by [Algolia](https://www.algolia.com)
-- Web extraction powered by [webclaw](https://webclaw.io)
-
 ## License
 
 Dual-licensed under the [GNU Affero General Public License v3.0 (AGPL-3.0)](./LICENSE) (OSI-approved open-source license) and a separate Commercial License for proprietary, internal, or hosted commercial deployments without AGPLv3 source-disclosure obligations. Copyright (c) 2026 Nishal K and Anan Shaji (NKcodex / DuoMatter). For commercial licensing inquiries, contact `nishal@nishal.dev`.
