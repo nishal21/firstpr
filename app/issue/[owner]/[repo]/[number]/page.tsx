@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { IssueExplain } from "@/components/issue-explain";
-import { InvalidIssueMessage } from "@/components/invalid-issue-message";
 import { JsonLd } from "@/components/json-ld";
 import { loadIssueMeta } from "@/lib/issue-meta";
 import { issuePath } from "@/lib/issue-path";
@@ -18,9 +18,9 @@ type PageProps = {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const raw = await params;
   const meta = await loadIssueMeta(raw.owner, raw.repo, raw.number);
-  if (!meta) {
+  if (!meta || meta.missing) {
     return pageMetadata({
-      title: "Issue link not valid",
+      title: "Issue not found",
       description: "That address is not a GitHub issue FirstPR can open.",
       path: "/explain",
       noindex: true,
@@ -36,13 +36,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function IssueExplainPage({ params }: PageProps) {
   const { owner, repo, number: numberRaw } = await params;
-  const number = Number(numberRaw);
-
-  if (!Number.isFinite(number) || number < 1) {
-    return <InvalidIssueMessage />;
-  }
-
   const meta = await loadIssueMeta(owner, repo, numberRaw);
+  // Bad links and issues GitHub says do not exist get a real 404, not a soft 404.
+  if (!meta || meta.missing) notFound();
+  const number = meta.number;
   const ownerName = decodeURIComponent(owner);
   const repoName = decodeURIComponent(repo);
   const crumbs = breadcrumbs([

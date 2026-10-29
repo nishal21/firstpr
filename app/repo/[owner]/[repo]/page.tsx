@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { RepoReadiness, type RepoIssueCard } from "@/components/repo-readiness";
-import { getContributing, getRepo, listGoodFirstIssues } from "@/lib/github";
+import { GitHubError, getContributing, getRepo, listGoodFirstIssues } from "@/lib/github";
 import { pageMetadata } from "@/lib/seo";
 
 export const dynamic = "force-dynamic";
@@ -31,20 +32,7 @@ export default async function RepoReadyPage({ params }: PageProps) {
   const owner = decodeURIComponent(raw.owner);
   const repo = decodeURIComponent(raw.repo);
 
-  if (!NAME.test(owner) || !NAME.test(repo)) {
-    return (
-      <RepoReadiness
-        owner={owner}
-        repo={repo}
-        description={null}
-        language={null}
-        stars={null}
-        contributing={null}
-        issues={[]}
-        error="missing"
-      />
-    );
-  }
+  if (!NAME.test(owner) || !NAME.test(repo)) notFound();
 
   let description: string | null = null;
   let language: string | null = null;
@@ -72,7 +60,9 @@ export default async function RepoReadyPage({ params }: PageProps) {
     } catch {
       error = "issues";
     }
-  } catch {
+  } catch (err) {
+    // A repo GitHub says does not exist is a real 404; rate limits keep the friendly page.
+    if (err instanceof GitHubError && err.code === "not_found") notFound();
     error = "missing";
   }
 
