@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { GitPullRequestArrow } from "lucide-react";
 import { useT } from "@/components/language-provider";
 import { PageIntro } from "@/components/page-intro";
@@ -27,12 +27,26 @@ type ReviewApiResponse = ReviewResult & {
   pr?: { title: string; htmlUrl: string };
 };
 
+function subscribeQuery() {
+  return () => {};
+}
+
+function readPrQuery(): string {
+  return new URLSearchParams(window.location.search).get("pr")?.trim() ?? "";
+}
+
+const DEFAULT_PR = "https://github.com/nishal21/NekoDroid/pull/7";
+
 export default function ReviewPage() {
   const t = useT();
+  const queryPr = useSyncExternalStore(subscribeQuery, readPrQuery, () => "");
   const [tab, setTab] = useState("pr");
-  const [prUrl, setPrUrl] = useState(
-    "https://github.com/nishal21/NekoDroid/pull/7",
-  );
+  const [prUrl, setPrUrl] = useState(DEFAULT_PR);
+  const [appliedPr, setAppliedPr] = useState("");
+  if (queryPr && queryPr !== appliedPr) {
+    setAppliedPr(queryPr);
+    setPrUrl(queryPr);
+  }
   const [diff, setDiff] = useState("");
   const [repo, setRepo] = useState("nishal21/NekoDroid");
   const [issueNumber, setIssueNumber] = useState("");
@@ -49,9 +63,14 @@ export default function ReviewPage() {
     t("review.loading.diff"),
   ] as const;
 
+  const [loadingSeen, setLoadingSeen] = useState(loading);
+  if (loading !== loadingSeen) {
+    setLoadingSeen(loading);
+    if (loading) setStepIndex(0);
+  }
+
   useEffect(() => {
     if (!loading) return;
-    setStepIndex(0);
     const id = setInterval(() => {
       setStepIndex((i) => Math.min(i + 1, loadingSteps.length - 1));
     }, 2200);

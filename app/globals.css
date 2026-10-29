@@ -177,9 +177,102 @@
   font-family: var(--font-ar), var(--font-sans), sans-serif;
 }
 
-/* Footer logo float (the ink landscape behind it animates itself). */
-.footer-logo-float {
-  will-change: transform;
+.footer-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: footer-marquee 32s linear infinite;
+  animation-play-state: paused;
+}
+
+.footer-marquee-group {
+  display: flex;
+  align-items: center;
+  gap: 0.42em;
+  padding-right: 0.42em;
+  font-size: clamp(4.75rem, 16vw, 12.5rem);
+  line-height: 0.82;
+}
+
+.footer-word {
+  font-weight: 700;
+  letter-spacing: -0.06em;
+  color: #8ea4c6;
+  white-space: nowrap;
+}
+
+.footer-cat {
+  height: 0.78em;
+  width: auto;
+}
+
+.footer-mag {
+  transform: translate3d(0, 0, 0);
+}
+
+footer[data-inview="true"]:not([data-hold="true"]) .footer-marquee-track {
+  animation-play-state: running;
+}
+
+footer[data-motion="off"] .footer-marquee-track {
+  animation: none;
+}
+
+footer[data-motion="off"] .footer-marquee-group + .footer-marquee-group {
+  display: none;
+}
+
+@keyframes footer-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.glimpse-card {
+  opacity: 0;
+}
+
+.hero-glimpse:not([data-inview="true"]) .glimpse-card:first-child,
+.hero-glimpse[data-motion="off"] .glimpse-card:first-child {
+  opacity: 1;
+}
+
+.search-dialog {
+  margin: auto;
+  width: min(40rem, calc(100vw - 1.25rem));
+  max-height: min(36rem, calc(100dvh - 2rem));
+  overflow: visible;
+  border: 1px solid #e3e8ef;
+  border-radius: 1.25rem;
+  padding: 0;
+  background: #fff;
+  color: inherit;
+}
+
+.search-dialog::backdrop {
+  background: rgb(7 16 28 / 0.56);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .footer-marquee-track,
+  .hero-rise,
+  .glimpse-card {
+    animation: none !important;
+  }
+
+  .footer-marquee-group + .footer-marquee-group {
+    display: none;
+  }
+
+  .glimpse-card {
+    opacity: 0;
+  }
+
+  .glimpse-card:first-child {
+    opacity: 1;
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -187,18 +280,56 @@
     scroll-behavior: smooth;
   }
 
-  @keyframes footer-logo-float {
-    0%,
-    100% {
-      transform: translateY(0);
-    }
-    50% {
-      transform: translateY(-4px);
-    }
+  .hero-rise {
+    animation: hero-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
-  .footer-logo-float {
-    animation: footer-logo-float 4s ease-in-out infinite;
+  .hero-rise-delay {
+    animation-delay: 0.08s;
+  }
+
+  .hero-rise-delay-2 {
+    animation-delay: 0.16s;
+  }
+
+  .hero-glimpse[data-inview="true"] .glimpse-card {
+    animation: glimpse-fade 12s linear infinite;
+  }
+
+  .hero-glimpse[data-inview="true"] .glimpse-card:nth-child(2) {
+    animation-delay: 4s;
+  }
+
+  .hero-glimpse[data-inview="true"] .glimpse-card:nth-child(3) {
+    animation-delay: 8s;
+  }
+}
+
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes glimpse-fade {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  5%,
+  28% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  33%,
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0);
   }
 }
 

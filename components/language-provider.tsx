@@ -7,6 +7,7 @@ import {
   useLayoutEffect,
   useMemo,
   useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 import {
@@ -30,26 +31,44 @@ type LanguageContextValue = {
 
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
+function subscribeStoredLang(onChange: () => void) {
+  window.addEventListener("storage", onChange);
+  return () => window.removeEventListener("storage", onChange);
+}
+
+function subscribeReady() {
+  return () => {};
+}
+
+function clientReady() {
+  return true;
+}
+
+function serverReady() {
+  return false;
+}
+
 function applyDocumentLang(next: UiLang) {
   document.documentElement.lang = next;
   document.documentElement.dir = next === "ar" ? "rtl" : "ltr";
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<UiLang>(DEFAULT_UI_LANG);
-  const [ready, setReady] = useState(false);
+  const stored = useSyncExternalStore(
+    subscribeStoredLang,
+    readStoredUiLang,
+    () => DEFAULT_UI_LANG,
+  );
+  const [override, setOverride] = useState<UiLang | null>(null);
+  const lang = override ?? stored;
+  const ready = useSyncExternalStore(subscribeReady, clientReady, serverReady);
 
-  // useLayoutEffect: apply stored lang before paint so the page doesn't flash English → Hindi.
   useLayoutEffect(() => {
-    const next = readStoredUiLang();
-    setLangState(next);
-    applyDocumentLang(next);
-    writeStoredUiLang(next);
-    setReady(true);
-  }, []);
+    applyDocumentLang(lang);
+  }, [lang]);
 
   const setLang = useCallback((next: UiLang) => {
-    setLangState(next);
+    setOverride(next);
     applyDocumentLang(next);
     writeStoredUiLang(next);
   }, []);

@@ -4,7 +4,22 @@ import { HomeHero } from "@/components/home-hero";
 import { HomeMatchSection } from "@/components/home-match-section";
 import { FadeUp } from "@/components/ui/words-pull-up";
 
-export default function Home() {
+type HomeProps = {
+  searchParams: Promise<{
+    user?: string | string[];
+    repo?: string | string[];
+    q?: string | string[];
+    lang?: string | string[];
+  }>;
+};
+
+function one(value: string | string[] | undefined): string {
+  if (Array.isArray(value)) return value[0] ?? "";
+  return value ?? "";
+}
+
+export default async function Home({ searchParams }: HomeProps) {
+  const sp = await searchParams;
   return (
     <>
       <HomeHero />
@@ -14,7 +29,12 @@ export default function Home() {
         </FadeUp>
       </section>
       <HomeBotSection />
-      <HomeMatchSection />
+      <HomeMatchSection
+        initialUser={one(sp.user)}
+        initialRepo={one(sp.repo)}
+        topicQuery={one(sp.q)}
+        topicLang={one(sp.lang)}
+      />
     </>
   );
 }

@@ -1,52 +1,73 @@
 "use client";
 
-import Link from "next/link";
-import { ShieldCheck } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { useT } from "@/components/language-provider";
-import { ArrowBubble, arrowPillClass } from "@/components/ui/arrow-pill";
-import { FadeUp, WordsPullUp } from "@/components/ui/words-pull-up";
-import { cn } from "@/lib/utils";
+import { SiteSearch } from "@/components/site-search";
+
+const GLIMPSE = [
+  { title: "hero.glimpseMatchTitle", body: "hero.glimpseMatchBody" },
+  { title: "hero.glimpseExplainTitle", body: "hero.glimpseExplainBody" },
+  { title: "hero.glimpseReviewTitle", body: "hero.glimpseReviewBody" },
+] as const;
 
 export function HomeHero() {
   const t = useT();
+  const glimpseRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = glimpseRef.current;
+    if (!el) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) {
+      el.dataset.motion = "off";
+      return;
+    }
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        el.dataset.inview = entry?.isIntersecting ? "true" : "false";
+      },
+      { threshold: 0.4 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   return (
     <section className="hero-tint relative overflow-hidden">
-      <div
-        className="pointer-events-none absolute inset-0 hero-dots opacity-[0.45]"
-        aria-hidden
-      />
-      <div className="relative mx-auto max-w-5xl px-4 pt-14 pb-16 sm:px-6 md:pt-24 md:pb-24">
-        <FadeUp>
-          <p className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-white/80 px-3 py-1 text-sm text-accent-foreground backdrop-blur">
-            <ShieldCheck className="size-4 text-primary" aria-hidden />
-            {t("hero.eyebrow")}
+      <div className="pointer-events-none absolute inset-0 hero-dots opacity-[0.4]" aria-hidden />
+      <div className="relative mx-auto flex max-w-3xl flex-col items-center px-4 pt-12 pb-14 text-center sm:px-6 md:pt-20 md:pb-20">
+        <p className="hero-rise inline-flex items-center rounded-full border border-primary/15 bg-white/80 px-3 py-1 text-sm text-accent-foreground">
+          {t("hero.eyebrow")}
+        </p>
+        <h1 className="hero-rise hero-rise-delay mt-6 text-[2rem] leading-[1.05] font-semibold tracking-[-0.045em] text-balance text-foreground sm:text-5xl md:text-6xl">
+          {t("hero.headline")}
+        </h1>
+        <p className="hero-rise hero-rise-delay-2 mt-4 max-w-xl text-base leading-relaxed text-pretty text-muted-foreground sm:text-[1.05rem]">
+          {t("hero.sub")}
+        </p>
+        <div className="hero-rise hero-rise-delay-2 mt-8 w-full text-left">
+          <SiteSearch />
+          <p className="mt-2 px-1 text-center text-xs text-muted-foreground sm:hidden">
+            {t("hero.shortcut")}
           </p>
-        </FadeUp>
+        </div>
 
-        <div className="mt-8 grid grid-cols-12 items-end gap-x-6 gap-y-8">
-          <h1 className="col-span-12 text-[2.6rem] leading-[0.98] font-semibold tracking-[-0.045em] text-foreground sm:text-6xl lg:col-span-8 lg:text-7xl">
-            <WordsPullUp text={t("hero.title")} />
-          </h1>
-
-          <div className="col-span-12 flex flex-col gap-6 lg:col-span-4 lg:pb-2">
-            <FadeUp delay={0.45}>
-              <p className="text-base leading-relaxed text-muted-foreground">
-                {t("hero.subtitle")}
+        <div
+          ref={glimpseRef}
+          className="hero-glimpse relative mt-8 h-[11.5rem] w-full max-w-md sm:h-[8.75rem]"
+          aria-label={t("hero.glimpseLabel")}
+        >
+          {GLIMPSE.map((card) => (
+            <div
+              key={card.title}
+              className="glimpse-card absolute inset-0 flex flex-col justify-center rounded-2xl border border-[#d7e3f4] bg-white/90 px-4 py-3 text-left"
+            >
+              <p className="text-[11px] font-semibold tracking-[0.14em] text-primary uppercase">
+                {t(card.title)}
               </p>
-            </FadeUp>
-            <FadeUp delay={0.6} className="flex flex-wrap items-center gap-x-5 gap-y-3">
-              <Link href="#match" className={cn(arrowPillClass, "w-full sm:w-auto")}>
-                {t("hero.cta")}
-                <ArrowBubble />
-              </Link>
-              <Link
-                href="/review"
-                className="inline-flex min-h-11 items-center text-sm font-medium text-foreground outline-none underline-offset-4 hover:text-primary hover:underline focus-visible:ring-2 focus-visible:ring-ring/40"
-              >
-                {t("nav.review")}
-              </Link>
-            </FadeUp>
-          </div>
+              <p className="mt-1.5 text-sm leading-relaxed text-foreground">{t(card.body)}</p>
+            </div>
+          ))}
         </div>
       </div>
     </section>

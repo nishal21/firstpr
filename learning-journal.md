@@ -248,3 +248,11 @@
 ## Next for another agent
 1. Deploy webhook; test `/firstpr review` on a NekoDroid PR
 2. Commit when asked (license + any leftover footer moon tweak)
+
+## 2026-10-29 — Search hero and Aperios footer
+- Do not bring `ink-ridges` back into the footer. It was the lag. Footer motion is `.footer-marquee-track` in `app/globals.css` (translate3d only). `components/site-footer.tsx` sets `data-inview` / `data-hold` / `data-motion`. Animation stays paused until the footer intersects.
+- Reference to keep: Aperios Design footer, https://aperios-design.co.uk/ (also on https://www.footer.design/styles/animated). Dirt’s glass word (https://dirtverse.co/) was rejected because the refraction is a filter.
+- Search lives in `components/site-search.tsx` + `components/search-provider.tsx` (Ctrl/Cmd+K, header button). Parsing is `lib/omnisearch.ts` (`npx tsx scripts/verify-omnisearch.ts`). GitHub suggestions: `searchBeginnerIssuesByText` in `lib/github.ts`, route `app/api/search`.
+- Flows: match user `/?user=#match`, topic `/?q=&lang=#match`, explain `/issue/owner/repo/n`, review `/review?pr=`, repo check `/repo/owner/repo`.
+- New i18n keys must be added to `lib/i18n-en.ts` and both objects in `lib/i18n-ml-hi.ts`. World packs use `fill()` and pick up English automatically.
+- Next: if the marquee stutters, change duration or pause it. Do not add blur, shadow animation, or a scroll listener. Preview branch is `redesign-footer-hero` (no pull request; Vercel builds the branch).

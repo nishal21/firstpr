@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { DifficultyBadge } from "@/components/difficulty-badge";
 import { useT } from "@/components/language-provider";
@@ -38,10 +38,19 @@ type MatchResponse = {
   code?: string;
 };
 
-export function MatchForm() {
+export function MatchForm({
+  initialUsername = "",
+  initialRepo = "",
+  autoRun = false,
+}: {
+  initialUsername?: string;
+  initialRepo?: string;
+  autoRun?: boolean;
+}) {
   const t = useT();
-  const [username, setUsername] = useState("");
-  const [repo, setRepo] = useState("nishal21/NekoDroid");
+  const [username, setUsername] = useState(initialUsername);
+  const [repo, setRepo] = useState(initialRepo.trim() ? initialRepo : "nishal21/NekoDroid");
+  const autoRan = useRef(false);
   const [data, setData] = useState<MatchResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [fromCache, setFromCache] = useState(false);
@@ -54,12 +63,14 @@ export function MatchForm() {
     t("match.progress.skip"),
   ] as const;
 
-  useEffect(() => {
-    if (!pending) {
-      setStepIndex(0);
-      return;
-    }
+  const [stepPending, setStepPending] = useState(pending);
+  if (pending !== stepPending) {
+    setStepPending(pending);
     setStepIndex(0);
+  }
+
+  useEffect(() => {
+    if (!pending) return;
     const t1 = window.setTimeout(() => setStepIndex(1), 700);
     const t2 = window.setTimeout(() => setStepIndex(2), 1400);
     return () => {
@@ -68,7 +79,7 @@ export function MatchForm() {
     };
   }, [pending]);
 
-  function runMatch() {
+  const runMatch = useCallback(() => {
     setError(null);
     setFromCache(false);
     startTransition(async () => {
@@ -98,7 +109,17 @@ export function MatchForm() {
         setError(t("match.failed"));
       }
     });
-  }
+  }, [repo, t, username]);
+
+  useEffect(() => {
+    if (!autoRun || autoRan.current || !username.trim()) return;
+    const id = window.setTimeout(() => {
+      if (autoRan.current) return;
+      autoRan.current = true;
+      runMatch();
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, [autoRun, username, repo, runMatch]);
 
   const noIssues =
     data && !pending && !data.picked && data.others.length === 0;

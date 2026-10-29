@@ -85,11 +85,14 @@ export function ExplainClient({
   }
 
   useEffect(() => {
-    runExplain({
-      owner: initialOwner,
-      repo: initialRepo,
-      issueNumber: String(initialIssueNumber),
-    });
+    const id = window.setTimeout(() => {
+      runExplain({
+        owner: initialOwner,
+        repo: initialRepo,
+        issueNumber: String(initialIssueNumber),
+      });
+    }, 0);
+    return () => window.clearTimeout(id);
     // Initial load only for the URL defaults.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

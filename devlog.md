@@ -240,3 +240,9 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 
 ## Next
 - Deploy; commit when asked
+
+## 2026-10-29 — Hero search + Aperios footer
+- Threw out the ink-ridges footer. New footer follows Aperios (https://aperios-design.co.uk/): huge line, gray bar, link columns, giant wordmark marquee with the cat, tagline, meta row. CSS transform only. Paused off-screen via IntersectionObserver. prefers-reduced-motion shows one static group.
+- Hero is a single search box. `lib/omnisearch.ts` routes language/skill/words → `/?q=#match`, username → match, issue URL → `/issue/...`, PR URL → `/review?pr=`, repo → `/repo/[owner]/[repo]`. Live hits from `GET /api/search` (GitHub, server token, no keys in the client). Ctrl/Cmd+K opens the same box.
+- i18n keys added on en, ml, hi. Other langs inherit English through `fill()`.
+- Trace at 360px, 4x CPU, footer in view: 0 long tasks over 50ms, 0 dropped frames. `npm run build` passed.

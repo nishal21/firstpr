@@ -1,11 +1,15 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import { Check, ChevronDown, Globe } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { UI_LANGS, UI_LANG_NATIVE, type UiLang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+
+function subscribeReady() {
+  return () => {};
+}
 
 type MenuPos = {
   top?: number;
@@ -18,13 +22,13 @@ export function LangToggle({ className }: { className?: string }) {
   const { lang, setLang, t, ready } = useLanguage();
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<MenuPos | null>(null);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(
+    subscribeReady,
+    () => true,
+    () => false,
+  );
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLUListElement>(null);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useLayoutEffect(() => {
     if (!open || !buttonRef.current) {

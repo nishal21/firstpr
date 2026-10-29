@@ -465,6 +465,54 @@ export async function searchGoodFirstIssues(
   );
 }
 
+export type TextSearchHit = {
+  owner: string;
+  repo: string;
+  number: number;
+  title: string;
+};
+
+/** Public good-first-issue search for the landing omnibox. Cached. No client keys. */
+export async function searchBeginnerIssuesByText(
+  text: string,
+  language?: string,
+): Promise<TextSearchHit[]> {
+  const clean = text.replace(/[:"]/g, " ").replace(/\s+/g, " ").trim().slice(0, 80);
+  if (clean.length < 2) return [];
+  const lang = language?.replace(/[^\w#+.\s-]/g, "").trim();
+  const cacheKey = `text-gfi-v1:${(lang ?? "").toLowerCase()}:${clean.toLowerCase()}`;
+
+  return cached(cacheKey, async () =>
+    gh(async () => {
+      const client = getOctokit();
+      const langQ = lang ? ` language:"${lang}"` : "";
+      const q = `is:issue is:open no:assignee -linked:pr label:"good first issue"${langQ} ${clean}`;
+      const { data } = await client.search.issuesAndPullRequests({
+        q,
+        sort: "updated",
+        order: "desc",
+        per_page: 5,
+      });
+
+      const hits: TextSearchHit[] = [];
+      for (const issue of data.items) {
+        if ("pull_request" in issue && issue.pull_request) continue;
+        const match = issue.html_url.match(
+          /github\.com\/([^/]+)\/([^/]+)\/issues\/(\d+)/i,
+        );
+        if (!match) continue;
+        hits.push({
+          owner: match[1],
+          repo: match[2],
+          number: Number(match[3]),
+          title: issue.title,
+        });
+      }
+      return hits;
+    }),
+  );
+}
+
 /** Resolve a branch name to its tip commit SHA. */
 export async function getBranchSha(
   owner: string,

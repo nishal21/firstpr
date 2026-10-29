@@ -11,6 +11,7 @@ import {
   Noto_Sans_Tamil,
 } from "next/font/google";
 import { LanguageProvider } from "@/components/language-provider";
+import { SearchProvider } from "@/components/search-provider";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { Toaster } from "@/components/ui/sonner";
@@ -133,9 +134,11 @@ export default function RootLayout({
     >
       <body className="flex min-h-full flex-col overflow-x-hidden bg-background font-sans text-foreground">
         <LanguageProvider>
-          <SiteHeader />
-          <main className="flex-1">{children}</main>
-          <SiteFooter />
+          <SearchProvider>
+            <SiteHeader />
+            <main className="flex-1">{children}</main>
+            <SiteFooter />
+          </SearchProvider>
         </LanguageProvider>
         <Toaster />
       </body>

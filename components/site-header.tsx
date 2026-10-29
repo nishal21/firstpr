@@ -4,9 +4,10 @@ import { useEffect, useId, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { Menu, Search, X } from "lucide-react";
 import { LangToggle } from "@/components/LangToggle";
 import { useT } from "@/components/language-provider";
+import { useSearch } from "@/components/search-provider";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
@@ -22,13 +23,16 @@ function linkActive(pathname: string, href: string): boolean {
 
 export function SiteHeader() {
   const t = useT();
+  const { setOpen } = useSearch();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuId = useId();
 
-  useEffect(() => {
+  const [menuPath, setMenuPath] = useState(pathname);
+  if (pathname !== menuPath) {
+    setMenuPath(pathname);
     setMenuOpen(false);
-  }, [pathname]);
+  }
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -40,8 +44,8 @@ export function SiteHeader() {
   }, [menuOpen]);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur">
-      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4 sm:px-6">
+    <header id="top" className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur">
+      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-2 px-4 sm:px-6">
         <Link
           href="/"
           className="flex shrink-0 items-center gap-2 outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
@@ -66,6 +70,17 @@ export function SiteHeader() {
 
         {/* Desktop nav */}
         <nav className="hidden items-center gap-x-5 text-sm text-muted-foreground md:flex">
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border bg-white px-3 text-muted-foreground outline-none hover:text-primary focus-visible:ring-2 focus-visible:ring-ring/40"
+          >
+            <Search className="size-4" aria-hidden />
+            <span>{t("nav.search")}</span>
+            <kbd className="rounded-md border border-border bg-[#f4f7fb] px-1.5 py-0.5 font-sans text-[11px] font-medium">
+              {t("hero.kbd")}
+            </kbd>
+          </button>
           {NAV_LINKS.map((link) => {
             const active = linkActive(pathname, link.href);
             return (
@@ -86,6 +101,14 @@ export function SiteHeader() {
 
         {/* Mobile: lang + menu — no overflow-hidden so LangToggle portal stays free */}
         <div className="flex items-center gap-1 md:hidden">
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="inline-flex size-11 items-center justify-center rounded-xl text-foreground outline-none hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring/40"
+            aria-label={t("search.open")}
+          >
+            <Search className="size-5" aria-hidden />
+          </button>
           <LangToggle />
           <button
             type="button"

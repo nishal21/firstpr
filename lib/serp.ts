@@ -313,7 +313,7 @@ export async function learnLinks(
   }
 
   try {
-    let organic = await serpSearch(q, apiKey);
+    const organic = await serpSearch(q, apiKey);
     let links = filterByLanguage(rankAndTake(organic, lang, 8), lang);
 
     // If still thin on official docs, try a site-scoped search.

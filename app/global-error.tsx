@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
 
 /**
  * Root-level crash UI (replaces the root layout). Keep English and inline
@@ -85,7 +86,7 @@ export default function GlobalError({
             >
               Retry
             </button>
-            <a
+            <Link
               href="/"
               style={{
                 display: "inline-flex",
@@ -101,7 +102,7 @@ export default function GlobalError({
               }}
             >
               Home
-            </a>
+            </Link>
           </div>
         </main>
       </body>

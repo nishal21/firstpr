@@ -148,7 +148,7 @@ async function reviewFromDiff(opts: {
   let repoName = "";
   let contributing: string | null = null;
   let linkedIssue: GoodFirstIssue | null = null;
-  let pr: PullRequestInfo | null = null;
+  const pr: PullRequestInfo | null = null;
   let treeSha: string | undefined;
 
   if (opts.repo) {
