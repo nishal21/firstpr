@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
@@ -104,6 +105,10 @@ function groupLabel(group: Row["group"]): I18nKey {
   }
 }
 
+function subscribeMounted() {
+  return () => {};
+}
+
 function subscribeMotion(onChange: () => void) {
   const media = window.matchMedia("(prefers-reduced-motion: reduce)");
   media.addEventListener("change", onChange);
@@ -191,6 +196,9 @@ export function SiteSearch({
   const router = useRouter();
   const listId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
+  const anchorRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLUListElement>(null);
+  const mounted = useSyncExternalStore(subscribeMounted, () => true, () => false);
   const recent = useSyncExternalStore(subscribeRecent, readRecent, () => NO_RECENT);
   const [value, setValue] = useState("");
   const [active, setActive] = useState(0);
@@ -261,7 +269,7 @@ export function SiteSearch({
     if (q.length < 2 || queryLooksLikeGitHubUrl(q)) return;
     const controller = new AbortController();
     const timer = window.setTimeout(() => {
-      const topic = local.find((item) => item.flow === "match-topic");
+      const topic = parseOmniQuery(q).find((item) => item.flow === "match-topic");
       const lang =
         topic && topic.flow === "match-topic" && topic.language
           ? `&lang=${encodeURIComponent(topic.language)}`
@@ -284,12 +292,12 @@ export function SiteSearch({
         .finally(() => {
           if (!controller.signal.aborted) setSearching(false);
         });
-    }, 280);
+    }, 450);
     return () => {
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [local, value]);
+  }, [value]);
 
   function go(href: string) {
     const query = value.trim();
@@ -319,8 +327,30 @@ export function SiteSearch({
     (value.trim().length > 0 || recent.length > 0);
   const placeholder = t(PLACEHOLDERS[placeholderIndex] ?? "hero.placeholderLang");
 
+  useLayoutEffect(() => {
+    if (!listOpen) return;
+    const place = () => {
+      const anchor = anchorRef.current;
+      const panel = panelRef.current;
+      if (!anchor || !panel) return;
+      const rect = anchor.getBoundingClientRect();
+      const room = window.innerHeight - rect.bottom - 12;
+      panel.style.top = `${Math.round(rect.bottom + 8)}px`;
+      panel.style.left = `${Math.round(rect.left)}px`;
+      panel.style.width = `${Math.round(rect.width)}px`;
+      panel.style.maxHeight = `${Math.max(140, Math.min(360, room))}px`;
+    };
+    place();
+    window.addEventListener("resize", place);
+    window.addEventListener("scroll", place, true);
+    return () => {
+      window.removeEventListener("resize", place);
+      window.removeEventListener("scroll", place, true);
+    };
+  }, [listOpen, rows.length]);
+
   return (
-    <div className={cn("relative w-full", variant === "hero" && "mx-auto max-w-2xl")}>
+    <div ref={anchorRef} className={cn("relative w-full", variant === "hero" && "mx-auto max-w-2xl")}>
       <form
         role="search"
         onSubmit={(event) => {
@@ -362,8 +392,14 @@ export function SiteSearch({
               listOpen && rows[active] ? `${listId}-opt-${active}` : undefined
             }
             onChange={(event) => setValue(event.target.value)}
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
+            onFocus={() => {
+              setFocused(true);
+              document.documentElement.dataset.heroSearch = "open";
+            }}
+            onBlur={() => {
+              setFocused(false);
+              delete document.documentElement.dataset.heroSearch;
+            }}
             onKeyDown={(event) => {
               if (event.key === "ArrowDown") {
                 event.preventDefault();
@@ -410,12 +446,14 @@ export function SiteSearch({
         </div>
       ) : null}
 
-      {listOpen ? (
+      {listOpen && mounted
+        ? createPortal(
         <ul
+          ref={panelRef}
           id={listId}
           role="listbox"
-          className="absolute z-30 mt-2 max-h-[min(24rem,52vh)] w-full overflow-auto rounded-2xl border border-[#d5e4f7] bg-white py-1 text-left shadow-[0_18px_50px_rgba(19,30,48,0.14)]"
-        >
+          className="search-popover py-1"
+        >,
           {rows.map((row, index) => {
             const showGroup = index === 0 || rows[index - 1]?.group !== row.group;
             return (
@@ -458,8 +496,10 @@ export function SiteSearch({
           {searching ? (
             <li className="px-3 py-2 text-xs text-muted-foreground">{t("search.searching")}</li>
           ) : null}
-        </ul>
-      ) : null}
+        </ul>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

@@ -94,6 +94,7 @@ export const en = {
   "search.matchTopic": "Find beginner issues for “{query}”",
   "flow.readiness": "Repo",
   "footer.backToTop": "Back to top",
+  "footer.nav": "Footer",
   "match.topicHeading": "Beginner issues for “{query}”",
   "match.topicEmpty": "No open beginner issues for those words.",
   "repo.eyebrow": "Repo check",

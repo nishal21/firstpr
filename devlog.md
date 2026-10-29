@@ -257,3 +257,8 @@ Verify: `npm run build` and `npm run dev` → localhost:3000
 - Motion is rotateX/rotateY only. The spin runs while the footer is on screen and pauses off-screen, in a hidden tab, and when reduced motion is on. Pointer tilt uses a cached box, no scroll listener.
 - Buzz was skipped because the word is a blur. Juggle’s gallery footer is not on the live page.
 - The cat sits in its own clipped row under the headline, so the type stays readable from 360 to 1440. The scene is dimmer than the words.
+
+## 2026-10-29 — Turion footer, search layer
+- Dropped hellohello. Footer follows Turion Space (https://www.turionspace.com/): blue gradient, floating cats, link columns, giant FirstPR cropped at the bottom.
+- Search suggestions render in a fixed layer on document.body so the hero no longer clips them. GitHub search waits 450ms. The product card pauses while the field is focused.
+- Theme: `.site-footer` tokens switch under `.dark`. No theme toggle in the app yet; the light gradient is the default.

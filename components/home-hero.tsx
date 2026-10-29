@@ -86,10 +86,6 @@ export function HomeHero() {
           <SiteSearch />
         </div>
         <ul className="mt-4 flex max-w-xl flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-          <li>{t("hero.trustNever")}</li>
-          <li className="text-primary/40" aria-hidden>
-            ·
-          </li>
           <li>{t("hero.trustPublic")}</li>
           <li className="hidden text-primary/40 sm:inline" aria-hidden>
             ·

@@ -268,3 +268,9 @@
 - Scene is `.footer-spin` / `.footer-tilt` in `app/globals.css`. Transform only. `data-inview` starts the spin; `data-hold` and `data-motion=off` stop it.
 - Do not add blur to chase Buzz. Do not put the marquee back.
 - The 3D mark lives in `.footer-scene-slot` under the headline, `overflow: hidden`, z-index 0. Do not absolute-position it over the h2. The headline and ©26 stay in the row above.
+
+## 2026-10-29 — Turion footer
+- hellohello and Aperios are rejected. Reference is Turion Space, https://www.turionspace.com/ : gradient, floating objects, columns, giant cropped word.
+- Classes: `.site-footer`, `.footer-orb-*`, `.footer-giant`, `.search-popover`. Orbs pause via `data-inview` / `data-hold` / `data-motion`.
+- Suggestions are portaled to `document.body`. Do not put the list back inside `.hero-tint` (`overflow-hidden` clips it).
+- `.dark .site-footer` retints the gradient. The site has no theme toggle yet.
