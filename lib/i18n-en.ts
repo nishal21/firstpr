@@ -100,6 +100,7 @@ export const en = {
   "search.keys": "↑↓ move",
   "search.keyOpen": "↵ open",
   "search.keyClose": "esc close",
+  "search.keyClear": "esc clear",
   "search.slash": "Press / to focus",
   "search.ageToday": "today",
   "nav.search": "Search",

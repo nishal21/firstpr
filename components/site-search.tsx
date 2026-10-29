@@ -1,6 +1,15 @@
 "use client";
 
-import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import {
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type KeyboardEvent,
+} from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import {
@@ -621,6 +630,30 @@ export function SiteSearch({
     activate(row);
   }
 
+  // Esc clears the text first (focus stays in the box); Esc on an empty box
+  // closes: the hero blurs, the dialog lets its native Esc close it.
+  function onEscape(event: KeyboardEvent) {
+    if (event.nativeEvent.isComposing || event.keyCode === 229) return;
+    if (value.length > 0) {
+      event.preventDefault();
+      event.stopPropagation();
+      setValue("");
+      inputRef.current?.focus();
+      return;
+    }
+    if (variant === "hero") {
+      event.preventDefault();
+      inputRef.current?.blur();
+      if (document.activeElement instanceof HTMLElement && panelRef.current?.contains(document.activeElement)) {
+        document.activeElement.blur();
+      }
+    }
+  }
+
+  function onResultsKeyDown(event: KeyboardEvent) {
+    if (event.key === "Escape") onEscape(event);
+  }
+
   const placeholder = t(PLACEHOLDERS[placeholderIndex] ?? "hero.placeholderLang");
   const showLiveStatus =
     trimmed.length >= 2 && liveSearch && !rows.some((row) => row.group === "live");
@@ -705,9 +738,8 @@ export function SiteSearch({
               } else if (event.key === "ArrowUp") {
                 event.preventDefault();
                 setActive((index) => (rows.length === 0 ? 0 : (index - 1 + rows.length) % rows.length));
-              } else if (event.key === "Escape" && variant === "hero") {
-                event.preventDefault();
-                inputRef.current?.blur();
+              } else if (event.key === "Escape") {
+                onEscape(event);
               }
             }}
             className="min-w-0 flex-1 bg-transparent text-base outline-none sm:text-lg"
@@ -881,7 +913,7 @@ export function SiteSearch({
               <div className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 border-t border-border px-3 py-2 text-[11px] text-muted-foreground">
                 <span>{t("search.keys")}</span>
                 <span>{t("search.keyOpen")}</span>
-                <span>{t("search.keyClose")}</span>
+                <span>{t(trimmed.length > 0 ? "search.keyClear" : "search.keyClose")}</span>
                 <span className="hidden sm:inline">{t("search.slash")}</span>
                 {algoliaSearchEnabled() ? (
                   <a
@@ -898,7 +930,11 @@ export function SiteSearch({
           </>
         );
         if (variant === "dialog") {
-          return panelOn ? <div className="search-dialog-results">{results}</div> : null;
+          return panelOn ? (
+            <div className="search-dialog-results" onKeyDown={onResultsKeyDown}>
+              {results}
+            </div>
+          ) : null;
         }
         if (!panelOn || !mounted) return null;
         return createPortal(
@@ -906,6 +942,7 @@ export function SiteSearch({
             ref={panelRef}
             className="search-popover"
             data-closing={closing ? "true" : "false"}
+            onKeyDown={onResultsKeyDown}
           >
             {results}
           </div>,
