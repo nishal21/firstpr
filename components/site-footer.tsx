@@ -11,7 +11,8 @@ const SOURCE_URL = "https://github.com/nishal21/firstpr";
 const LICENSE_URL = "https://github.com/nishal21/firstpr/blob/main/LICENSE";
 const BOT_URL = "https://github.com/apps/firstprbot";
 
-const TICKER = "+ + + − − − + + + − − − + + + − − − ";
+const TICKER_UNIT = "+ + + − − − ";
+const TICKER = TICKER_UNIT.repeat(28);
 
 export function SiteFooter() {
   const t = useT();
