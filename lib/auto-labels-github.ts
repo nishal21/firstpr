@@ -48,7 +48,7 @@ type ClosingResponse = {
   } | null;
 };
 
-async function loadClosing(kit: Kit, owner: string, repo: string, number: number): Promise<ClosingFact> {
+export async function loadClosing(kit: Kit, owner: string, repo: string, number: number): Promise<ClosingFact> {
   try {
     const data = await kit.graphql<ClosingResponse>(CLOSING_QUERY, { owner, repo, number });
     const pr = data.repository?.pullRequest;

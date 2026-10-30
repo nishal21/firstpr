@@ -85,6 +85,8 @@ export type PrCommentInput = {
   changedFiles: number;
   /** Issue number from `Fixes #N`, even if it couldn't be loaded. */
   linkedIssueNumber: number | null;
+  /** Why no issue is linked, read from GitHub's closing references. */
+  linkedIssueNote?: string | null;
   linkedIssue: {
     number: number;
     title: string;
@@ -212,7 +214,9 @@ export function prCommentVerdict(input: PrCommentInput): PrCommentVerdict {
 function headline(input: PrCommentInput, verdict: PrCommentVerdict): string[] {
   const size = `${input.changedFiles} file${input.changedFiles === 1 ? "" : "s"}, +${input.additions} −${input.deletions}`;
   if (verdict === "no_issue") {
-    const why = input.linkedIssueNumber
+    const why = input.linkedIssueNote
+      ? `${input.linkedIssueNote}.`
+      : input.linkedIssueNumber
       ? `#${input.linkedIssueNumber} is mentioned but couldn't be loaded from this repo.`
       : "The description doesn't say which issue this closes.";
     return [`### 🔗 Not linked to an issue`, "", `${why} (${size})`];
@@ -255,7 +259,9 @@ function checklistTable(input: PrCommentInput): string[] {
     rows.push([
       "Linked issue",
       "No",
-      input.linkedIssueNumber
+      input.linkedIssueNote
+        ? cell(input.linkedIssueNote)
+        : input.linkedIssueNumber
         ? `#${input.linkedIssueNumber} couldn't be loaded`
         : "No `Fixes #N` in the description",
     ]);

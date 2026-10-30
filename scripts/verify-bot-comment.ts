@@ -244,6 +244,16 @@ expect("rel singular", formatReliabilityLine({ days: 30, runs: 1, ok: 1, prs: 1 
   expect("rel one comment marker", md.split(PR_COMMENT_MARKER).length === 2);
 }
 
+// Linked issue row follows GitHub's closing references, with a reason when none.
+{
+  const note = "The description mentions #7, but GitHub hasn't linked it as an issue this PR closes";
+  const unlinked: PrCommentInput = { ...base, linkedIssue: null, linkedIssueNumber: null, linkedIssueNote: note, requireLinkedIssue: true };
+  const md = formatPrComment(unlinked);
+  expect("note in linked row", md.includes(`| Linked issue | No | ${note} |`) || md.includes(note));
+  expect("note in headline", md.includes(`${note}.`));
+  expect("no fixes hint when note", !md.includes("No `Fixes #N` in the description"));
+}
+
 if (failed) {
   console.error(`${failed} bot comment check(s) failed`);
   process.exit(1);

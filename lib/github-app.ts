@@ -11,7 +11,7 @@ import {
   formatLabelsBlock,
   replaceLabelsBlock,
 } from "@/lib/auto-labels";
-import { loadLabelFacts, syncAutoLabels } from "@/lib/auto-labels-github";
+import { loadClosing, loadLabelFacts, syncAutoLabels } from "@/lib/auto-labels-github";
 import { readBotReliabilityQuick, recordBotRun } from "@/lib/bot-runs";
 import { explainIssueCached } from "@/lib/explain";
 import { getEnv } from "@/lib/env";
@@ -147,6 +147,49 @@ async function loadLinkedIssue(
   } catch {
     return null;
   }
+}
+
+type LinkedRef = { owner: string; repo: string; number: number };
+
+/**
+ * Find the linked issue the same way the "linked issue" label does, from
+ * GitHub's closingIssuesReferences, so the comment row and the label agree.
+ * The `Fixes #N` text is only used when GitHub can't be read.
+ */
+async function resolveLinkedIssue(
+  octokit: InstallationOctokit,
+  owner: string,
+  repo: string,
+  number: number,
+  body: string | null,
+): Promise<{ ref: LinkedRef | null; note: string | null }> {
+  const closing = await loadClosing(octokit, owner, repo, number);
+  const mentioned = parseLinkedIssueNumbers(body, owner, repo)[0];
+  if (!closing.ok) {
+    return { ref: mentioned ? { owner, repo, number: mentioned } : null, note: null };
+  }
+  const here = `${owner}/${repo}`.toLowerCase();
+  const pick = closing.issues.find((i) => i.repo.toLowerCase() === here) ?? closing.issues[0];
+  if (pick) {
+    const [o, r] = pick.repo.split("/");
+    return { ref: o && r ? { owner: o, repo: r, number: pick.number } : null, note: null };
+  }
+  if (closing.totalCount > 0) {
+    return { ref: null, note: "GitHub links an issue FirstPRbot can't see" };
+  }
+  if (closing.baseRef !== closing.defaultBranch) {
+    return {
+      ref: null,
+      note: `This PR targets \`${closing.baseRef}\`, and GitHub only links issues on PRs to \`${closing.defaultBranch}\``,
+    };
+  }
+  if (mentioned) {
+    return {
+      ref: null,
+      note: `The description mentions #${mentioned}, but GitHub hasn't linked it as an issue this PR closes`,
+    };
+  }
+  return { ref: null, note: null };
 }
 
 type PrBundle = {
@@ -405,11 +448,17 @@ async function runPrCheck(
         return;
       }
 
-      const labelsBlock = await applyAutoLabels(octokit, owner, repo, number, config, pr.headSha);
+      const [labelsBlock, link] = await Promise.all([
+        applyAutoLabels(octokit, owner, repo, number, config, pr.headSha),
+        resolveLinkedIssue(octokit, owner, repo, number, pr.body),
+      ]);
+      pr.linkedIssueNumbers = link.ref ? [link.ref.number] : [];
 
       const [{ data: base }, linkedIssue] = await Promise.all([
         octokit.rest.repos.getBranch({ owner, repo, branch: pr.baseRef }),
-        loadLinkedIssue(octokit, owner, repo, pr.linkedIssueNumbers[0]),
+        link.ref
+          ? loadLinkedIssue(octokit, link.ref.owner, link.ref.repo, link.ref.number)
+          : Promise.resolve(null),
       ]);
       const baseSha = base.commit.sha;
       const [contributing, repoPaths] = await Promise.all([
@@ -456,6 +505,7 @@ async function runPrCheck(
         deletions: pr.deletions,
         changedFiles: pr.changedFiles,
         linkedIssueNumber: pr.linkedIssueNumbers[0] ?? null,
+        linkedIssueNote: link.note,
         linkedIssue,
         files,
         requireLinkedIssue: config.requireLinkedIssue,
