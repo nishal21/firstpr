@@ -21,6 +21,7 @@ import {
   type PublicReport,
 } from "@/lib/status-report";
 import { readSyncSnapshot } from "@/lib/sync-status";
+import { countDeliveries, deliveryAccepted, type HookDelivery } from "@/lib/webhook-gate";
 
 export type { CheckState, PublicCheck, PublicReport } from "@/lib/status-report";
 
@@ -83,8 +84,6 @@ async function checkSearch(): Promise<Outcome> {
   return { state: "operational", detail: `Search answers. ${count.toLocaleString("en-US")} open issues are in the index.` };
 }
 
-type HookDelivery = { delivered_at?: string; status_code?: number; event?: string };
-
 async function checkBot(signal: AbortSignal): Promise<Outcome> {
   let app: ReturnType<typeof getGitHubApp>;
   try {
@@ -97,22 +96,13 @@ async function checkBot(signal: AbortSignal): Promise<Outcome> {
     request: { signal },
   });
   // Only status codes and times are read. Ids, repos, payloads and guids are ignored.
-  const deliveries = (data as HookDelivery[]).filter((d) => d.event !== "ping");
+  const { deliveries, counts } = countDeliveries(data as HookDelivery[]);
   if (deliveries.length === 0) {
     return { state: "operational", detail: "The webhook is set up. GitHub has no recent deliveries to show." };
   }
-  const code = (d: HookDelivery) => (typeof d.status_code === "number" ? d.status_code : 0);
-  const ok = (d: HookDelivery) => code(d) >= 200 && code(d) < 300;
-  const counts = {
-    accepted: deliveries.filter(ok).length,
-    total: deliveries.length,
-    clientErrors: deliveries.filter((d) => code(d) >= 400 && code(d) < 500).length,
-    serverErrors: deliveries.filter((d) => code(d) >= 500).length,
-    noResponse: deliveries.filter((d) => code(d) === 0).length,
-  };
   const latest = deliveries[0];
   const when = latest.delivered_at ? ` Latest ${ago(latest.delivered_at)}.` : "";
-  const state: CheckState = ok(latest) ? "operational" : counts.accepted > 0 ? "degraded" : "down";
+  const state: CheckState = deliveryAccepted(latest) ? "operational" : counts.accepted > 0 ? "degraded" : "down";
   return {
     state,
     detail: `${counts.accepted} of the last ${counts.total} webhook deliveries were accepted.${when}`,

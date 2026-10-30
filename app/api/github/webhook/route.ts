@@ -1,6 +1,7 @@
 import * as Sentry from "@sentry/nextjs";
 import { after, NextResponse } from "next/server";
 import { getGitHubApp } from "@/lib/github-app";
+import { gateWebhook } from "@/lib/webhook-gate";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -39,65 +40,47 @@ export async function POST(req: Request) {
   const name = req.headers.get("x-github-event");
   const signature = req.headers.get("x-hub-signature-256");
 
-  if (!id || !name || !signature) {
-    return NextResponse.json(
-      { error: "Missing GitHub webhook headers", code: "unauthorized" },
-      { status: 401 },
-    );
-  }
-
-  let app;
-  try {
-    app = getGitHubApp();
-  } catch (err) {
-    console.error("[webhook] app not configured:", err);
-    Sentry.captureMessage("GitHub App is not configured", {
-      level: "error",
-      tags: { "github.event": name, "github.delivery": id, "bot.stage": "webhook" },
-    });
-    return NextResponse.json(
-      { error: "GitHub App is not configured", code: "misconfigured" },
-      { status: 503 },
-    );
+  // Read the app lazily so a missing-header probe never needs it configured.
+  let app: ReturnType<typeof getGitHubApp> | undefined;
+  if (id && name && signature) {
+    try {
+      app = getGitHubApp();
+    } catch (err) {
+      console.error("[webhook] app not configured:", err);
+      Sentry.captureMessage("GitHub App is not configured", {
+        level: "error",
+        tags: { "github.event": name, "github.delivery": id, "bot.stage": "webhook" },
+      });
+      return NextResponse.json(
+        { error: "GitHub App is not configured", code: "misconfigured" },
+        { status: 503 },
+      );
+    }
   }
 
   const payload = await req.text();
+  const gate = await gateWebhook({ id, name, signature }, payload, async (body, sig) => {
+    try {
+      return await app!.webhooks.verify(body, sig);
+    } catch (err) {
+      console.error("[webhook] verify threw:", err);
+      return false;
+    }
+  });
 
-  let verified = false;
-  try {
-    verified = await app.webhooks.verify(payload, signature);
-  } catch (err) {
-    console.error("[webhook] verify threw:", err);
-    verified = false;
-  }
-
-  if (!verified) {
+  if (!gate.ok) {
     // Scanners rarely send GitHub's App target header. When it is there, the
     // likely cause is a webhook secret that no longer matches, so tell Sentry.
-    if (req.headers.get("x-github-hook-installation-target-type") === "integration") {
+    if (gate.signatureMismatch && req.headers.get("x-github-hook-installation-target-type") === "integration") {
       Sentry.captureMessage("GitHub webhook signature did not match", {
         level: "error",
         fingerprint: ["webhook-signature-mismatch"],
-        tags: { "github.event": name, "bot.stage": "webhook" },
+        tags: { "github.event": name ?? "none", "bot.stage": "webhook" },
       });
     }
-    return NextResponse.json(
-      { error: "Invalid webhook signature", code: "unauthorized" },
-      { status: 401 },
-    );
+    return NextResponse.json({ error: gate.error, code: gate.code }, { status: gate.status });
   }
-
-  // Signature is good. Reject only a body that is not JSON; every other event,
-  // including ones the bot ignores, gets a 2xx so GitHub shows it as delivered.
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(payload);
-  } catch {
-    return NextResponse.json(
-      { error: "Webhook body is not valid JSON", code: "bad_request" },
-      { status: 400 },
-    );
-  }
+  const parsed = gate.payload;
 
   console.log(`[webhook] accepted ${name} delivery=${id}`);
 
@@ -120,8 +103,8 @@ export async function POST(req: Request) {
         { op: "webhook.github", name: `github webhook ${label}`, forceTransaction: true },
         async (span) => {
           try {
-            await app.webhooks.receive({
-              id,
+            await app!.webhooks.receive({
+              id: gate.id,
               // Event name comes from GitHub; cast through unknown for Octokit unions.
               name: name as never,
               payload: parsed as never,
@@ -144,5 +127,6 @@ export async function POST(req: Request) {
     });
   });
 
-  return NextResponse.json({ accepted: true }, { status: 202 });
+  // Events the bot ignores are still accepted; Octokit just has no handler for them.
+  return NextResponse.json({ accepted: true }, { status: gate.status });
 }
