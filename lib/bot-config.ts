@@ -24,6 +24,10 @@ export type BotConfig = {
   autoLabels: ReadonlySet<AutoLabelGroup>;
   /** Advisory line on whether the PR addresses its linked issue (needs RUNWARE_API_KEY). */
   issueCheck: boolean;
+  /** "Worth a closer look" facts on first-time PRs. */
+  triage: boolean;
+  /** Add `firstpr/needs-review` when the triage facts are strong. */
+  triageLabel: boolean;
 };
 
 export const BOT_CONFIG_PATH = ".github/firstpr.yml";
@@ -35,6 +39,8 @@ export const DEFAULT_BOT_CONFIG: BotConfig = {
   labels: { firstTimer: "", needsIssue: "" },
   autoLabels: new Set(AUTO_LABEL_GROUPS),
   issueCheck: true,
+  triage: true,
+  triageLabel: true,
 };
 
 function unquote(raw: string): string {
@@ -116,6 +122,8 @@ export function parseBotConfig(text: string | null | undefined): BotConfig {
     else if (key === "auto_labels")
       config.autoLabels = toAutoLabels(value, config.autoLabels);
     else if (key === "issue_check") config.issueCheck = toBool(value, config.issueCheck);
+    else if (key === "triage") config.triage = toBool(value, config.triage);
+    else if (key === "triage_label") config.triageLabel = toBool(value, config.triageLabel);
     else if (key === "labels") inLabels = value.trim() === "";
   }
   return config;

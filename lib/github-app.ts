@@ -25,6 +25,23 @@ import { getHint } from "@/lib/hints";
 import { checkIssueMatch, formatIssueMatchLines, issueMatchKey } from "@/lib/issue-match";
 import { isPublicRepoData } from "@/lib/repo-visibility";
 import { runwareConfigured } from "@/lib/runware";
+import {
+  MASS_WINDOW_DAYS,
+  TRIAGE_LABEL,
+  TRIAGE_LABELED_MARKER,
+  askTriageModel,
+  assistantPhraseIn,
+  diffFacts,
+  distinctiveTitle,
+  formatTriageLines,
+  normalizeTitle,
+  softPhraseCount,
+  templateIgnored,
+  triagePr,
+  withModelRead,
+  type TriageFacts,
+} from "@/lib/pr-triage";
+import { cached } from "@/lib/cache";
 import { parseLinkedIssueNumbers } from "@/lib/linked-issues";
 import { reviewPr } from "@/lib/review";
 import {
@@ -202,6 +219,7 @@ type PrBundle = {
   draft: boolean;
   /** Only public repos ever have their text sent to a model. */
   publicRepo: boolean;
+  authorIsBot: boolean;
 };
 
 /** Fresh PR + files via the installation Octokit (avoids GITHUB_TOKEN cache). */
@@ -253,7 +271,101 @@ async function loadPrBundle(
     firstTimeContributor: FIRST_TIME_ASSOCIATIONS.has(prData.author_association),
     draft: Boolean(prData.draft),
     publicRepo: isPublicRepoData(prData.base.repo),
+    authorIsBot: prData.user?.type === "Bot" || /\[bot\]$/i.test(prData.user?.login ?? ""),
   };
+}
+
+const PR_TEMPLATE_PATHS = [
+  ".github/pull_request_template.md",
+  ".github/PULL_REQUEST_TEMPLATE.md",
+  "pull_request_template.md",
+  "PULL_REQUEST_TEMPLATE.md",
+  "docs/pull_request_template.md",
+];
+
+async function loadPrTemplate(octokit: InstallationOctokit, owner: string, repo: string, ref: string): Promise<string | null> {
+  return cached(`pr-template:${owner}/${repo}@${ref}`, async () => {
+    for (const path of PR_TEMPLATE_PATHS) {
+      const text = await readRepoFile(octokit, owner, repo, path, ref);
+      if (text) return text;
+    }
+    return "";
+  }, 30 * 60 * 1000).then((t) => t || null);
+}
+
+/** Public PRs by the same author with the same title, in other repos. Null when search fails. */
+async function sameTitleOtherRepos(
+  octokit: InstallationOctokit,
+  owner: string,
+  repo: string,
+  login: string,
+  title: string,
+): Promise<number | null> {
+  if (!distinctiveTitle(title) || !/^[A-Za-z0-9-]+$/.test(login)) return 0;
+  const since = new Date(Date.now() - MASS_WINDOW_DAYS * 86_400_000).toISOString().slice(0, 10);
+  try {
+    const { data } = await octokit.rest.search.issuesAndPullRequests({
+      q: `is:pr is:public author:${login} created:>=${since}`,
+      per_page: 100,
+    });
+    const self = `/repos/${owner}/${repo}`.toLowerCase();
+    const want = normalizeTitle(title);
+    const repos = new Set(
+      data.items
+        .filter((i) => normalizeTitle(i.title) === want)
+        .map((i) => i.repository_url.toLowerCase())
+        .filter((u) => !u.endsWith(self)),
+    );
+    return repos.size;
+  } catch (err) {
+    console.warn("[webhook] triage search failed:", httpStatus(err) ?? "error");
+    return null;
+  }
+}
+
+async function accountAgeDays(octokit: InstallationOctokit, login: string): Promise<number | null> {
+  try {
+    const { data } = await octokit.rest.users.getByUsername({ username: login });
+    const created = Date.parse(data.created_at);
+    return Number.isFinite(created) ? (Date.now() - created) / 86_400_000 : null;
+  } catch {
+    return null;
+  }
+}
+
+async function gatherTriageFacts(
+  octokit: InstallationOctokit,
+  owner: string,
+  repo: string,
+  number: number,
+  pr: PullRequestInfo,
+  files: PullFile[],
+  baseSha: string,
+  hasLinkedIssue: boolean,
+): Promise<TriageFacts | null> {
+  const login = pr.user;
+  if (!login) return null;
+  return cached(
+    `triage:${owner}/${repo}#${number}@${pr.headSha}`,
+    async () => {
+      const [age, others, template] = await Promise.all([
+        accountAgeDays(octokit, login),
+        sameTitleOtherRepos(octokit, owner, repo, login, pr.title),
+        loadPrTemplate(octokit, owner, repo, baseSha),
+      ]);
+      return {
+        accountAgeDays: age,
+        sameTitleOtherRepos: others,
+        templateIgnored: templateIgnored(template, pr.body),
+        ...diffFacts(files),
+        changedFiles: pr.changedFiles,
+        hasLinkedIssue,
+        assistantPhrase: assistantPhraseIn(pr.body),
+        softPhraseCount: softPhraseCount(pr.body),
+      };
+    },
+    30 * 60 * 1000,
+  );
 }
 
 async function postComment(
@@ -278,6 +390,52 @@ type ListedComment = {
   user: { login: string; type?: string } | null;
   performed_via_github_app?: { id: number } | null;
 };
+
+/**
+ * Triage facts for a first-time PR, turned into comment lines. Adds the
+ * needs-review label at most once: after a maintainer removes it, the hidden
+ * marker in the comment stops it coming back.
+ */
+async function runTriage(
+  octokit: InstallationOctokit,
+  owner: string,
+  repo: string,
+  number: number,
+  ctx: {
+    pr: PullRequestInfo;
+    files: PullFile[];
+    baseSha: string;
+    hasLinkedIssue: boolean;
+    publicRepo: boolean;
+    allowLabel: boolean;
+    previous: Promise<string | null>;
+  },
+): Promise<string[]> {
+  const previous = await ctx.previous;
+  const wasLabeled = Boolean(previous?.includes(TRIAGE_LABELED_MARKER));
+  const facts = await gatherTriageFacts(octokit, owner, repo, number, ctx.pr, ctx.files, ctx.baseSha, ctx.hasLinkedIssue);
+  if (!facts) return wasLabeled ? [TRIAGE_LABELED_MARKER] : [];
+  let result = triagePr(facts);
+  const modelKey = `${owner}/${repo}#${number}@${ctx.pr.headSha.slice(0, 12)}`;
+  let modelAnswer: boolean | null = null;
+  if (result.borderline && ctx.publicRepo && runwareConfigured()) {
+    modelAnswer = await askTriageModel(ctx.pr, ctx.files, modelKey, previous);
+    result = withModelRead(result, modelAnswer);
+  }
+  let labeled = wasLabeled;
+  if (result.label && ctx.allowLabel && !wasLabeled) {
+    try {
+      await octokit.rest.issues.addLabels({ owner, repo, issue_number: number, labels: [TRIAGE_LABEL] });
+      labeled = true;
+    } catch (err) {
+      if (!isExpectedGitHubDenial(err)) reportBotError(err, "triage-label", "warning", { repo: `${owner}/${repo}` });
+    }
+  }
+  console.log(
+    `[webhook] triage ${owner}/${repo}#${number} score=${result.score} strong=${result.strong} show=${result.show} label=${labeled && !wasLabeled}`,
+  );
+  return formatTriageLines(result, { modelKey, modelAnswer, labeled });
+}
 
 /** The current FirstPRbot summary body, or null. Used to reuse results already in it. */
 async function readSummaryBody(
@@ -462,7 +620,7 @@ async function runPrCheck(
 
     let prUrl = `https://github.com/${owner}/${repo}/pull/${number}`;
     try {
-      const { pr, files, firstTimeContributor, draft, publicRepo } = await loadPrBundle(
+      const { pr, files, firstTimeContributor, draft, publicRepo, authorIsBot } = await loadPrBundle(
         octokit,
         owner,
         repo,
@@ -498,9 +656,10 @@ async function runPrCheck(
       const sameRepoIssue =
         linkedIssue && link.ref && `${link.ref.owner}/${link.ref.repo}`.toLowerCase() === `${owner}/${repo}`.toLowerCase();
       const matchKey = linkedIssue ? issueMatchKey(`${owner}/${repo}`, number, pr.headSha, `#${linkedIssue.number}`) : "";
+      const previousBodyPromise = readSummaryBody(octokit, owner, repo, number);
       const issueMatchPromise =
         config.issueCheck && publicRepo && sameRepoIssue && linkedIssue && runwareConfigured()
-          ? readSummaryBody(octokit, owner, repo, number)
+          ? previousBodyPromise
               .then((previous) =>
                 checkIssueMatch(
                   { issue: linkedIssue, pr: { title: pr.title, body: pr.body }, files },
@@ -510,6 +669,21 @@ async function runPrCheck(
               )
               .catch(() => null)
           : Promise.resolve(null);
+      const triagePromise =
+        config.triage && firstTimeContributor && !authorIsBot
+          ? runTriage(octokit, owner, repo, number, {
+              pr,
+              files,
+              baseSha,
+              hasLinkedIssue: Boolean(linkedIssue),
+              publicRepo,
+              allowLabel: config.triageLabel,
+              previous: previousBodyPromise,
+            }).catch((err) => {
+              reportBotError(err, "triage", "warning", { repo: `${owner}/${repo}` });
+              return [] as string[];
+            })
+          : previousBodyPromise.then((b) => (b?.includes(TRIAGE_LABELED_MARKER) ? [TRIAGE_LABELED_MARKER] : []));
       const result = await reviewPr({
         pr,
         files,
@@ -555,6 +729,7 @@ async function runPrCheck(
         issueMatchLines: await issueMatchPromise.then((m) =>
           m && linkedIssue ? formatIssueMatchLines(m, linkedIssue.number, matchKey) : undefined,
         ),
+        triageLines: await triagePromise,
         review: result,
         reliability: await reliabilityPromise,
       });

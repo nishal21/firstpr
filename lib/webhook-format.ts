@@ -100,6 +100,8 @@ export type PrCommentInput = {
   labelsBlock?: string[];
   /** Advisory "does it address the issue" line plus its hidden cache marker. */
   issueMatchLines?: string[];
+  /** Hidden triage markers plus the optional "Worth a closer look" note. */
+  triageLines?: string[];
   /** Bot runs on this repo in the last 30 days. No line is shown when there are none. */
   reliability?: BotReliability | null;
   review: {
@@ -441,6 +443,7 @@ export function formatPrComment(input: PrCommentInput): string {
     "",
     ...(input.issueMatchLines && input.issueMatchLines.length > 0 ? [...input.issueMatchLines, ""] : []),
     ...(input.labelsBlock && input.labelsBlock.length > 0 ? [...input.labelsBlock, ""] : []),
+    ...(input.triageLines && input.triageLines.length > 0 ? [...input.triageLines, ""] : []),
     "#### What a maintainer should look at",
     "",
     ...maintainerFocus(input),
