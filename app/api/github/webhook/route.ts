@@ -71,11 +71,31 @@ export async function POST(req: Request) {
     verified = false;
   }
 
-  // Bad signatures are noise from scanners, so they are not sent to Sentry.
   if (!verified) {
+    // Scanners rarely send GitHub's App target header. When it is there, the
+    // likely cause is a webhook secret that no longer matches, so tell Sentry.
+    if (req.headers.get("x-github-hook-installation-target-type") === "integration") {
+      Sentry.captureMessage("GitHub webhook signature did not match", {
+        level: "error",
+        fingerprint: ["webhook-signature-mismatch"],
+        tags: { "github.event": name, "bot.stage": "webhook" },
+      });
+    }
     return NextResponse.json(
       { error: "Invalid webhook signature", code: "unauthorized" },
       { status: 401 },
+    );
+  }
+
+  // Signature is good. Reject only a body that is not JSON; every other event,
+  // including ones the bot ignores, gets a 2xx so GitHub shows it as delivered.
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(payload);
+  } catch {
+    return NextResponse.json(
+      { error: "Webhook body is not valid JSON", code: "bad_request" },
+      { status: 400 },
     );
   }
 
@@ -84,17 +104,6 @@ export async function POST(req: Request) {
   // GitHub wants a reply within ~10s; do LLM work after the response.
   after(async () => {
     await Sentry.withIsolationScope(async (scope) => {
-      let parsed: unknown;
-      try {
-        // Signature was checked above; parse once and hand the event over.
-        parsed = JSON.parse(payload);
-      } catch (err) {
-        scope.setTag("github.event", name);
-        scope.setTag("github.delivery", id);
-        Sentry.captureException(err);
-        await Sentry.flush(2000);
-        return;
-      }
 
       const meta = webhookMeta(parsed);
       scope.setTags({
@@ -135,5 +144,5 @@ export async function POST(req: Request) {
     });
   });
 
-  return new NextResponse(null, { status: 202 });
+  return NextResponse.json({ accepted: true }, { status: 202 });
 }
