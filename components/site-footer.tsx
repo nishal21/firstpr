@@ -131,7 +131,18 @@ export function SiteFooter() {
           <ThemeToggle className="sticker-pill" />
           <LangToggle buttonClassName="sticker-pill" placement="up" />
         </div>
-        <p className="font-plex text-[11px] tracking-wide">{t("footer.colophon")}</p>
+        <p className="font-plex text-[11px] tracking-wide">
+          {t("footer.colophon")}
+          <span aria-hidden> · </span>
+          <a
+            href="https://sentry.io/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline decoration-dotted underline-offset-2 hover:decoration-solid focus-visible:decoration-solid"
+          >
+            Monitored by Sentry
+          </a>
+        </p>
       </div>
       <div className="footer-crowd" aria-hidden>
         <Image

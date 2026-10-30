@@ -14,6 +14,7 @@ import {
 import { loadLabelFacts, syncAutoLabels } from "@/lib/auto-labels-github";
 import { explainIssueCached } from "@/lib/explain";
 import { getEnv } from "@/lib/env";
+import { reportBotError } from "@/lib/sentry-report";
 import {
   type GoodFirstIssue,
   type PullFile,
@@ -313,7 +314,14 @@ async function syncLabels(
     }
   } catch (err) {
     console.warn("[webhook] label sync failed:", httpStatus(err) ?? err);
+    if (!isExpectedGitHubDenial(err)) reportBotError(err, "label-sync", "warning", { repo: `${owner}/${repo}` });
   }
+}
+
+/** 403/404/422 from GitHub mean "not allowed here" and are not bugs. */
+function isExpectedGitHubDenial(err: unknown): boolean {
+  const status = httpStatus(err);
+  return status === 403 || status === 404 || status === 422;
 }
 
 function ownAppId(): number | null {
@@ -344,6 +352,7 @@ async function applyAutoLabels(
     return formatLabelsBlock(result, outcome);
   } catch (err) {
     console.warn("[labels] skipped:", httpStatus(err) ?? (err as Error)?.message);
+    if (!isExpectedGitHubDenial(err)) reportBotError(err, "labels", "warning", { repo: `${owner}/${repo}` });
     return null;
   }
 }
@@ -460,6 +469,7 @@ async function runPrCheck(
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error(`[webhook] check failed:`, message);
+      reportBotError(err, "pr-check", "error", { repo: `${owner}/${repo}` });
       if (!requested) return;
       try {
         await upsertPrComment(
@@ -472,6 +482,7 @@ async function runPrCheck(
         );
       } catch (postErr) {
         console.error("[webhook] could not post error comment:", postErr);
+        reportBotError(postErr, "post-error-comment", "warning", { repo: `${owner}/${repo}` });
       }
     }
   });
@@ -546,6 +557,7 @@ async function refreshLabelsForSha(
     for (const n of [...new Set(numbers)]) await refreshLabels(octokit, owner, repo, n, sha);
   } catch (err) {
     console.warn("[labels] refresh failed:", httpStatus(err) ?? (err as Error)?.message);
+    if (!isExpectedGitHubDenial(err)) reportBotError(err, "labels-refresh", "warning", { repo: `${owner}/${repo}` });
   }
 }
 
@@ -620,6 +632,7 @@ function registerHandlers(app: App<{ Octokit: typeof Octokit }>): void {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error(`[webhook] explain failed:`, message);
+      reportBotError(err, "explain", "error", { repo: `${owner}/${repo}` });
       try {
         await postComment(
           octokit,
@@ -637,6 +650,7 @@ function registerHandlers(app: App<{ Octokit: typeof Octokit }>): void {
         );
       } catch (postErr) {
         console.error("[webhook] could not post error comment:", postErr);
+        reportBotError(postErr, "post-error-comment", "warning", { repo: `${owner}/${repo}` });
       }
     }
   });

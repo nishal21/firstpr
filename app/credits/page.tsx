@@ -46,6 +46,7 @@ const LIBS = [
   ["next-themes", "MIT", "https://github.com/pacocoursey/next-themes"],
   ["Sonner", "MIT", "https://github.com/emilkowalski/sonner"],
   ["Class Variance Authority", "Apache-2.0", "https://github.com/joe-bell/cva"],
+  ["Sentry SDK for Next.js", "MIT", "https://github.com/getsentry/sentry-javascript"],
 ];
 
 const INSPIRED = [
@@ -134,6 +135,10 @@ export default function CreditsPage() {
           <li>
             Algolia, on the Algolia for Open Source plan, when the search keys are set. The index stores public issue
             fields. The “Search by Algolia” mark in the dropdown links to Algolia.
+          </li>
+          <li>
+            Sentry, on a sponsored plan, for error tracking, traces, and cron monitoring when the
+            DSN is set. The “Monitored by Sentry” link in the footer goes to Sentry.
           </li>
           <li>The public site is hosted on Vercel at firstpr.nishal.dev.</li>
           <li>This version does not connect to Neon or Postgres.</li>

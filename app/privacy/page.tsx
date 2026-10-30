@@ -66,6 +66,7 @@ export default function PrivacyPage() {
           <li>Neysa Gemma and Neysa Qwen, only if those keys and URLs are set. They are asked to pick files from path lists and short previews.</li>
           <li>SerpAPI’s Google search, only if SERPAPI_KEY is set. The query is a short topic derived from the issue, not your GitHub password or token.</li>
           <li>Algolia, only if ALGOLIA_APP_ID, NEXT_PUBLIC_ALGOLIA_APP_ID, and NEXT_PUBLIC_ALGOLIA_SEARCH_KEY are set. The browser sends the search text to that Algolia application. A scheduled job uses the admin key on the server to store public issue fields: title, repository, URL, labels, language, star count, created and updated times, comment count, and whether the issue is assigned. The admin key is not sent to the browser. If those variables are absent, this call is not made.</li>
+          <li>Sentry, only if SENTRY_DSN or NEXT_PUBLIC_SENTRY_DSN is set. It receives error reports, a sample of performance traces, and cron check-ins. Before anything is sent, the code removes cookies, request bodies, authorization headers, tokens, private keys, email addresses, and secret query values, and it does not send IP addresses, local variables, or model prompts. Browser reports go through /monitoring on this site. Session Replay and the feedback widget are off.</li>
           <li>Vercel, as the host of the public deployment. This repo does not install Vercel Analytics.</li>
         </ul>
       </LegalSection>

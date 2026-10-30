@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getDemoMode } from "@/lib/demo";
 import { getEnv } from "@/lib/env";
 import { getRateLimit } from "@/lib/github";
+import { isSentryEnabled } from "@/lib/sentry-options";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -21,6 +22,7 @@ export async function GET() {
     demoMode: getDemoMode(),
     hasOpenAI: Boolean(env.OPENAI_API_KEY),
     hasGitHub: Boolean(env.GITHUB_TOKEN),
+    hasSentry: isSentryEnabled(),
     rate,
   });
 }

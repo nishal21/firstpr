@@ -87,6 +87,7 @@ FirstPRbot never writes the fix.
 - OpenAI Responses API (model from env, default `gpt-6-luna`)
 - Optional Neysa open-model endpoint for file picking
 - GitHub REST API via Octokit
+- Sentry for errors, traces, and cron monitoring (optional)
 - Vercel
 
 ## Setup and run
@@ -149,6 +150,40 @@ DEMO_MODE=on npm run dev
 ```
 
 `DEMO_MODE=auto` (default) uses live APIs and falls back to fixtures on rate limit or timeout. `DEMO_MODE=off` is live only.
+
+### Error tracking (Sentry)
+
+Sentry is optional. With no DSN set, the SDK never starts and nothing is sent.
+
+| Variable | Where it is used | Where to get it |
+|----------|------------------|-----------------|
+| `NEXT_PUBLIC_SENTRY_DSN` | Browser, and the server when `SENTRY_DSN` is empty | Sentry project settings, Client Keys (DSN) |
+| `SENTRY_DSN` | Server and edge. Can be the same DSN | Same place |
+| `SENTRY_AUTH_TOKEN` | Build only: uploads source maps, creates the release, links commits | Sentry organization settings, Organization Tokens |
+| `SENTRY_ORG` / `SENTRY_PROJECT` | Build only. Default to `nkcodex` and `firstpr` | Sentry URL slugs |
+| `NEXT_PUBLIC_SENTRY_TRACES_SAMPLE_RATE` | Trace sampling, 0 to 1. Default 0.1 in production, 1 elsewhere | Your choice |
+
+What gets reported:
+
+- Errors from the browser, server components, route handlers, and the edge runtime (`instrumentation.ts`, `instrumentation-client.ts`, `sentry.server.config.ts`, `sentry.edge.config.ts`), plus the two error pages.
+- FirstPRbot webhooks. Each delivery runs in its own trace, tagged with `github.event`, `github.action`, `github.repo`, `github.installation_id`, and `github.delivery`. Failed PR checks, explains, and label updates carry a `bot.stage` tag. Bad signatures are not reported. Payloads are never attached.
+- A cron monitor for every job in `vercel.json` (today `algolia-sync-issues`, daily at 03:00 UTC). The monitor is created on the first check-in. `scripts/verify-cron-monitors.ts` fails if a job in `vercel.json` has no monitor or a different schedule.
+- Releases named after `VERCEL_GIT_COMMIT_SHA`, with the Vercel environment (`production`, `preview`, `development`).
+
+`lib/sentry-scrub.ts` runs on every event, transaction, and breadcrumb before it leaves the process. It drops cookies, request bodies, and every header outside a short allowlist, removes user email, IP, and username, and replaces GitHub tokens, `sk-` keys, JWTs, bearer values, PEM private keys, email addresses, and secret-looking query values with `[Filtered]`. The SDK's `dataCollection` settings also turn off user info, cookies, bodies, AI prompts and outputs, and stack-frame variables. Session Replay and the feedback widget are not installed.
+
+Browser events go to `/monitoring` on the same domain, handled by `app/sentry-tunnel/route.ts`, so ad blockers do not drop them. The tunnel only accepts envelopes for the configured DSNs.
+
+Without `SENTRY_AUTH_TOKEN` the build still passes: it skips source map upload and release creation. With it, source maps are uploaded and then deleted from the deploy output.
+
+To check the setup after a deploy:
+
+```bash
+curl https://firstpr.nishal.dev/api/health          # "hasSentry": true
+curl -H "Authorization: Bearer $CRON_SECRET" https://firstpr.nishal.dev/api/sentry-test
+```
+
+The second call sends one test error and returns its `eventId`.
 
 ### Self-hosting with Postgres (Neon recommended)
 
