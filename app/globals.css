@@ -1367,3 +1367,211 @@ main .rounded-2xl.bg-card textarea:focus-visible {
 .ink-card p.text-destructive {
   color: var(--destructive);
 }
+
+/* Status page: one coloured banner, flat cards, square state marks. */
+.status-hero {
+  border: 3px solid var(--ink);
+  box-shadow: 6px 6px 0 var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.status-hero[data-state="operational"] {
+  background: #0473fd;
+  color: #ffffff;
+}
+
+.status-hero[data-state="degraded"] {
+  background: #f5a524;
+  color: #16140f;
+}
+
+.status-hero[data-state="down"] {
+  background: #c81e1e;
+  color: #ffffff;
+}
+
+.status-cat {
+  width: 3.75rem;
+  margin-top: 0.25rem;
+}
+
+@media (min-width: 640px) {
+  .status-cat {
+    width: 5.5rem;
+  }
+}
+
+.status-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.status-strip li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 2px solid currentColor;
+  padding: 0.2rem 0.5rem;
+}
+
+.status-square {
+  display: inline-block;
+  width: 0.65rem;
+  height: 0.65rem;
+  flex: none;
+  border: 1.5px solid var(--ink);
+  background: var(--muted-foreground);
+}
+
+[data-state="operational"] > .status-square {
+  background: #0473fd;
+}
+
+[data-state="degraded"] > .status-square {
+  background: #f5a524;
+}
+
+[data-state="down"] > .status-square {
+  background: #dc2626;
+}
+
+/* On the coloured banner the marks need to stand out from the fill itself. */
+.status-hero .status-square {
+  border-color: currentColor;
+}
+
+.status-hero[data-state="operational"] [data-state="operational"] > .status-square {
+  background: #ffffff;
+}
+
+.status-hero[data-state="degraded"] [data-state="degraded"] > .status-square {
+  background: #16140f;
+}
+
+.status-hero[data-state="down"] [data-state="down"] > .status-square {
+  background: #ffffff;
+}
+
+.status-pill {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 0.4rem;
+  border: 2px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  padding: 0.1rem 0.5rem;
+  font-family: var(--font-plex), ui-monospace, monospace;
+  font-size: 0.72rem;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.status-pill[data-state="degraded"] {
+  background: #f5a524;
+  color: #16140f;
+}
+
+.status-pill[data-state="down"] {
+  background: #c81e1e;
+  color: #ffffff;
+}
+
+.status-pill[data-state="degraded"] > .status-square {
+  background: #16140f;
+}
+
+.status-pill[data-state="down"] > .status-square {
+  background: #ffffff;
+  border-color: #ffffff;
+}
+
+.status-card[data-state="down"] {
+  box-shadow: 4px 4px 0 #c81e1e;
+}
+
+.latency-track {
+  position: relative;
+  height: 0.6rem;
+  flex: 1 1 auto;
+  min-width: 3rem;
+  border: 2px solid var(--ink);
+  background: var(--field);
+}
+
+.latency-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: #0473fd;
+}
+
+.latency-fill[data-none="true"] {
+  background: #c81e1e;
+}
+
+.latency-tick {
+  position: absolute;
+  top: -5px;
+  bottom: -5px;
+  width: 2px;
+  background: var(--ink);
+}
+
+.bot-block {
+  border: 3px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  box-shadow: 6px 6px 0 #0473fd;
+}
+
+.bot-deliveries {
+  border-top: 2px dashed currentColor;
+}
+
+.delivery-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.delivery-strip span {
+  width: 0.7rem;
+  height: 0.7rem;
+  border: 1.5px solid currentColor;
+}
+
+.delivery-strip span[data-ok="true"] {
+  background: #0473fd;
+}
+
+.live-dot {
+  display: inline-block;
+  width: 0.6rem;
+  height: 0.6rem;
+  border: 1.5px solid var(--ink);
+  background: #0473fd;
+}
+
+.live-dot[data-stale="true"] {
+  background: #f5a524;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .live-dot:not([data-stale]) {
+    animation: live-blink 2s steps(2, jump-none) infinite;
+  }
+}
+
+@keyframes live-blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.status-hero a:focus-visible,
+.bot-block a:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
