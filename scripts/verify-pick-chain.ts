@@ -40,15 +40,10 @@ async function main() {
 
   const withoutKeys = await runOnce("neysa-keys-removed");
 
-  console.log(
-    JSON.stringify({
-      withKeys,
-      withoutKeys,
-      ok:
-        (withKeys === "qwen" || withKeys === "gemma") &&
-        withoutKeys === "openai",
-    }),
-  );
+  const ok =
+    (withKeys === "qwen" || withKeys === "gemma") && withoutKeys === "openai";
+  console.log(JSON.stringify({ withKeys, withoutKeys, ok }));
+  if (!ok) process.exit(1);
 }
 
 main().catch((err) => {

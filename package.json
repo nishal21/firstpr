@@ -4,6 +4,8 @@
   "private": true,
   "license": "AGPL-3.0-or-later",
   "scripts": {
+    "verify": "node scripts/verify-all.mjs",
+    "verify:live": "node scripts/verify-all.mjs --live",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -39,6 +41,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.4.2",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }
