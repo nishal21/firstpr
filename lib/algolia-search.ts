@@ -24,6 +24,8 @@ type StoredHit = {
   repo?: string;
   labels?: string[];
   created_at?: number;
+  assignee?: string;
+  assigned?: number;
   _highlightResult?: {
     title?: { value?: string };
     repo?: { value?: string };
@@ -91,7 +93,8 @@ export async function searchAlgoliaIssues(
         query: plan.query,
         hitsPerPage: 5,
         attributesToHighlight: ["title", "repo"],
-        ...(plan.filters ? { filters: plan.filters } : {}),
+        // Never show an issue the index knows is assigned. Numeric, so no facet setting is needed.
+        filters: plan.filters ? `${plan.filters} AND NOT assigned > 0` : "NOT assigned > 0",
       },
     ],
   });
@@ -101,6 +104,7 @@ export async function searchAlgoliaIssues(
   for (const hit of first.hits) {
     const parsed = parseIssueObjectId(hit.objectID ?? "");
     if (!parsed || !hit.title) continue;
+    if (hit.assignee === "assigned" || (hit.assigned ?? 0) > 0) continue;
     const created =
       typeof hit.created_at === "number" ? new Date(hit.created_at * 1000).toISOString() : undefined;
     hits.push({

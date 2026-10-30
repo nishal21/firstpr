@@ -13,4 +13,6 @@ export type AlgoliaIssueRecord = {
   updated_at: number;
   comments: number;
   assignee: AssigneeStatus;
+  /** Assignee count. Numeric, so search can filter on it without a facet setting. */
+  assigned: number;
 };

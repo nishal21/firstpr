@@ -5,7 +5,8 @@ import { algoliaIndexedCount } from "@/lib/algolia-search";
 import { cached } from "@/lib/cache";
 import { retryDelayMs } from "@/lib/github-rate";
 import type { AlgoliaIssueRecord } from "@/lib/algolia-record";
-import { issueObjectId } from "@/lib/algolia-plan";
+import { issueObjectId, parseIssueObjectId } from "@/lib/algolia-plan";
+import type { IssueFact } from "@/lib/algolia-sync-plan";
 import { getEnv } from "@/lib/env";
 import { isPublicRepoData } from "@/lib/repo-visibility";
 
@@ -1038,10 +1039,11 @@ export async function getPullDiff(owner: string, repo: string, number: number): 
   );
 }
 
-const OPEN_ISSUE_QUERY =
-  'is:issue is:open no:assignee (label:"good first issue" OR label:"help wanted")';
-const STALE_ISSUE_QUERY =
-  'is:issue (label:"good first issue" OR label:"help wanted") (is:closed OR assignee:*)';
+const QUALIFY_QUERY = '(label:"good first issue" OR label:"help wanted")';
+/** Candidates: open, unassigned, unlocked, no linked PR, in a repo that is not archived. */
+const OPEN_ISSUE_QUERY = `is:issue is:open no:assignee is:unlocked archived:false -linked:pr ${QUALIFY_QUERY}`;
+/** Issues that left the candidate set. Label removals and repo changes are caught by checkIndexedIssues. */
+const STALE_ISSUE_QUERY = `is:issue ${QUALIFY_QUERY} (is:closed OR assignee:* OR is:locked OR linked:pr)`;
 const INDEX_PAGE_SIZE = 100;
 const REPO_BATCH = 30;
 
@@ -1141,11 +1143,12 @@ function repoFromApiUrl(repositoryUrl: string): { owner: string; repo: string } 
   return { owner, repo };
 }
 
-export type RepoMeta = { stars: number; language: string; isPrivate: boolean };
+export type RepoMeta = { stars: number; language: string; isPrivate: boolean; isArchived: boolean };
 
 type RepoNode = {
   stargazerCount?: number;
   isPrivate?: boolean;
+  isArchived?: boolean;
   primaryLanguage?: { name?: string | null } | null;
 } | null;
 
@@ -1162,7 +1165,7 @@ async function loadRepoMeta(
       .map((pair, index) => {
         const owner = JSON.stringify(pair.owner);
         const repo = JSON.stringify(pair.repo);
-        return `r${index}: repository(owner: ${owner}, name: ${repo}) { stargazerCount isPrivate primaryLanguage { name } }`;
+        return `r${index}: repository(owner: ${owner}, name: ${repo}) { stargazerCount isPrivate isArchived primaryLanguage { name } }`;
       })
       .join("\n");
     if (offset > 0) await wait(1_000);
@@ -1184,6 +1187,7 @@ async function loadRepoMeta(
               stars: typeof node.stargazerCount === "number" ? node.stargazerCount : 0,
               language: node.primaryLanguage?.name ?? "",
               isPrivate: Boolean(node.isPrivate),
+              isArchived: Boolean(node.isArchived),
             }
           : null,
       );
@@ -1199,7 +1203,8 @@ function issueDraft(issue: SearchItem): AlgoliaIssueRecord | null {
   if ("pull_request" in issue && issue.pull_request) return null;
   const repo = repoFromApiUrl(issue.repository_url);
   if (!repo) return null;
-  const assigned = Boolean(issue.assignee) || (issue.assignees ?? []).length > 0;
+  const assigneeCount = Math.max((issue.assignees ?? []).length, issue.assignee ? 1 : 0);
+  const assigned = assigneeCount > 0;
   const labels = (issue.labels ?? [])
     .map((label) => (typeof label === "string" ? label : (label.name ?? "")))
     .filter(Boolean)
@@ -1219,6 +1224,7 @@ function issueDraft(issue: SearchItem): AlgoliaIssueRecord | null {
     updated_at: Math.floor(updated / 1000),
     comments: issue.comments,
     assignee: assigned ? "assigned" : "none",
+    assigned: assigneeCount,
   };
 }
 
@@ -1273,7 +1279,7 @@ export async function searchOpenIssuePage(
   );
   const records = open.flatMap((item) => {
     const info = metaCache.get(item.repo);
-    if (!info || info.isPrivate) return [];
+    if (!info || info.isPrivate || info.isArchived) return [];
     return [{ ...item, stars: info.stars, language: info.language }];
   });
   return {
@@ -1303,6 +1309,167 @@ export async function listStaleIssueObjectIds(): Promise<string[]> {
     return draft ? [draft.objectID] : [];
   });
   return [...new Set(ids)];
+}
+
+export type ChangedIssuePage = {
+  /** Candidates to upsert, with repo stars and language filled in. */
+  records: AlgoliaIssueRecord[];
+  /** Issues on this page that no longer belong in the index. */
+  dropIds: string[];
+  hits: number;
+  incomplete: boolean;
+  /** Newest updated_at (seconds) on this page, for the next cursor. */
+  maxUpdated: number | null;
+};
+
+/**
+ * One page of beginner issues updated at or after `since`, oldest change first.
+ * "open" finds candidates to add or refresh. "stale" finds issues that were closed,
+ * assigned, locked or linked to a PR. Every request is page 1, so the 1000-result cap never applies.
+ */
+export async function searchChangedIssuePage(
+  kind: "open" | "stale",
+  since: number,
+  metaCache: Map<string, RepoMeta | null>,
+): Promise<ChangedIssuePage> {
+  requireSyncToken();
+  const base = kind === "open" ? OPEN_ISSUE_QUERY : STALE_ISSUE_QUERY;
+  const response = await queuedSearch(() =>
+    getSyncOctokit().search.issuesAndPullRequests({
+      q: `${base} updated:>=${searchTime(since)}`,
+      sort: "updated",
+      order: "asc",
+      per_page: INDEX_PAGE_SIZE,
+      page: 1,
+    }),
+  ).catch((err: unknown) => tagLimit(err, "search"));
+  const { data } = response;
+  const drafts = data.items.flatMap((issue) => {
+    const draft = issueDraft(issue);
+    return draft ? [draft] : [];
+  });
+  const updated = data.items
+    .map((issue) => Math.floor(Date.parse(issue.updated_at) / 1000))
+    .filter((value) => Number.isFinite(value));
+  const page = {
+    hits: data.items.length,
+    incomplete: data.incomplete_results,
+    maxUpdated: updated.length > 0 ? Math.max(...updated) : null,
+  };
+  if (kind === "stale") {
+    return { ...page, records: [], dropIds: [...new Set(drafts.map((draft) => draft.objectID))] };
+  }
+  const dropIds = drafts.filter((draft) => draft.assignee !== "none").map((draft) => draft.objectID);
+  const open = drafts.filter((draft) => draft.assignee === "none");
+  const repos = new Map<string, { owner: string; repo: string }>();
+  for (const item of open) {
+    const [owner, repo] = item.repo.split("/");
+    if (owner && repo) repos.set(item.repo, { owner, repo });
+  }
+  await loadRepoMeta([...repos.values()], metaCache).catch((err: unknown) =>
+    tagLimit(err, "graphql"),
+  );
+  const records: AlgoliaIssueRecord[] = [];
+  for (const item of open) {
+    const info = metaCache.get(item.repo);
+    if (!info || info.isPrivate || info.isArchived) {
+      dropIds.push(item.objectID);
+      continue;
+    }
+    records.push({ ...item, stars: info.stars, language: info.language });
+  }
+  return { ...page, records, dropIds };
+}
+
+const CHECK_BATCH = 40;
+
+type CheckNode = {
+  isPrivate?: boolean;
+  isArchived?: boolean;
+  stargazerCount?: number;
+  primaryLanguage?: { name?: string | null } | null;
+  issue?: {
+    state?: string;
+    locked?: boolean;
+    assignees?: { totalCount?: number };
+    labels?: { nodes?: ({ name?: string } | null)[] };
+    closedByPullRequestsReferences?: { totalCount?: number };
+  } | null;
+} | null;
+
+type GraphError = { type?: string; path?: (string | number)[] };
+
+/**
+ * Live facts for indexed issues, 40 per GraphQL query. An issue only gets a fact when
+ * GitHub answered clearly (data, or NOT_FOUND for that exact repo or issue), so a flaky
+ * response never deletes anything.
+ */
+export async function checkIndexedIssues(ids: readonly string[]): Promise<Map<string, IssueFact>> {
+  requireSyncToken();
+  const client = getSyncOctokit();
+  const out = new Map<string, IssueFact>();
+  const refs = ids.flatMap((id) => {
+    const parsed = parseIssueObjectId(id);
+    return parsed ? [{ id, ...parsed }] : [];
+  });
+  for (let offset = 0; offset < refs.length; offset += CHECK_BATCH) {
+    const slice = refs.slice(offset, offset + CHECK_BATCH);
+    const fields = slice
+      .map(
+        (ref, index) =>
+          `c${index}: repository(owner: ${JSON.stringify(ref.owner)}, name: ${JSON.stringify(ref.repo)}) { isPrivate isArchived stargazerCount primaryLanguage { name } issue(number: ${ref.number}) { state locked assignees { totalCount } labels(first: 20) { nodes { name } } closedByPullRequestsReferences(first: 1, includeClosedPrs: false) { totalCount } } }`,
+      )
+      .join("\n");
+    if (offset > 0) await wait(1_000);
+    const response = await gh(() =>
+      client.request("POST /graphql", { query: `query { ${fields} }` }),
+    ).catch((err: unknown) => tagLimit(err, "graphql"));
+    const payload = response.data as { data?: Record<string, CheckNode> | null; errors?: GraphError[] };
+    const errors = payload.errors ?? [];
+    if (errors.some((error) => error.type === "RATE_LIMITED")) {
+      throw new SyncRateLimitError(
+        new GitHubError("GraphQL rate limit exceeded", "rate_limited", 60_000),
+        "graphql",
+      );
+    }
+    const data = payload.data ?? {};
+    slice.forEach((ref, index) => {
+      const alias = `c${index}`;
+      const mine = errors.filter((error) => error.path?.[0] === alias);
+      const node = data[alias];
+      if (!node) {
+        const repoMissing = mine.some((error) => error.type === "NOT_FOUND" && error.path?.length === 1);
+        if (repoMissing) out.set(ref.id, { repo: null, issue: null });
+        return;
+      }
+      if (mine.some((error) => error.type !== "NOT_FOUND")) return;
+      const repo = {
+        isPrivate: Boolean(node.isPrivate),
+        isArchived: Boolean(node.isArchived),
+        stars: typeof node.stargazerCount === "number" ? node.stargazerCount : 0,
+        language: node.primaryLanguage?.name ?? "",
+      };
+      const issue = node.issue;
+      if (!issue) {
+        const issueMissing = mine.some(
+          (error) => error.type === "NOT_FOUND" && error.path?.[1] === "issue",
+        );
+        if (issueMissing) out.set(ref.id, { repo, issue: null });
+        return;
+      }
+      out.set(ref.id, {
+        repo,
+        issue: {
+          state: issue.state ?? "",
+          locked: Boolean(issue.locked),
+          assignees: issue.assignees?.totalCount ?? 0,
+          labels: (issue.labels?.nodes ?? []).flatMap((label) => (label?.name ? [label.name] : [])),
+          openLinkedPrs: issue.closedByPullRequestsReferences?.totalCount ?? 0,
+        },
+      });
+    });
+  }
+  return out;
 }
 
 
