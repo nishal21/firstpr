@@ -286,9 +286,10 @@ function getOctokit(): Octokit {
       );
       missingTokenWarned = true;
     }
-    const headers = { ...options.headers };
-    if (token) headers.authorization = `token ${token}`;
-    return withEtag(request, { ...options, headers });
+    // Set the header on the options object Octokit handed us. A spread copy
+    // loses the token (requests went out unauthenticated at 60/hour).
+    if (token) options.headers.authorization = `token ${token}`;
+    return withEtag(request, options);
   });
   return siteOctokit;
 }
