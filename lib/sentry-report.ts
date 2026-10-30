@@ -12,6 +12,7 @@ export type BotStage =
   | "post-error-comment"
   | "triage"
   | "triage-label"
+  | "next-issues"
   | "webhook";
 
 /** Report a caught error from the GitHub bot with the step it failed in. */

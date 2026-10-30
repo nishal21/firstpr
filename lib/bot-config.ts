@@ -28,6 +28,8 @@ export type BotConfig = {
   triage: boolean;
   /** Add `firstpr/needs-review` when the triage facts are strong. */
   triageLabel: boolean;
+  /** After a first-timer's PR is merged, suggest three open good first issues in the summary. */
+  suggestIssues: boolean;
 };
 
 export const BOT_CONFIG_PATH = ".github/firstpr.yml";
@@ -41,6 +43,7 @@ export const DEFAULT_BOT_CONFIG: BotConfig = {
   issueCheck: true,
   triage: true,
   triageLabel: true,
+  suggestIssues: true,
 };
 
 function unquote(raw: string): string {
@@ -124,6 +127,7 @@ export function parseBotConfig(text: string | null | undefined): BotConfig {
     else if (key === "issue_check") config.issueCheck = toBool(value, config.issueCheck);
     else if (key === "triage") config.triage = toBool(value, config.triage);
     else if (key === "triage_label") config.triageLabel = toBool(value, config.triageLabel);
+    else if (key === "suggest_issues") config.suggestIssues = toBool(value, config.suggestIssues);
     else if (key === "labels") inLabels = value.trim() === "";
   }
   return config;

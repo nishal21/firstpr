@@ -1,4 +1,6 @@
 import { App } from "@octokit/app";
+import { algoliasearch } from "algoliasearch";
+import { ALGOLIA_INDEX_DEFAULT } from "@/lib/algolia-plan";
 import { Octokit } from "@octokit/rest";
 import {
   BOT_CONFIG_PATH,
@@ -43,6 +45,19 @@ import {
 } from "@/lib/pr-triage";
 import { cached } from "@/lib/cache";
 import { parseLinkedIssueNumbers } from "@/lib/linked-issues";
+import {
+  SUGGESTION_COUNT,
+  extractNextIssuesBlock,
+  formatNextIssuesBlock,
+  hasNextIssuesBlock,
+  insertNextIssuesBlock,
+  languageFilter,
+  pickSuggestions,
+  summarySaysFirstTimer,
+  type IndexHit,
+  type Suggestion,
+  type SuggestionHits,
+} from "@/lib/next-issues";
 import { reviewPr } from "@/lib/review";
 import {
   firstPrSiteOrigin,
@@ -734,7 +749,8 @@ async function runPrCheck(
         reliability: await reliabilityPromise,
       });
 
-      await upsertPrComment(octokit, owner, repo, number, body, config);
+      const nextIssues = extractNextIssuesBlock(await previousBodyPromise);
+      await upsertPrComment(octokit, owner, repo, number, insertNextIssuesBlock(body, nextIssues), config);
       await syncLabels(octokit, owner, repo, number, config, {
         firstTimer: firstTimeContributor,
         noIssue: !linkedIssue,
@@ -760,6 +776,93 @@ async function runPrCheck(
         console.error("[webhook] could not post error comment:", postErr);
         reportBotError(postErr, "post-error-comment", "warning", { repo: `${owner}/${repo}` });
       }
+    }
+  });
+}
+
+/** This repo, this language and anything, from the issue index. Null when Algolia isn't set up. */
+async function searchSuggestionHits(repoFullName: string, language: string): Promise<SuggestionHits | null> {
+  const env = getEnv();
+  const appId = env.ALGOLIA_APP_ID || process.env.NEXT_PUBLIC_ALGOLIA_APP_ID;
+  // Read-only key when there is one; this never writes.
+  const apiKey = process.env.NEXT_PUBLIC_ALGOLIA_SEARCH_KEY || env.ALGOLIA_ADMIN_KEY;
+  if (!appId || !apiKey) return null;
+  const indexName = env.ALGOLIA_INDEX_NAME || ALGOLIA_INDEX_DEFAULT;
+  const client = algoliasearch(appId, apiKey, { timeouts: { connect: 1500, read: 3000, write: 3000 } });
+  const free = "NOT assigned > 0";
+  const lang = languageFilter(language);
+  const common = {
+    indexName,
+    hitsPerPage: 20,
+    attributesToRetrieve: ["objectID", "title", "repo", "language", "labels", "assignee", "assigned"],
+    attributesToHighlight: [] as string[],
+  };
+  const { results } = await client.search<IndexHit>({
+    requests: [
+      { ...common, query: repoFullName, restrictSearchableAttributes: ["repo"], filters: free },
+      { ...common, query: "", filters: lang ? `${lang} AND ${free}` : free },
+      { ...common, query: "", filters: free },
+    ],
+  });
+  const list = (i: number): IndexHit[] => {
+    const r = results[i];
+    return r && "hits" in r && Array.isArray(r.hits) ? (r.hits as IndexHit[]) : [];
+  };
+  return { sameRepo: list(0), sameLanguage: lang ? list(1) : [], any: list(2) };
+}
+
+/** The index can lag GitHub, so each suggestion is checked live before it is shown. */
+async function issueStillFree(octokit: InstallationOctokit, s: Suggestion): Promise<boolean> {
+  try {
+    const { data } = await octokit.rest.issues.get({ owner: s.owner, repo: s.repo, issue_number: s.number });
+    return (
+      data.state === "open" &&
+      !data.pull_request &&
+      !data.locked &&
+      !data.assignee &&
+      (data.assignees ?? []).length === 0
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * F3: a first-timer's PR was merged. Add three open, unassigned good first issues to the
+ * existing summary, preferring this repo, then the same language. Edits the one comment.
+ */
+async function suggestAfterMerge(
+  octokit: InstallationOctokit,
+  owner: string,
+  repo: string,
+  number: number,
+  pr: { authorAssociation: string; authorIsBot: boolean; body: string | null; language: string },
+): Promise<void> {
+  return queueForPr(`${owner}/${repo}#${number}`, async () => {
+    if (pr.authorIsBot) return;
+    const config = await loadBotConfig(octokit, owner, repo);
+    if (!config.enabled || !config.suggestIssues) return;
+    const body = await readSummaryBody(octokit, owner, repo, number);
+    // Only the existing summary is edited; a redelivered event changes nothing.
+    if (!body || hasNextIssuesBlock(body)) return;
+    if (!FIRST_TIME_ASSOCIATIONS.has(pr.authorAssociation) && !summarySaysFirstTimer(body)) return;
+    try {
+      const hits = await searchSuggestionHits(`${owner}/${repo}`, pr.language);
+      if (!hits) return;
+      const candidates = pickSuggestions(hits, {
+        repo: `${owner}/${repo}`,
+        skipNumbers: parseLinkedIssueNumbers(pr.body, owner, repo),
+      });
+      const picked: Suggestion[] = [];
+      for (const candidate of candidates) {
+        if (picked.length >= SUGGESTION_COUNT) break;
+        if (await issueStillFree(octokit, candidate)) picked.push(candidate);
+      }
+      if (picked.length === 0) return;
+      await upsertPrComment(octokit, owner, repo, number, insertNextIssuesBlock(body, formatNextIssuesBlock(picked)), config);
+      console.log(`[webhook] suggested ${picked.length} next issues on ${owner}/${repo}#${number}`);
+    } catch (err) {
+      reportBotError(err, "next-issues", "warning", { repo: `${owner}/${repo}` });
     }
   });
 }
@@ -962,6 +1065,17 @@ function registerHandlers(app: App<{ Octokit: typeof Octokit }>): void {
       );
     },
   );
+
+  app.webhooks.on("pull_request.closed", async ({ octokit, payload }) => {
+    const pr = payload.pull_request;
+    if (!pr.merged) return;
+    await suggestAfterMerge(octokit, payload.repository.owner.login, payload.repository.name, pr.number, {
+      authorAssociation: pr.author_association,
+      authorIsBot: pr.user?.type === "Bot" || /\[bot\]$/i.test(pr.user?.login ?? ""),
+      body: pr.body ?? null,
+      language: payload.repository.language ?? "",
+    });
+  });
 
   // Needs the App subscribed to "Check suite" and "Status" events, and
   // Checks: read. Without them labels still update on every push.
