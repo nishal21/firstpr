@@ -25,11 +25,18 @@ function hopNumber(request: Request): number {
 /** Start the next run. It answers 202 at once and does its work after responding. */
 async function startHop(origin: string, secret: string, hop: number): Promise<void> {
   try {
-    await fetch(`${origin}${CRON_PATH}`, {
+    const response = await fetch(`${origin}${CRON_PATH}`, {
       headers: { authorization: `Bearer ${secret}`, [HOP_HEADER]: String(hop) },
       signal: AbortSignal.timeout(15_000),
       cache: "no-store",
     });
+    // fetch does not throw on 401 or 409, so a refused hop would otherwise vanish.
+    if (response.status !== 202) {
+      Sentry.captureMessage(`Issue sync hop ${hop} was not accepted (HTTP ${response.status})`, {
+        level: "warning",
+        tags: { cron: "sync-issues", "sync.hop": String(hop) },
+      });
+    }
   } catch (err) {
     Sentry.captureException(err, { tags: { cron: "sync-issues", "sync.hop": String(hop) } });
   }

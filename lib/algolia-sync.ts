@@ -3,6 +3,8 @@ import { ALGOLIA_INDEX_DEFAULT } from "@/lib/algolia-plan";
 import type { AlgoliaIssueRecord } from "@/lib/algolia-record";
 import {
   RECHECK_EVERY_S,
+  continueAfterLimit,
+  cooldownWaitMs,
   fullPassDue,
   issueVerdict,
   nextUpdatedCursor,
@@ -66,6 +68,8 @@ export type SyncIssuesResult = {
     /** Which API returned the limit that stopped or slowed this run. */
     limitedBy: "search" | "graphql" | null;
     rateWaits: number;
+    /** Time spent at the start waiting out the limit an earlier run hit. */
+    cooledMs: number;
   };
 };
 
@@ -87,6 +91,8 @@ type SyncState = {
   /** Change cursors for the "open" and "stale" searches, seconds. */
   openSince: number | null;
   staleSince: number | null;
+  /** Seconds. The next run waits until then before searching, after a run stopped on a limit. */
+  coolUntil: number;
 };
 
 const INDEX_SETTINGS = {
@@ -104,7 +110,7 @@ const PAGE_RESERVE_MS = 25_000;
 const LOCK_MS = 300_000;
 const MAX_RATE_WAITS = 2;
 /** Space sync searches out. Each one is slow on GitHub's side, which counts toward secondary limits. */
-const PAGE_GAP_MS = 6_000;
+const PAGE_GAP_MS = 10_000;
 /** GitHub asks for at least a minute after a secondary limit with no Retry-After. */
 const SECONDARY_WAIT_MS = 65_000;
 /** Records re-checked per run, 40 per GraphQL query. */
@@ -129,6 +135,7 @@ function freshPass(previous?: SyncState): SyncState {
     lastFullPass: previous?.lastFullPass ?? null,
     openSince: previous?.openSince ?? null,
     staleSince: previous?.staleSince ?? null,
+    coolUntil: previous?.coolUntil ?? 0,
   };
 }
 
@@ -149,6 +156,7 @@ async function readState(client: AdminClient, indexName: string): Promise<SyncSt
         lastFullPass: num(stored.lastFullPass),
         openSince: num(stored.openSince),
         staleSince: num(stored.staleSince),
+        coolUntil: num(stored.coolUntil) ?? 0,
       };
     }
   } catch (err) {
@@ -250,6 +258,9 @@ export async function syncIssuesIndex(): Promise<SyncIssuesResult> {
   let rateLimitMessage: string | null = null;
   let limitedBy: "search" | "graphql" | null = null;
   let rateWaits = 0;
+  let cooledMs = 0;
+  /** The wait GitHub asked for when a limit stopped this run. */
+  let limitWaitMs = 0;
 
   const result = (): SyncIssuesResult => ({
     indexed,
@@ -277,6 +288,7 @@ export async function syncIssuesIndex(): Promise<SyncIssuesResult> {
       rateLimitMessage,
       limitedBy,
       rateWaits,
+      cooledMs,
     },
   });
 
@@ -286,6 +298,10 @@ export async function syncIssuesIndex(): Promise<SyncIssuesResult> {
   }
   state.lockUntil = Date.now() + LOCK_MS;
   await writeState(client, stateIndex, state);
+
+  // The run before this one stopped on a limit and handed off; let it cool down first.
+  cooledMs = cooldownWaitMs(state.coolUntil, Date.now());
+  if (cooledMs > 0) await new Promise((resolve) => setTimeout(resolve, cooledMs));
 
   const metaCache = new Map<string, RepoMeta | null>();
   let firstPage = true;
@@ -318,6 +334,7 @@ export async function syncIssuesIndex(): Promise<SyncIssuesResult> {
       return true;
     }
     stopReason = secondary ? "secondary_limit" : "rate_limited";
+    limitWaitMs = delay;
     more = false;
     return false;
   };
@@ -470,6 +487,8 @@ export async function syncIssuesIndex(): Promise<SyncIssuesResult> {
           if (!(err instanceof GitHubError) || err.code !== "rate_limited") throw err;
           if (err instanceof SyncRateLimitError) limitedBy = err.source;
           rateLimitMessage = err.message.slice(0, 200);
+          const secondary = err instanceof SyncRateLimitError ? err.secondary : isSecondary(err);
+          limitWaitMs = secondary ? Math.max(err.retryAfterMs, SECONDARY_WAIT_MS) : err.retryAfterMs;
           limited = true;
         }
       }
@@ -478,7 +497,10 @@ export async function syncIssuesIndex(): Promise<SyncIssuesResult> {
     }
 
     if (limited) {
-      more = false;
+      // Secondary limits clear after a minute or so. Before, this ended the day's work after
+      // a few pages; now a run that saved something hands off and the next one waits first.
+      more = continueAfterLimit(indexed, limitWaitMs);
+      state.coolUntil = Math.ceil((Date.now() + limitWaitMs) / 1000);
       if (stopReason === "time_budget") stopReason = "rate_limited";
     } else if (!more) {
       stopReason = "done";

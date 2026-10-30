@@ -5,7 +5,10 @@
  */
 import {
   FULL_PASS_EVERY_S,
+  MAX_COOLDOWN_WAIT_MS,
   SEARCH_LAG_S,
+  continueAfterLimit,
+  cooldownWaitMs,
   fullPassDue,
   issueVerdict,
   labelsQualify,
@@ -65,8 +68,19 @@ const ops = monthlyOpsEstimate({ records: 19_000, changedPerDay: 1_500, removedP
 check("ops estimate under 2M", ops.total < 2_000_000);
 console.log("ops estimate", JSON.stringify(ops));
 
+// Rate-limit hand-off: a run stopped by a secondary limit keeps the chain going.
+check("no cool-down when none stored", cooldownWaitMs(0, Date.now()) === 0);
+check("no cool-down once it has passed", cooldownWaitMs(100, 200_000) === 0);
+check("waits out the rest of a cool-down", cooldownWaitMs(200, 150_000) === 50_000);
+check("cool-down wait is capped", cooldownWaitMs(10_000, 0) === MAX_COOLDOWN_WAIT_MS);
+check("cool-down ignores bad input", cooldownWaitMs(Number.NaN, 0) === 0);
+check("secondary limit after progress continues", continueAfterLimit(600, 65_000));
+check("limit with nothing saved ends the chain", !continueAfterLimit(0, 65_000));
+check("limit with a long reset ends the chain", !continueAfterLimit(600, 30 * 60_000));
+check("limit at the cap still continues", continueAfterLimit(1, MAX_COOLDOWN_WAIT_MS));
+
 if (failed) {
   console.log(`${failed} algolia sync checks failed`);
   process.exit(1);
 }
-console.log(`algolia sync ok (${cases.length + 13} checks)`);
+console.log(`algolia sync ok (${cases.length + 22} checks)`);

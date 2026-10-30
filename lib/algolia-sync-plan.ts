@@ -98,3 +98,22 @@ export function monthlyOpsEstimate(input: {
   const rechecks = Math.round(input.records * (30 * 24 * 3600 / RECHECK_EVERY_S));
   return { fullPass, changes, removals, rechecks, total: fullPass + changes + removals + rechecks };
 }
+
+/** Longest a run waits at its start for an earlier rate limit to cool down. */
+export const MAX_COOLDOWN_WAIT_MS = 90_000;
+
+/** How long a run should wait before its first GitHub call, given the stored cool-down end (seconds). */
+export function cooldownWaitMs(coolUntilS: number, nowMs: number, maxMs = MAX_COOLDOWN_WAIT_MS): number {
+  const left = coolUntilS * 1000 - nowMs;
+  if (!Number.isFinite(left) || left <= 0) return 0;
+  return Math.min(left, maxMs);
+}
+
+/**
+ * A run stopped by a rate limit. Hand off to a follow-up run when this run still made progress
+ * and the wait GitHub asked for fits at the start of the next run. A run that saved nothing ends
+ * the chain, so a hard limit never loops.
+ */
+export function continueAfterLimit(indexed: number, waitMs: number, maxMs = MAX_COOLDOWN_WAIT_MS): boolean {
+  return indexed > 0 && waitMs >= 0 && waitMs <= maxMs;
+}
