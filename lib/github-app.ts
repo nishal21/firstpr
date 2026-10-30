@@ -22,6 +22,9 @@ import {
   type PullRequestInfo,
 } from "@/lib/github";
 import { getHint } from "@/lib/hints";
+import { checkIssueMatch, formatIssueMatchLines, issueMatchKey } from "@/lib/issue-match";
+import { isPublicRepoData } from "@/lib/repo-visibility";
+import { runwareConfigured } from "@/lib/runware";
 import { parseLinkedIssueNumbers } from "@/lib/linked-issues";
 import { reviewPr } from "@/lib/review";
 import {
@@ -197,6 +200,8 @@ type PrBundle = {
   files: PullFile[];
   firstTimeContributor: boolean;
   draft: boolean;
+  /** Only public repos ever have their text sent to a model. */
+  publicRepo: boolean;
 };
 
 /** Fresh PR + files via the installation Octokit (avoids GITHUB_TOKEN cache). */
@@ -247,6 +252,7 @@ async function loadPrBundle(
     files,
     firstTimeContributor: FIRST_TIME_ASSOCIATIONS.has(prData.author_association),
     draft: Boolean(prData.draft),
+    publicRepo: isPublicRepoData(prData.base.repo),
   };
 }
 
@@ -272,6 +278,26 @@ type ListedComment = {
   user: { login: string; type?: string } | null;
   performed_via_github_app?: { id: number } | null;
 };
+
+/** The current FirstPRbot summary body, or null. Used to reuse results already in it. */
+async function readSummaryBody(
+  octokit: InstallationOctokit,
+  owner: string,
+  repo: string,
+  number: number,
+): Promise<string | null> {
+  try {
+    const comments = (await octokit.paginate(octokit.rest.issues.listComments, {
+      owner,
+      repo,
+      issue_number: number,
+      per_page: 100,
+    })) as ListedComment[];
+    return comments.filter(isOwnComment).find((c) => c.body?.includes(PR_COMMENT_MARKER))?.body ?? null;
+  } catch {
+    return null;
+  }
+}
 
 function isOwnComment(c: ListedComment): boolean {
   const appId = Number(getEnv().GITHUB_APP_ID);
@@ -436,7 +462,7 @@ async function runPrCheck(
 
     let prUrl = `https://github.com/${owner}/${repo}/pull/${number}`;
     try {
-      const { pr, files, firstTimeContributor, draft } = await loadPrBundle(
+      const { pr, files, firstTimeContributor, draft, publicRepo } = await loadPrBundle(
         octokit,
         owner,
         repo,
@@ -468,6 +494,22 @@ async function runPrCheck(
 
       // Started early so it never adds to the wait; resolves to null on any failure.
       const reliabilityPromise = readBotReliabilityQuick(`${owner}/${repo}`);
+      // Same-repo issues only, so nothing from another (maybe private) repo reaches the model.
+      const sameRepoIssue =
+        linkedIssue && link.ref && `${link.ref.owner}/${link.ref.repo}`.toLowerCase() === `${owner}/${repo}`.toLowerCase();
+      const matchKey = linkedIssue ? issueMatchKey(`${owner}/${repo}`, number, pr.headSha, `#${linkedIssue.number}`) : "";
+      const issueMatchPromise =
+        config.issueCheck && publicRepo && sameRepoIssue && linkedIssue && runwareConfigured()
+          ? readSummaryBody(octokit, owner, repo, number)
+              .then((previous) =>
+                checkIssueMatch(
+                  { issue: linkedIssue, pr: { title: pr.title, body: pr.body }, files },
+                  matchKey,
+                  previous,
+                ),
+              )
+              .catch(() => null)
+          : Promise.resolve(null);
       const result = await reviewPr({
         pr,
         files,
@@ -510,6 +552,9 @@ async function runPrCheck(
         files,
         requireLinkedIssue: config.requireLinkedIssue,
         labelsBlock: labelsBlock ?? undefined,
+        issueMatchLines: await issueMatchPromise.then((m) =>
+          m && linkedIssue ? formatIssueMatchLines(m, linkedIssue.number, matchKey) : undefined,
+        ),
         review: result,
         reliability: await reliabilityPromise,
       });

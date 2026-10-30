@@ -22,6 +22,8 @@ export type BotConfig = {
   };
   /** Fact-based `firstpr/` label groups to apply. Empty set means off. */
   autoLabels: ReadonlySet<AutoLabelGroup>;
+  /** Advisory line on whether the PR addresses its linked issue (needs RUNWARE_API_KEY). */
+  issueCheck: boolean;
 };
 
 export const BOT_CONFIG_PATH = ".github/firstpr.yml";
@@ -32,6 +34,7 @@ export const DEFAULT_BOT_CONFIG: BotConfig = {
   requireLinkedIssue: true,
   labels: { firstTimer: "", needsIssue: "" },
   autoLabels: new Set(AUTO_LABEL_GROUPS),
+  issueCheck: true,
 };
 
 function unquote(raw: string): string {
@@ -112,6 +115,7 @@ export function parseBotConfig(text: string | null | undefined): BotConfig {
       config.requireLinkedIssue = toBool(value, config.requireLinkedIssue);
     else if (key === "auto_labels")
       config.autoLabels = toAutoLabels(value, config.autoLabels);
+    else if (key === "issue_check") config.issueCheck = toBool(value, config.issueCheck);
     else if (key === "labels") inLabels = value.trim() === "";
   }
   return config;

@@ -98,6 +98,8 @@ export type PrCommentInput = {
   requireLinkedIssue: boolean;
   /** Pre-rendered "Labels" section from `formatLabelsBlock`; omit when auto labels are off. */
   labelsBlock?: string[];
+  /** Advisory "does it address the issue" line plus its hidden cache marker. */
+  issueMatchLines?: string[];
   /** Bot runs on this repo in the last 30 days. No line is shown when there are none. */
   reliability?: BotReliability | null;
   review: {
@@ -437,6 +439,7 @@ export function formatPrComment(input: PrCommentInput): string {
     "",
     ...checklistTable(input),
     "",
+    ...(input.issueMatchLines && input.issueMatchLines.length > 0 ? [...input.issueMatchLines, ""] : []),
     ...(input.labelsBlock && input.labelsBlock.length > 0 ? [...input.labelsBlock, ""] : []),
     "#### What a maintainer should look at",
     "",
