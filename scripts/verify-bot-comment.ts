@@ -7,6 +7,7 @@ import { parseLinkedIssueNumbers } from "../lib/linked-issues.ts";
 import {
   diffUrl,
   formatPrComment,
+  formatReliabilityLine,
   prCommentVerdict,
   PR_COMMENT_MARKER,
   type PrCommentInput,
@@ -223,6 +224,25 @@ expect("cfg labels", cfg.labels.firstTimer === "first-timer" && cfg.labels.needs
 expect("cfg off", parseBotConfig("enabled: false").enabled === false);
 expect("cfg defaults", parseBotConfig(null).requireLinkedIssue && !parseBotConfig("").labels.firstTimer);
 expect("cfg junk", parseBotConfig("::: not yaml\n- x").enabled === true);
+
+// Reliability line: only real, non-zero data.
+expect("rel none", formatReliabilityLine(null) === null && formatReliabilityLine(undefined) === null);
+expect("rel zero", formatReliabilityLine({ days: 30, runs: 0, ok: 0, prs: 0 }) === null);
+expect("rel no prs", formatReliabilityLine({ days: 30, runs: 2, ok: 2, prs: 0 }) === null);
+expect(
+  "rel text",
+  formatReliabilityLine({ days: 30, runs: 8, ok: 7, prs: 3 }) ===
+    "FirstPRbot on this repo, last 30 days: 3 PRs handled, 88% of 8 runs finished without an error.",
+);
+expect("rel singular", formatReliabilityLine({ days: 30, runs: 1, ok: 1, prs: 1 })?.includes("1 PR handled, 100% of 1 run") === true);
+{
+  const plain: PrCommentInput = { ...base, reliability: null };
+  expect("rel absent in comment", !formatPrComment(plain).includes("last 30 days"));
+  const withData: PrCommentInput = { ...plain, reliability: { days: 30, runs: 4, ok: 4, prs: 2 } };
+  const md = formatPrComment(withData);
+  expect("rel in comment", md.includes("<sub>FirstPRbot on this repo, last 30 days: 2 PRs handled, 100% of 4 runs"));
+  expect("rel one comment marker", md.split(PR_COMMENT_MARKER).length === 2);
+}
 
 if (failed) {
   console.error(`${failed} bot comment check(s) failed`);

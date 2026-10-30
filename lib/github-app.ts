@@ -12,6 +12,7 @@ import {
   replaceLabelsBlock,
 } from "@/lib/auto-labels";
 import { loadLabelFacts, syncAutoLabels } from "@/lib/auto-labels-github";
+import { readBotReliabilityQuick, recordBotRun } from "@/lib/bot-runs";
 import { explainIssueCached } from "@/lib/explain";
 import { getEnv } from "@/lib/env";
 import { reportBotError } from "@/lib/sentry-report";
@@ -416,6 +417,8 @@ async function runPrCheck(
         loadRepoPaths(octokit, owner, repo, baseSha),
       ]);
 
+      // Started early so it never adds to the wait; resolves to null on any failure.
+      const reliabilityPromise = readBotReliabilityQuick(`${owner}/${repo}`);
       const result = await reviewPr({
         pr,
         files,
@@ -458,6 +461,7 @@ async function runPrCheck(
         requireLinkedIssue: config.requireLinkedIssue,
         labelsBlock: labelsBlock ?? undefined,
         review: result,
+        reliability: await reliabilityPromise,
       });
 
       await upsertPrComment(octokit, owner, repo, number, body, config);
@@ -466,9 +470,11 @@ async function runPrCheck(
         noIssue: !linkedIssue,
       });
       console.log(`[webhook] updated summary on ${owner}/${repo}#${number}`);
+      await recordBotRun({ repo: `${owner}/${repo}`, kind: "pr", number, ok: true });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error(`[webhook] check failed:`, message);
+      await recordBotRun({ repo: `${owner}/${repo}`, kind: "pr", number, ok: false });
       reportBotError(err, "pr-check", "error", { repo: `${owner}/${repo}` });
       if (!requested) return;
       try {
@@ -629,7 +635,9 @@ function registerHandlers(app: App<{ Octokit: typeof Octokit }>): void {
 
       await postComment(octokit, owner, repo, number, body);
       console.log(`[webhook] posted explain on ${owner}/${repo}#${number}`);
+      await recordBotRun({ repo: `${owner}/${repo}`, kind: "explain", ok: true });
     } catch (err) {
+      await recordBotRun({ repo: `${owner}/${repo}`, kind: "explain", ok: false });
       const message = err instanceof Error ? err.message : String(err);
       console.error(`[webhook] explain failed:`, message);
       reportBotError(err, "explain", "error", { repo: `${owner}/${repo}` });

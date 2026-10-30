@@ -1,10 +1,12 @@
 import * as Sentry from "@sentry/nextjs";
 import { algoliasearch } from "algoliasearch";
 import { ALGOLIA_INDEX_DEFAULT } from "@/lib/algolia-plan";
+import { readBotReliability } from "@/lib/bot-runs";
 import { getEnv } from "@/lib/env";
 import { getGitHubApp } from "@/lib/github-app";
 import { SITE_URL } from "@/lib/site-url";
 import { readSyncSnapshot } from "@/lib/sync-status";
+import type { BotReliability } from "@/lib/webhook-format";
 
 export type CheckState = "operational" | "degraded" | "down" | "unknown";
 
@@ -26,6 +28,8 @@ export type StatusReport = {
   generatedAt: string;
   database: "none";
   checks: StatusCheck[];
+  /** FirstPRbot work across all repos over the last 30 days, or null if it could not be read. */
+  botLast30Days: BotReliability | null;
 };
 
 /** Every check gives up after this, so the page never waits on a slow dependency. */
@@ -228,7 +232,24 @@ function reportChanges(checks: StatusCheck[]): void {
   }
 }
 
+async function botLast30Days(): Promise<BotReliability | null> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      readBotReliability(),
+      new Promise<null>((resolve) => {
+        timer = setTimeout(() => resolve(null), CHECK_TIMEOUT_MS);
+      }),
+    ]);
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export async function getStatusReport(): Promise<StatusReport> {
+  const botStats = botLast30Days();
   const checks = await Promise.all([
     runCheck("website", "Website", checkWebsite),
     runCheck("api", "API", checkApi),
@@ -249,5 +270,11 @@ export async function getStatusReport(): Promise<StatusReport> {
     : states.some((s) => s === "down" || s === "degraded")
       ? "degraded"
       : "operational";
-  return { overall, generatedAt: new Date().toISOString(), database: "none", checks };
+  return {
+    overall,
+    generatedAt: new Date().toISOString(),
+    database: "none",
+    checks,
+    botLast30Days: await botStats,
+  };
 }

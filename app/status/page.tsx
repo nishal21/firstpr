@@ -47,6 +47,20 @@ function StateChip({ state }: { state: CheckState }) {
   );
 }
 
+function BotLine({ stats }: { stats: StatusReport["botLast30Days"] }) {
+  if (!stats) return null;
+  if (stats.runs === 0) {
+    return <p className="mt-1 text-sm leading-relaxed">No bot runs recorded in the last 30 days yet. Counting started on 30 October 2026.</p>;
+  }
+  const pct = Math.round((Math.min(stats.ok, stats.runs) / stats.runs) * 100);
+  return (
+    <p className="mt-1 text-sm leading-relaxed">
+      Last 30 days: {stats.prs} {stats.prs === 1 ? "PR" : "PRs"} handled, {pct}% of {stats.runs}{" "}
+      {stats.runs === 1 ? "run" : "runs"} finished without an error.
+    </p>
+  );
+}
+
 export default async function StatusPage() {
   const report = await getStatusReport();
 
@@ -68,6 +82,7 @@ export default async function StatusPage() {
               <StateChip state={check.state} />
             </div>
             <p className="mt-2 text-base leading-relaxed">{check.detail}</p>
+            {check.id === "bot" ? <BotLine stats={report.botLast30Days} /> : null}
             <p className="mt-3 flex flex-wrap gap-x-4 gap-y-1 font-plex text-xs">
               <span>{check.latencyMs === null ? "No response" : `${check.latencyMs} ms`}</span>
               <span>

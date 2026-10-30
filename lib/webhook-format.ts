@@ -96,6 +96,8 @@ export type PrCommentInput = {
   requireLinkedIssue: boolean;
   /** Pre-rendered "Labels" section from `formatLabelsBlock`; omit when auto labels are off. */
   labelsBlock?: string[];
+  /** Bot runs on this repo in the last 30 days. No line is shown when there are none. */
+  reliability?: BotReliability | null;
   review: {
     score: number;
     checklist: {
@@ -399,9 +401,23 @@ export function prReviewPageUrl(prUrl: string): string {
   return `${SITE_ORIGIN}/review?pr=${encodeURIComponent(prUrl)}`;
 }
 
+/** Counts of FirstPRbot work over a recent window. */
+export type BotReliability = { days: number; runs: number; ok: number; prs: number };
+
+/** One quiet line for the PR comment, or null when there is nothing real to report. */
+export function formatReliabilityLine(r: BotReliability | null | undefined): string | null {
+  if (!r || r.runs <= 0 || r.prs <= 0) return null;
+  const pct = Math.round((Math.min(r.ok, r.runs) / r.runs) * 100);
+  const prs = r.prs === 1 ? "1 PR" : `${r.prs} PRs`;
+  const runs = r.runs === 1 ? "1 run" : `${r.runs} runs`;
+  return `FirstPRbot on this repo, last ${r.days} days: ${prs} handled, ${pct}% of ${runs} finished without an error.`;
+}
+
 function footer(input: PrCommentInput): string[] {
+  const reliability = formatReliabilityLine(input.reliability);
   return [
     "---",
+    ...(reliability ? [`<sub>${reliability}</sub>`, ""] : []),
     `<sub>[Open this PR in FirstPR](${prReviewPageUrl(input.prUrl)}) · Updates on every push, or comment \`/firstpr recheck\` · Turn off with \`enabled: false\` in \`.github/firstpr.yml\` · FirstPRbot</sub>`,
   ];
 }
