@@ -1,17 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import {
-  IBM_Plex_Mono,
-  Inter,
-  Noto_Sans_Arabic,
-  Noto_Sans_Bengali,
-  Noto_Sans_Devanagari,
-  Noto_Sans_JP,
-  Noto_Sans_KR,
-  Noto_Sans_Malayalam,
-  Noto_Sans_SC,
-  Noto_Sans_Tamil,
-  Rubik_Spray_Paint,
-} from "next/font/google";
+import { preload } from "react-dom";
 import { LanguageProvider } from "@/components/language-provider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SearchProvider } from "@/components/search-provider";
@@ -21,95 +9,12 @@ import { Toaster } from "@/components/ui/sonner";
 import { JsonLd } from "@/components/json-ld";
 import { KEYWORDS, MAKERS, ORG_NAME, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import { siteGraph } from "@/lib/structured-data";
-import { cn } from "@/lib/utils";
+import "./fonts.css";
 import "./globals.css";
 
-const inter = Inter({
-  subsets: ["latin", "cyrillic"],
-  variable: "--font-sans",
-  display: "swap",
-  preload: true,
-});
-
-const spray = Rubik_Spray_Paint({
-  weight: "400",
-  subsets: ["latin"],
-  variable: "--font-spray",
-  display: "swap",
-  preload: true,
-});
-
-const plex = IBM_Plex_Mono({
-  weight: ["400", "500"],
-  subsets: ["latin"],
-  variable: "--font-plex",
-  display: "swap",
-  preload: false,
-});
-
-const notoMalayalam = Noto_Sans_Malayalam({
-  subsets: ["malayalam"],
-  display: "swap",
-  variable: "--font-ml",
-  weight: ["400", "500", "600", "700"],
-  preload: false,
-});
-
-const notoDevanagari = Noto_Sans_Devanagari({
-  subsets: ["devanagari"],
-  display: "swap",
-  variable: "--font-deva",
-  weight: ["400", "500", "600", "700"],
-  preload: false,
-});
-
-const notoTamil = Noto_Sans_Tamil({
-  subsets: ["tamil"],
-  display: "swap",
-  variable: "--font-ta",
-  weight: ["400", "500", "600", "700"],
-  preload: false,
-});
-
-const notoBengali = Noto_Sans_Bengali({
-  subsets: ["bengali"],
-  display: "swap",
-  variable: "--font-bn",
-  weight: ["400", "500", "600", "700"],
-  preload: false,
-});
-
-const notoSC = Noto_Sans_SC({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-zh",
-  weight: ["400", "500", "700"],
-  preload: false,
-});
-
-const notoJP = Noto_Sans_JP({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-ja",
-  weight: ["400", "500", "700"],
-  preload: false,
-});
-
-const notoKR = Noto_Sans_KR({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-ko",
-  weight: ["400", "500", "700"],
-  preload: false,
-});
-
-const notoArabic = Noto_Sans_Arabic({
-  subsets: ["arabic"],
-  display: "swap",
-  variable: "--font-ar",
-  weight: ["400", "500", "600", "700"],
-  preload: false,
-});
+// Fonts are self-hosted (app/fonts.css, public/fonts) so builds never fetch from Google.
+// Regenerate with: node scripts/fetch-fonts.mjs
+const PRELOAD_FONTS = ["/fonts/inter/6ab57b19c69b5042.woff2", "/fonts/rubikspraypaint/5398bb60cfd5fa79.woff2"];
 
 const verification: Metadata["verification"] = {};
 if (process.env.GOOGLE_SITE_VERIFICATION) verification.google = process.env.GOOGLE_SITE_VERIFICATION;
@@ -162,25 +67,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  for (const href of PRELOAD_FONTS) preload(href, { as: "font", type: "font/woff2", crossOrigin: "anonymous" });
   return (
     <html
       lang="en"
       suppressHydrationWarning
       data-scroll-behavior="smooth"
-      className={cn(
-        "h-full antialiased",
-        inter.variable,
-        spray.variable,
-        plex.variable,
-        notoMalayalam.variable,
-        notoDevanagari.variable,
-        notoTamil.variable,
-        notoBengali.variable,
-        notoSC.variable,
-        notoJP.variable,
-        notoKR.variable,
-        notoArabic.variable,
-      )}
+      className="h-full antialiased"
     >
       <body className="flex min-h-full flex-col overflow-x-hidden bg-background font-sans text-foreground">
         <ThemeProvider>

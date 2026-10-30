@@ -83,7 +83,7 @@ export default function CreditsPage() {
 
       <section className="mt-8">
         <h2 className="text-xl font-semibold">Fonts</h2>
-        <p className="mt-2 text-base leading-relaxed">Loaded with next/font. Each is under the SIL Open Font License.</p>
+        <p className="mt-2 text-base leading-relaxed">Self-hosted from this site. Each is under the SIL Open Font License, with the licence in its folder.</p>
         <ul className="mt-3 space-y-2 text-base">
           {FONTS.map((font) => (
             <li key={font.name}>
