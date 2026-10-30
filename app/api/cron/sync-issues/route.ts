@@ -5,6 +5,7 @@ import { hasBearerSecret, isVercelCron } from "@/lib/cron-auth";
 import { getEnv } from "@/lib/env";
 import { GitHubError } from "@/lib/github";
 import { reportCronFailure, runMonitoredCron } from "@/lib/sentry-report";
+import { saveLastSyncRun } from "@/lib/sync-status";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -51,6 +52,16 @@ export async function GET(request: Request) {
           ),
         };
       }
+      const stop = result.debug.stopReason;
+      await saveLastSyncRun({
+        result: result.complete
+          ? "complete"
+          : stop === "rate_limited" || stop === "secondary_limit"
+            ? "rate_limited"
+            : "partial",
+        indexed: result.indexed,
+        removed: result.removed,
+      });
       if (result.rateLimited && result.indexed === 0) {
         return {
           outcome: "error",
@@ -60,12 +71,14 @@ export async function GET(request: Request) {
       return { outcome: "ok", response: NextResponse.json({ ok: true, ...result }) };
     } catch (err) {
       if (err instanceof GitHubError && err.code === "rate_limited") {
+        await saveLastSyncRun({ result: "rate_limited", indexed: 0, removed: 0 });
         return {
           outcome: "error",
           response: NextResponse.json({ error: "rate_limited" }, { status: 429 }),
         };
       }
       Sentry.captureException(err, { tags: { cron: "sync-issues" } });
+      await saveLastSyncRun({ result: "error", indexed: 0, removed: 0 });
       const message = err instanceof Error ? err.message : "sync_failed";
       return {
         outcome: "error",

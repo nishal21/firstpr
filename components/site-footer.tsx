@@ -58,6 +58,7 @@ export function SiteFooter() {
         { href: "/", label: t("nav.findIssue") },
         { href: "/explain", label: t("nav.explain") },
         { href: "/review", label: t("nav.review") },
+        { href: "/status", label: "Status" },
       ],
     },
     {
