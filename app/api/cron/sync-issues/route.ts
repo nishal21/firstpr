@@ -5,6 +5,7 @@ import { hasBearerSecret, isVercelCron } from "@/lib/cron-auth";
 import { getEnv } from "@/lib/env";
 import { GitHubError } from "@/lib/github";
 import { reportCronFailure, runMonitoredCron } from "@/lib/sentry-report";
+import { SITE_URL } from "@/lib/site-url";
 import { saveLastSyncRun } from "@/lib/sync-status";
 
 export const runtime = "nodejs";
@@ -22,16 +23,25 @@ function hopNumber(request: Request): number {
   return Number.isInteger(raw) && raw > 0 ? raw : 0;
 }
 
-/** Start the next run. It answers 202 at once and does its work after responding. */
-async function startHop(origin: string, secret: string, hop: number): Promise<void> {
+/**
+ * Start the next run. It answers 202 at once and does its work after responding.
+ *
+ * Always calls the public production domain. Vercel Cron calls the generated *.vercel.app
+ * deployment URL, which Deployment Protection puts behind a Vercel login. Cron itself gets
+ * through, but a follow-up sent to that same host got the login redirect and never ran.
+ */
+async function startHop(secret: string, hop: number): Promise<void> {
   try {
-    const response = await fetch(`${origin}${CRON_PATH}`, {
+    const response = await fetch(`${SITE_URL}${CRON_PATH}`, {
       headers: { authorization: `Bearer ${secret}`, [HOP_HEADER]: String(hop) },
       signal: AbortSignal.timeout(15_000),
       cache: "no-store",
+      // A redirect means the call did not reach this route, so report it instead of following it.
+      redirect: "manual",
     });
     // fetch does not throw on 401 or 409, so a refused hop would otherwise vanish.
     if (response.status !== 202) {
+      console.warn(`[sync-issues] hop ${hop} not accepted: HTTP ${response.status}`);
       Sentry.captureMessage(`Issue sync hop ${hop} was not accepted (HTTP ${response.status})`, {
         level: "warning",
         tags: { cron: "sync-issues", "sync.hop": String(hop) },
@@ -68,7 +78,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
   const secret = env.CRON_SECRET;
-  const origin = new URL(request.url).origin;
   const hop = hopNumber(request);
 
   if (hop > 0) {
@@ -81,10 +90,15 @@ export async function GET(request: Request) {
         const result = await syncIssuesIndex();
         if (result.debug.stopReason === "busy") return;
         await recordRun(result);
-        if (result.more && hop < MAX_HOPS) await startHop(origin, secret, hop + 1);
+        if (result.more && hop < MAX_HOPS) await startHop(secret, hop + 1);
       } catch (err) {
-        if (err instanceof GitHubError && err.code === "rate_limited") return;
+        if (err instanceof GitHubError && err.code === "rate_limited") {
+          // Show it on /status instead of leaving the last run's result in place.
+          await saveLastSyncRun({ result: "rate_limited", indexed: 0, removed: 0 });
+          return;
+        }
         Sentry.captureException(err, { tags: { cron: "sync-issues", "sync.hop": String(hop) } });
+        await saveLastSyncRun({ result: "error", indexed: 0, removed: 0 });
       }
     });
     return NextResponse.json({ accepted: true, hop }, { status: 202 });
@@ -117,7 +131,7 @@ export async function GET(request: Request) {
         };
       }
       await recordRun(result);
-      if (result.more) after(() => startHop(origin, secret, 1));
+      if (result.more) after(() => startHop(secret, 1));
       if (result.rateLimited && result.indexed === 0) {
         return {
           outcome: "error",
