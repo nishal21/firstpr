@@ -6,7 +6,7 @@ import { cached } from "@/lib/cache";
 import { retryDelayMs } from "@/lib/github-rate";
 import type { AlgoliaIssueRecord } from "@/lib/algolia-record";
 import { issueObjectId, parseIssueObjectId } from "@/lib/algolia-plan";
-import type { IssueFact } from "@/lib/algolia-sync-plan";
+import { OPEN_ISSUE_QUERY, STALE_ISSUE_QUERY, type IssueFact } from "@/lib/algolia-sync-plan";
 import { getEnv } from "@/lib/env";
 import { isPublicRepoData } from "@/lib/repo-visibility";
 
@@ -1039,11 +1039,6 @@ export async function getPullDiff(owner: string, repo: string, number: number): 
   );
 }
 
-const QUALIFY_QUERY = '(label:"good first issue" OR label:"help wanted")';
-/** Candidates: open, unassigned, unlocked, no linked PR, in a repo that is not archived. */
-const OPEN_ISSUE_QUERY = `is:issue is:open no:assignee is:unlocked archived:false -linked:pr ${QUALIFY_QUERY}`;
-/** Issues that left the candidate set. Label removals and repo changes are caught by checkIndexedIssues. */
-const STALE_ISSUE_QUERY = `is:issue ${QUALIFY_QUERY} (is:closed OR assignee:* OR is:locked OR linked:pr)`;
 const INDEX_PAGE_SIZE = 100;
 const REPO_BATCH = 30;
 
@@ -1292,7 +1287,7 @@ export async function searchOpenIssuePage(
   };
 }
 
-/** Object IDs GitHub most recently reports as closed or assigned, so the index can drop them. */
+/** Object IDs GitHub most recently reports as closed, so the index can drop them. */
 export async function listStaleIssueObjectIds(): Promise<string[]> {
   requireSyncToken();
   const { data } = await queuedSearch(() =>

@@ -99,6 +99,38 @@ export function monthlyOpsEstimate(input: {
   return { fullPass, changes, removals, rechecks, total: fullPass + changes + removals + rechecks };
 }
 
+const QUALIFY_QUERY = '(label:"good first issue" OR label:"help wanted")';
+/** Candidates: open, unassigned, unlocked, no linked PR, in a repo that is not archived. */
+export const OPEN_ISSUE_QUERY = `is:issue is:open no:assignee is:unlocked archived:false -linked:pr ${QUALIFY_QUERY}`;
+/**
+ * Issues that left the candidate set by closing. GitHub's issue search can't OR different
+ * qualifiers (an OR group with linked:pr fails with "Unsupported type for the closing
+ * reference filter"), so assigned, locked, PR-linked, relabelled and repo changes are caught
+ * by checkIndexedIssues instead.
+ */
+export const STALE_ISSUE_QUERY = `is:issue is:closed ${QUALIFY_QUERY}`;
+
+/** True when a search query puts linked: inside an OR group, which GitHub rejects. */
+export function linkedInOrGroup(query: string): boolean {
+  for (const group of query.match(/\([^()]*\)/g) ?? []) {
+    if (/\bOR\b/.test(group) && /(^|[\s(-])linked:/.test(group)) return true;
+  }
+  return false;
+}
+
+/**
+ * True when a full-pass page reached the end of the pass. A short page alone is not enough:
+ * GitHub sometimes returns fewer than a full page while thousands of issues are left, and
+ * ending the pass there would prune everything it had not reached yet. GitHub's total can
+ * run a little ahead of what it returns, so less than a page left over still counts as the end.
+ */
+export function fullPassPageDone(
+  page: { hits: number; total: number; incomplete: boolean },
+  pageSize = 100,
+): boolean {
+  return !page.incomplete && page.hits < pageSize && page.total - page.hits < pageSize;
+}
+
 /** Longest a run waits at its start for an earlier rate limit to cool down. */
 export const MAX_COOLDOWN_WAIT_MS = 90_000;
 

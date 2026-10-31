@@ -6,6 +6,7 @@ import {
   continueAfterLimit,
   cooldownWaitMs,
   fullPassDue,
+  fullPassPageDone,
   issueVerdict,
   nextUpdatedCursor,
   type DropReason,
@@ -93,7 +94,15 @@ type SyncState = {
   staleSince: number | null;
   /** Seconds. The next run waits until then before searching, after a run stopped on a limit. */
   coolUntil: number;
+  /** Rules version that wrote this state. Older state starts a fresh full pass. */
+  version: number;
 };
+
+/**
+ * Bump when a sync bug may have left the stored pass wrong. Version 2: a short GitHub page
+ * used to end a full pass early, which left most issues out until the next monthly pass.
+ */
+const STATE_VERSION = 2;
 
 const INDEX_SETTINGS = {
   searchableAttributes: ["title", "repo", "labels", "language"],
@@ -136,6 +145,7 @@ function freshPass(previous?: SyncState): SyncState {
     openSince: previous?.openSince ?? null,
     staleSince: previous?.staleSince ?? null,
     coolUntil: previous?.coolUntil ?? 0,
+    version: STATE_VERSION,
   };
 }
 
@@ -157,6 +167,7 @@ async function readState(client: AdminClient, indexName: string): Promise<SyncSt
         openSince: num(stored.openSince),
         staleSince: num(stored.staleSince),
         coolUntil: num(stored.coolUntil) ?? 0,
+        version: num(stored.version) ?? 1,
       };
     }
   } catch (err) {
@@ -165,8 +176,21 @@ async function readState(client: AdminClient, indexName: string): Promise<SyncSt
   return freshPass();
 }
 
-async function writeState(client: AdminClient, indexName: string, state: SyncState): Promise<void> {
-  await client.saveObject({ indexName, body: state });
+async function writeState(
+  client: AdminClient,
+  indexName: string,
+  state: SyncState,
+  options: { wait?: boolean } = {},
+): Promise<void> {
+  const { taskID } = await client.saveObject({ indexName, body: state });
+  if (!options.wait) return;
+  // Algolia applies writes a moment later. The follow-up run starts right after this one and
+  // must not read the old lock, or it sees "busy" and the chain stops.
+  try {
+    await client.waitForTask({ indexName, taskID, maxRetries: 20 });
+  } catch {
+    // The write is already accepted; a slow apply only risks one "busy" follow-up.
+  }
 }
 
 /** Drop records an earlier pass saved that this full pass did not see. */
@@ -242,7 +266,8 @@ export async function syncIssuesIndex(): Promise<SyncIssuesResult> {
   const tokenSource = syncTokenSource();
   const limits = await getSyncRateLimit();
   let state = await readState(client, stateIndex);
-  if (state.cursor === null && fullPassDue(state.lastFullPass, nowSeconds())) state = freshPass(state);
+  if (state.version !== STATE_VERSION) state = freshPass(state);
+  else if (state.cursor === null && fullPassDue(state.lastFullPass, nowSeconds())) state = freshPass(state);
   const mode: SyncMode = state.cursor === null ? "changes" : "full_pass";
 
   let indexed = 0;
@@ -371,8 +396,13 @@ export async function syncIssuesIndex(): Promise<SyncIssuesResult> {
         state.passIndexed += objects.length;
       }
 
-      if (page.hits < 100 && !page.incomplete) {
+      if (fullPassPageDone(page)) {
         finished = true;
+        break;
+      }
+      if (page.oldestCreated === null) {
+        // GitHub reported issues left but returned none. Try again in the next run.
+        more = true;
         break;
       }
       if (page.oldestCreated !== null) {
@@ -507,7 +537,7 @@ export async function syncIssuesIndex(): Promise<SyncIssuesResult> {
     }
   } finally {
     state.lockUntil = 0;
-    await writeState(client, stateIndex, state);
+    await writeState(client, stateIndex, state, { wait: true });
   }
 
   return result();

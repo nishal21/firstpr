@@ -6,12 +6,16 @@
 import {
   FULL_PASS_EVERY_S,
   MAX_COOLDOWN_WAIT_MS,
+  OPEN_ISSUE_QUERY,
+  STALE_ISSUE_QUERY,
   SEARCH_LAG_S,
   continueAfterLimit,
   cooldownWaitMs,
   fullPassDue,
+  fullPassPageDone,
   issueVerdict,
   labelsQualify,
+  linkedInOrGroup,
   monthlyOpsEstimate,
   nextUpdatedCursor,
   type IssueFact,
@@ -78,9 +82,19 @@ check("secondary limit after progress continues", continueAfterLimit(600, 65_000
 check("limit with nothing saved ends the chain", !continueAfterLimit(0, 65_000));
 check("limit with a long reset ends the chain", !continueAfterLimit(600, 30 * 60_000));
 check("limit at the cap still continues", continueAfterLimit(1, MAX_COOLDOWN_WAIT_MS));
+check("last short page ends the pass", fullPassPageDone({ hits: 40, total: 40, incomplete: false }));
+check("short page with more left keeps the pass open", !fullPassPageDone({ hits: 12, total: 9800, incomplete: false }));
+check("full page keeps the pass open", !fullPassPageDone({ hits: 100, total: 100, incomplete: false }));
+check("incomplete page keeps the pass open", !fullPassPageDone({ hits: 30, total: 30, incomplete: true }));
+check("old stale query is caught", linkedInOrGroup('is:issue (is:closed OR assignee:* OR is:locked OR linked:pr)'));
+check("stale query has no linked: in an OR group", !linkedInOrGroup(STALE_ISSUE_QUERY));
+check("open query has no linked: in an OR group", !linkedInOrGroup(OPEN_ISSUE_QUERY));
+check("stale query finds closed issues", STALE_ISSUE_QUERY.includes("is:closed"));
+check("open query keeps PR-linked issues out", OPEN_ISSUE_QUERY.includes("-linked:pr"));
+check("empty page with nothing left ends the pass", fullPassPageDone({ hits: 0, total: 0, incomplete: false }));
 
 if (failed) {
   console.log(`${failed} algolia sync checks failed`);
   process.exit(1);
 }
-console.log(`algolia sync ok (${cases.length + 22} checks)`);
+console.log(`algolia sync ok (${cases.length + 32} checks)`);
