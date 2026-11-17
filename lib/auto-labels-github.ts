@@ -4,7 +4,6 @@
  */
 import type { Octokit } from "@octokit/rest";
 import {
-  autoLabelDef,
   isAutoLabelName,
   planLabelSync,
   type AutoLabelDef,
@@ -211,8 +210,10 @@ export async function syncAutoLabels(
       desired: result.labels.map((l) => l.def.name),
       events,
     });
-    for (const name of plan.add) {
-      await ensureLabel(kit, owner, repo, autoLabelDef(name)!);
+    // Refresh color and hover text for every desired label, including ones
+    // already on the PR, so a later recheck can update existing repo labels.
+    for (const { def } of result.labels) {
+      await ensureLabel(kit, owner, repo, def);
     }
     if (plan.add.length > 0) {
       await kit.rest.issues.addLabels({ owner, repo, issue_number: number, labels: plan.add });
