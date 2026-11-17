@@ -260,6 +260,10 @@ We wrote the code with AI coding help in Cursor. We reviewed, tested, and debugg
 | Nishal K | Product, engineering, demo | [@nishal21](https://github.com/nishal21) |
 | Anan Shaji | Research, pitch, business | [@zenxrth](https://github.com/zenxrth) |
 
+## Acknowledgements
+
+This project is tested with [BrowserStack](https://www.browserstack.com).
+
 ## License
 
 FirstPR is free software under the [GNU Affero General Public License v3.0](./LICENSE) (AGPL-3.0-or-later, OSI-approved). Copyright (c) 2026 Nishal K and Anan Shaji. FirstPR is non-profit: there is no paid tier and no separate commercial license.
