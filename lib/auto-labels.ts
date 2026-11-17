@@ -41,21 +41,26 @@ export const SIZE_THRESHOLDS: readonly { size: SizeBucket; below: number }[] = [
 
 const L = (name: string) => `${AUTO_LABEL_PREFIX}${name}`;
 
+/**
+ * Colors: green = ready, red = needs attention, yellow/orange = size
+ * (light to dark), blue or purple = informational. Descriptions must stay
+ * at or under GitHub's 100-character label limit.
+ */
 export const AUTO_LABELS = {
-  sizeXS: { name: L("size: XS"), group: "size", color: "c2e0c6", description: "Under 10 lines changed, lockfiles and generated files excluded" },
-  sizeS: { name: L("size: S"), group: "size", color: "9be9a8", description: "10 to 29 lines changed, lockfiles and generated files excluded" },
-  sizeM: { name: L("size: M"), group: "size", color: "fbca04", description: "30 to 99 lines changed, lockfiles and generated files excluded" },
-  sizeL: { name: L("size: L"), group: "size", color: "f9a03f", description: "100 to 499 lines changed, lockfiles and generated files excluded" },
-  sizeXL: { name: L("size: XL"), group: "size", color: "e11d21", description: "500 or more lines changed, lockfiles and generated files excluded" },
-  docs: { name: L("docs only"), group: "area", color: "0075ca", description: "Every changed file is Markdown/reStructuredText/AsciiDoc or under docs/" },
-  tests: { name: L("tests only"), group: "area", color: "bfd4f2", description: "Every changed file is a test file or under a test folder" },
-  deps: { name: L("deps only"), group: "area", color: "0366d6", description: "Only package manifests and lockfiles changed, with at least one lockfile" },
-  ci: { name: L("ci only"), group: "area", color: "5319e7", description: "Every changed file is under .github/workflows/" },
-  linked: { name: L("linked issue"), group: "linked-issue", color: "0e8a16", description: "GitHub links this PR to an issue it will close" },
-  noLinked: { name: L("no linked issue"), group: "linked-issue", color: "d93f0b", description: "GitHub shows no issue this PR will close" },
-  checksPassing: { name: L("checks passing"), group: "checks", color: "2da44e", description: "Every finished check and status on the latest commit passed" },
-  checksFailing: { name: L("checks failing"), group: "checks", color: "cf222e", description: "At least one finished check or status on the latest commit failed" },
-  firstTime: { name: L("first-time contributor"), group: "first-time", color: "7057ff", description: "GitHub marks the author as a first-time contributor" },
+  sizeXS: { name: L("size: XS"), group: "size", color: "fff5b1", description: "Fewer than 10 lines changed; lockfiles, vendor, and generated files don't count" },
+  sizeS: { name: L("size: S"), group: "size", color: "ffd166", description: "10 to 29 lines changed; lockfiles, vendor, and generated files don't count" },
+  sizeM: { name: L("size: M"), group: "size", color: "f5a623", description: "30 to 99 lines changed; lockfiles, vendor, and generated files don't count" },
+  sizeL: { name: L("size: L"), group: "size", color: "c2410c", description: "100 to 499 lines changed; lockfiles, vendor, and generated files don't count" },
+  sizeXL: { name: L("size: XL"), group: "size", color: "9a3412", description: "500 or more lines changed; lockfiles, vendor, and generated files don't count" },
+  docs: { name: L("docs only"), group: "area", color: "0075ca", description: "Only docs changed: Markdown, reStructuredText, AsciiDoc, or files under docs/" },
+  tests: { name: L("tests only"), group: "area", color: "7eb8f9", description: "Every changed file is a test file or is under a test folder" },
+  deps: { name: L("deps only"), group: "area", color: "215e9a", description: "Only package manifests and lockfiles changed, including at least one lockfile" },
+  ci: { name: L("ci only"), group: "area", color: "5319e7", description: "Only GitHub Actions workflows changed (files under .github/workflows/)" },
+  linked: { name: L("linked issue"), group: "linked-issue", color: "0e8a16", description: "GitHub will close a linked issue when this PR is merged" },
+  noLinked: { name: L("no linked issue"), group: "linked-issue", color: "d93f0b", description: "No issue will close with this PR; add Fixes #N to the description" },
+  checksPassing: { name: L("checks passing"), group: "checks", color: "1a7f37", description: "Every finished check on the latest commit passed (skipped and neutral count)" },
+  checksFailing: { name: L("checks failing"), group: "checks", color: "cf222e", description: "A check or status on the latest commit failed, timed out, or errored" },
+  firstTime: { name: L("first-time contributor"), group: "first-time", color: "7057ff", description: "Author's first PR on this repo, or their first PR on GitHub" },
 } as const satisfies Record<string, AutoLabelDef>;
 
 export const ALL_AUTO_LABELS: readonly AutoLabelDef[] = Object.values(AUTO_LABELS);

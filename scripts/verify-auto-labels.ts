@@ -1,8 +1,11 @@
 // Run with: node scripts/verify-auto-labels.ts
 // Unit checks for FirstPRbot's fact-based labels (pure rules, no network).
 import { parseBotConfig } from "../lib/bot-config.ts";
+import { TRIAGE_LABEL, TRIAGE_LABEL_DEF } from "../lib/pr-triage.ts";
 import {
+  ALL_AUTO_LABELS,
   AUTO_LABEL_GROUPS,
+  AUTO_LABEL_PREFIX,
   AUTO_LABELS,
   bodyMentionsClosing,
   computeAutoLabels,
@@ -325,6 +328,24 @@ const comment = formatPrComment({
 expect("comment has block", comment.includes(LABELS_BLOCK_START) && comment.includes("#### Labels"));
 expect("comment block before maintainer section", comment.indexOf("#### Labels") < comment.indexOf("#### What a maintainer"));
 expect("comment refreshable", replaceLabelsBlock(comment, pendingBlock)?.includes("still running") === true);
+
+// --- label appearance (GitHub hover text and colors) -----------------------
+const HEX = /^[0-9a-f]{6}$/;
+const namesSeen = new Set<string>();
+for (const def of ALL_AUTO_LABELS) {
+  expect(`${def.name} prefix`, def.name.startsWith(AUTO_LABEL_PREFIX));
+  expect(`${def.name} unique`, !namesSeen.has(def.name.toLowerCase()));
+  namesSeen.add(def.name.toLowerCase());
+  expect(`${def.name} color`, HEX.test(def.color), def.color);
+  expect(`${def.name} description length`, def.description.length > 0 && def.description.length <= 100, def.description.length);
+}
+expect("triage label name", TRIAGE_LABEL_DEF.name === TRIAGE_LABEL);
+expect("triage prefix", TRIAGE_LABEL.startsWith(AUTO_LABEL_PREFIX));
+expect("triage unique vs auto labels", !namesSeen.has(TRIAGE_LABEL.toLowerCase()));
+expect("triage color", HEX.test(TRIAGE_LABEL_DEF.color), TRIAGE_LABEL_DEF.color);
+expect("triage description length", TRIAGE_LABEL_DEF.description.length > 0 && TRIAGE_LABEL_DEF.description.length <= 100, TRIAGE_LABEL_DEF.description.length);
+expect("size XS not green-ready", AUTO_LABELS.sizeXS.color !== "c2e0c6" && AUTO_LABELS.sizeXS.color === "fff5b1");
+expect("size XL not failure-red", AUTO_LABELS.sizeXL.color !== "e11d21" && AUTO_LABELS.sizeXL.color === "9a3412");
 
 if (failed) {
   console.error(`${failed} of ${ran} auto-label check(s) failed`);

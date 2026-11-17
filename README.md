@@ -51,17 +51,35 @@ The PR summary is written for the maintainer first:
 - up to three next steps for the contributor (never the fix itself)
 - the full score in a collapsed `<details>` block, plus a link to the PR on the FirstPR review page
 
-It also sets `firstpr/` labels, each backed by a fact GitHub reports, with a "Labels" section in the comment that says why:
+#### PR labels
 
-| Label | When |
-| --- | --- |
-| `firstpr/size: XS` `S` `M` `L` `XL` | Lines added + deleted, not counting lockfiles, `vendor/`, `node_modules/` or generated files (`*.min.js`, `*.map`, `*.pb.go`, ...): under 10, under 30, under 100, under 500, 500+ |
-| `firstpr/docs only`, `tests only`, `ci only`, `deps only` | Every changed file is docs (`*.md`, `*.rst`, `docs/`), tests, under `.github/workflows/`, or package manifests plus at least one lockfile |
-| `firstpr/linked issue`, `no linked issue` | GitHub's own closing-issue link for the PR (not a text match) |
-| `firstpr/checks passing`, `checks failing` | Every check run and status on the latest commit has finished; pending means no label |
-| `firstpr/first-time contributor` | GitHub's author association is `FIRST_TIME_CONTRIBUTOR` or `FIRST_TIMER` |
+FirstPRbot also sets `firstpr/` labels from facts GitHub reports. Hover a label for a short description. The bot comment has a Labels section that says why each one was applied.
 
-If a fact is missing or unclear (a truncated file list, checks still running, a PR to a non-default branch), the label is left off and the comment says so. FirstPRbot only touches `firstpr/` labels it added itself: a label a maintainer added or removed stays that way. Check labels refresh when checks finish if the App gets **Checks: read** and the **Check suite** and **Status** events; otherwise on the next push or `/firstpr recheck`. Try `node --env-file=.env scripts/verify-auto-labels-live.ts owner/repo#123` to see the labels for a real PR without writing anything.
+Green means ready, red means something needs attention, yellow and orange show how large the change is (light to dark), and blue or purple is informational.
+
+Size is lines added plus deleted. Lockfiles, `vendor/`, `node_modules/`, and generated files (for example `*.min.js`, `*.map`, `*.pb.go`) are left out of that count.
+
+| Label | Meaning | What to do |
+| --- | --- | --- |
+| `firstpr/size: XS` | Fewer than 10 lines changed | No action needed. This is a small change. |
+| `firstpr/size: S` | 10 to 29 lines changed | No action needed. |
+| `firstpr/size: M` | 30 to 99 lines changed | No action needed. |
+| `firstpr/size: L` | 100 to 499 lines changed | Review may take longer. Split the PR if you can, or say why it has to be this large. |
+| `firstpr/size: XL` | 500 or more lines changed | Review will likely take longer. Split the PR if you can, or say why it has to be this large. |
+| `firstpr/docs only` | Every changed file is Markdown, reStructuredText, AsciiDoc, or under `docs/` | No action needed. Reviewers can treat this as a docs change. |
+| `firstpr/tests only` | Every changed file is a test file or is under a test folder | No action needed. Reviewers can treat this as a test-only change. |
+| `firstpr/deps only` | Only package manifests and lockfiles changed, including at least one lockfile | No action needed. Check that the lockfile matches the manifest change. |
+| `firstpr/ci only` | Every changed file is under `.github/workflows/` | No action needed. Reviewers can treat this as a workflow-only change. |
+| `firstpr/linked issue` | GitHub will close a linked issue when this PR merges | No action needed. |
+| `firstpr/no linked issue` | GitHub shows no issue this PR will close | Add `Fixes #N` (your issue number) to the PR description. If there is no issue yet, open one first. |
+| `firstpr/checks passing` | Every finished check and status on the latest commit passed (skipped and neutral count as passed) | No action needed. |
+| `firstpr/checks failing` | A finished check or status on the latest commit failed, timed out, or errored | Open the Checks tab, fix the failure, and push again. |
+| `firstpr/first-time contributor` | GitHub marks the author as a first-time contributor to this repo, or as new to GitHub | No action needed from the author. A heads-up for maintainers. |
+| `firstpr/needs-review` | On a first-time PR, the same title appeared in several other repos, and the account is new or the PR template was not used | Maintainers: read the "Worth a closer look" note in the bot comment. Contributors do not need to remove this label. |
+
+The size, area, linked-issue, checks, and first-time labels are applied whenever those facts are clear. `firstpr/needs-review` is separate: it is added at most once, and only when those triage facts are strong. After a maintainer removes it, it stays off.
+
+If a fact is missing or unclear (a truncated file list, checks still running, a PR to a non-default branch), that label is left off and the comment says so. FirstPRbot only touches `firstpr/` labels it added itself: a label a maintainer added or removed stays that way. Check labels refresh when checks finish if the App gets **Checks: read** and the **Check suite** and **Status** events; otherwise on the next push or `/firstpr recheck`. Try `node --env-file=.env scripts/verify-auto-labels-live.ts owner/repo#123` to see the labels for a real PR without writing anything.
 
 Older score cards from before this format are collapsed as outdated. Try `node scripts/verify-bot-comment.ts out/` to render three sample comments.
 
@@ -74,6 +92,8 @@ enabled: true              # false stops FirstPRbot commenting on this repo
 minimize_old: true         # collapse score cards from the old multi-comment format
 require_linked_issue: true # false: a PR without "Fixes #N" can still be "Ready for review"
 auto_labels: true          # false, or pick groups: size, area, linked_issue, checks, first_time
+triage: true               # "Worth a closer look" note on first-time PRs
+triage_label: true         # add firstpr/needs-review when those facts are strong
 labels:                    # off unless you name a label
   first_timer: first-timer # added to PRs from first-time contributors
   needs_issue: needs-issue # added while no issue is linked, removed once one is
