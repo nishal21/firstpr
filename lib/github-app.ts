@@ -13,7 +13,7 @@ import {
   formatLabelsBlock,
   replaceLabelsBlock,
 } from "@/lib/auto-labels";
-import { loadClosing, loadLabelFacts, syncAutoLabels } from "@/lib/auto-labels-github";
+import { ensureLabel, loadClosing, loadLabelFacts, syncAutoLabels } from "@/lib/auto-labels-github";
 import { readBotReliabilityQuick, recordBotRun } from "@/lib/bot-runs";
 import { explainIssueCached } from "@/lib/explain";
 import { getEnv } from "@/lib/env";
@@ -30,6 +30,7 @@ import { runwareConfigured } from "@/lib/runware";
 import {
   MASS_WINDOW_DAYS,
   TRIAGE_LABEL,
+  TRIAGE_LABEL_DEF,
   TRIAGE_LABELED_MARKER,
   askTriageModel,
   assistantPhraseIn,
@@ -440,6 +441,7 @@ async function runTriage(
   let labeled = wasLabeled;
   if (result.label && ctx.allowLabel && !wasLabeled) {
     try {
+      await ensureLabel(octokit, owner, repo, TRIAGE_LABEL_DEF);
       await octokit.rest.issues.addLabels({ owner, repo, issue_number: number, labels: [TRIAGE_LABEL] });
       labeled = true;
     } catch (err) {

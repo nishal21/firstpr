@@ -4,9 +4,9 @@
  */
 import type { Octokit } from "@octokit/rest";
 import {
-  autoLabelDef,
   isAutoLabelName,
   planLabelSync,
+  type AutoLabelDef,
   type AutoLabelResult,
   type ChecksFact,
   type ClosingFact,
@@ -163,6 +163,36 @@ export async function loadLabelEvents(
 }
 
 /**
+ * Create a label, or if it already exists, update its color and description
+ * so hover text and colors stay in line with the code.
+ */
+export async function ensureLabel(
+  kit: Kit,
+  owner: string,
+  repo: string,
+  def: Pick<AutoLabelDef, "name" | "color" | "description">,
+): Promise<void> {
+  try {
+    await kit.rest.issues.createLabel({
+      owner,
+      repo,
+      name: def.name,
+      color: def.color,
+      description: def.description,
+    });
+  } catch (err) {
+    if (httpStatus(err) !== 422) throw err; // 422: it already exists
+    await kit.rest.issues.updateLabel({
+      owner,
+      repo,
+      name: def.name,
+      color: def.color,
+      description: def.description,
+    });
+  }
+}
+
+/**
  * Bring the PR's `firstpr/` labels in line with the facts. Never throws;
  * any GitHub refusal becomes `{ status: "failed" }`.
  */
@@ -180,13 +210,10 @@ export async function syncAutoLabels(
       desired: result.labels.map((l) => l.def.name),
       events,
     });
-    for (const name of plan.add) {
-      const def = autoLabelDef(name)!;
-      try {
-        await kit.rest.issues.createLabel({ owner, repo, name: def.name, color: def.color, description: def.description });
-      } catch (err) {
-        if (httpStatus(err) !== 422) throw err; // 422: it already exists
-      }
+    // Refresh color and hover text for every desired label, including ones
+    // already on the PR, so a later recheck can update existing repo labels.
+    for (const { def } of result.labels) {
+      await ensureLabel(kit, owner, repo, def);
     }
     if (plan.add.length > 0) {
       await kit.rest.issues.addLabels({ owner, repo, issue_number: number, labels: plan.add });

@@ -16,6 +16,11 @@ export const HUGE_ADDITIONS = 2000;
 export const HUGE_FILES = 50;
 export const SHOW_SCORE = 4;
 export const TRIAGE_LABEL = "firstpr/needs-review";
+export const TRIAGE_LABEL_DEF = {
+  name: TRIAGE_LABEL,
+  color: "9a6700",
+  description: "Worth a closer look: same title in several repos, plus a new account or unused PR template",
+} as const;
 export const TRIAGE_MAX_INPUT_CHARS = 10_000;
 
 const LOCKFILE_RE =
