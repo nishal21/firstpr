@@ -263,7 +263,7 @@ function Oss({ title }: { title: string }) {
       <h2 className="font-spray text-3xl text-foreground sm:text-4xl">{title}</h2>
       <div className="ink-card mt-4 p-5 text-sm leading-relaxed text-[var(--ink-soft)]">
         <p>
-          The source is AGPL-3.0. Copyright 2026 Nishal K and Anan Shaji (NKcodex / DuoMatter). A separate commercial license is offered by contacting nishal@nishal.dev. That commercial text is not in this repository.
+          The source is AGPL-3.0. Copyright 2026 Nishal K and Anan Shaji (NKcodex / DuoMatter). FirstPR is free, with no paid tier. If you host your own copy, keep the “Based on FirstPR by Nishal K” credit visible and publish your source under the AGPL. The NOTICE file in the repo has the full terms.
         </p>
         <p className="mt-3">
           This version does not connect to Postgres or Neon. Server cache is memory inside the Node process and expires after about ten minutes. Self-hosting means Node, the env keys in <span className="font-plex">.env.example</span>, and a public URL if you run FirstPRbot.

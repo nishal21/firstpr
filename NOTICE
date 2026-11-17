@@ -1,0 +1,41 @@
+FirstPR
+Copyright (C) 2026 Nishal K and Anan Shaji
+
+FirstPR is free software: you can redistribute it and/or modify it under
+the terms of the GNU Affero General Public License as published by the
+Free Software Foundation, either version 3 of the License, or (at your
+option) any later version. The full license text is in the LICENSE file.
+
+FirstPR is offered only under the GNU AGPL. There is no paid tier and no
+separate commercial license.
+
+
+Additional terms under section 7(b) of the GNU AGPL
+---------------------------------------------------
+
+If you convey FirstPR or a work based on it (a fork, a modified version,
+or code taken from it), or you run it so that users interact with it
+over a network (for example by hosting it as a website or GitHub App),
+you must:
+
+1. Keep this author attribution, unchanged:
+
+       Based on FirstPR by Nishal K (github.com/nishal21/firstpr)
+
+   It must be visible to users in the interface of any hosted or
+   distributed version (for example in the site footer or on an about
+   or credits page), and it must appear in the README or equivalent
+   documentation that comes with the source.
+
+2. Keep this NOTICE file and the LICENSE file with the source code, and
+   keep the work under the GNU AGPL.
+
+
+Hosted modified versions must publish their source
+--------------------------------------------------
+
+Under section 13 of the GNU AGPL, if you modify FirstPR and let users
+interact with your version over a network, you must offer all of those
+users the complete corresponding source code of your version, under the
+GNU AGPL, for example through a visible link to a public repository.
+Keeping your changes private while hosting them is not allowed.

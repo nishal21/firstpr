@@ -57,7 +57,7 @@ export default function TermsPage() {
       </LegalSection>
       <LegalSection id="license" title="Software license">
         <p>
-          The source code is AGPL-3.0, copyright 2026 Nishal K and Anan Shaji (NKcodex / DuoMatter). These site terms do not replace that license. A separate commercial license, for use without AGPL source-disclosure duties, is not included in the repository. Ask nishal@nishal.dev. The README states that offer. These terms do not grant that commercial license by themselves.
+          The source code is AGPL-3.0, copyright 2026 Nishal K and Anan Shaji (NKcodex / DuoMatter). These site terms do not replace that license. FirstPR is offered only under the AGPL, with no paid tier and no separate commercial license. The NOTICE file in the repository adds terms under AGPL section 7(b): copies and hosted versions must keep the credit “Based on FirstPR by Nishal K (github.com/nishal21/firstpr)” visible, and anyone who hosts a modified version must publish its source under the AGPL.
         </p>
       </LegalSection>
       <LegalSection id="warranty" title="No warranty">

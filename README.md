@@ -242,4 +242,12 @@ We wrote the code with AI coding help in Cursor. We reviewed, tested, and debugg
 
 ## License
 
-Dual-licensed under the [GNU Affero General Public License v3.0 (AGPL-3.0)](./LICENSE) (OSI-approved open-source license) and a separate Commercial License for proprietary, internal, or hosted commercial deployments without AGPLv3 source-disclosure obligations. Copyright (c) 2026 Nishal K and Anan Shaji (NKcodex / DuoMatter). For commercial licensing inquiries, contact `nishal@nishal.dev`.
+FirstPR is free software under the [GNU Affero General Public License v3.0](./LICENSE) (AGPL-3.0-or-later, OSI-approved). Copyright (c) 2026 Nishal K and Anan Shaji. FirstPR is non-profit: there is no paid tier and no separate commercial license.
+
+### Credit and source when you reuse FirstPR
+
+These are additional terms under section 7(b) of the AGPL. The full text is in [NOTICE](./NOTICE).
+
+- If you share, fork, or host FirstPR or a modified version, keep this credit visible to users (for example in the footer) and in your README: **Based on FirstPR by Nishal K (github.com/nishal21/firstpr)**
+- Keep the LICENSE and NOTICE files with the source, and keep the code under the AGPL.
+- If you host a modified version that people use over a network, you must publish your full source code under the AGPL and link to it from your site (AGPL section 13).

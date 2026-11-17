@@ -1,5 +1,4 @@
 import {
-  CONTACT_EMAIL,
   FAQ,
   FEATURES,
   LICENSE,
@@ -47,7 +46,7 @@ export function llmsTxt(): string {
     "## About",
     "",
     `- Made by ${MAKERS.join(" and ")} (${ORG_NAME}, ${ORG_URL}).`,
-    `- License: ${LICENSE}. A separate commercial license is available from ${CONTACT_EMAIL}.`,
+    `- License: ${LICENSE}. Free and non-profit, with no paid tier. Reuse must keep the credit "Based on FirstPR by Nishal K (github.com/nishal21/firstpr)" (see NOTICE).`,
     "- No login. Only public GitHub repositories are read.",
     "- FirstPR does not write code, commit, or open pull requests for you.",
     "",
